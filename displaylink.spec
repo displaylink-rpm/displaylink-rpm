@@ -6,7 +6,11 @@ Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 Group:		User Interface/X Hardware Support
 License:	GPL v2.0, LGPL v2.1 and others
 URL:		http://www.nothen.com.ar
-Source0:	displaylink-1.0.138.txz
+# From http://www.displaylink.com/downloads/ubuntu.php
+Source0:	DisplayLink-Ubuntu-1.0.138.zip
+Source1:	displaylink.service
+Source2:	99-displaylink.rules
+ExclusiveArch:	i386 x86_64
 
 Requires:	dkms, kernel > 3.14, kernel-devel > 3.14
 
@@ -16,11 +20,46 @@ This package installs the DisplayLink "Plug and Display" module for various HDMI
 %define logfile /var/log/displaylink/%{name}.log
 
 %prep
+%setup -c %{name}-%{version} -T
+
+unzip %{SOURCE0}
+chmod +x displaylink-driver-%{version}.run
+./displaylink-driver-%{version}.run --noexec --keep
+# This creates a displaylink-driver-$version subdirectory
 
 %build
 
 %install
-tar -xJpvf %{SOURCE0} -C $RPM_BUILD_ROOT
+
+cd displaylink-driver-%{version}
+mkdir -p $RPM_BUILD_ROOT/usr/libexec/displaylink/	\
+	$RPM_BUILD_ROOT/usr/src/evdi-%{version}/	\
+	$RPM_BUILD_ROOT/usr/lib/systemd/system/		\
+	$RPM_BUILD_ROOT/etc/udev/rules.d/		\
+	$RPM_BUILD_ROOT/var/log/displaylink/
+
+# Binaries
+# Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
+
+%ifarch x86_64
+cp -a x64/DisplayLinkManager x64/libevdi.so $RPM_BUILD_ROOT/usr/libexec/displaylink/
+%endif
+
+%ifarch %ix86
+cp -a x86/DisplayLinkManager x86/libevdi.so $RPM_BUILD_ROOT/usr/libexec/displaylink/
+%endif
+
+# Firmwares
+cp -a ella-dock-release.spkg firefly-monitor-release.spkg $RPM_BUILD_ROOT/usr/libexec/displaylink/
+
+# Kernel driver sources
+pushd $RPM_BUILD_ROOT/usr/src/evdi-%{version} ; \
+tar xvzf $OLDPWD/evdi-1.0.138-src.tar.gz ; \
+popd
+
+# systemd/udev
+cp -a %{SOURCE1} $RPM_BUILD_ROOT/usr/lib/systemd/system/
+cp -a %{SOURCE2} $RPM_BUILD_ROOT/etc/udev/rules.d/
 
 %post
 /usr/bin/systemctl daemon-reload
@@ -30,12 +69,13 @@ for kernel in $(rpm -q kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}\n') ;
 done
 
 %files
-/etc/systemd/system/displaylink.service
+%doc LICENSE
+/usr/lib/systemd/system/displaylink.service
 /etc/udev/rules.d/99-displaylink.rules
-%dir /usr/src/evdi-1.0.138
-/usr/src/evdi-1.0.138/*
-%dir /usr/lib/displaylink
-/usr/lib/displaylink/*
+%dir /usr/src/evdi-%{version}
+/usr/src/evdi-%{version}/*
+%dir /usr/libexec/displaylink
+/usr/libexec/displaylink/*
 %dir /var/log/displaylink/
 
 %preun
