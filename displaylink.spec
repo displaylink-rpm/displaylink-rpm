@@ -7,7 +7,7 @@ Group:		User Interface/X Hardware Support
 License:	GPL v2.0, LGPL v2.1 and others
 URL:		http://www.nothen.com.ar
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source0:	DisplayLink-Ubuntu-1.0.138.zip
+Source0:	http://downloads.displaylink.com/publicsoftware/DisplayLink-Ubuntu-%{version}.zip
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
 ExclusiveArch:	i386 x86_64
