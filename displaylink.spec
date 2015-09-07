@@ -9,8 +9,6 @@ URL:		http://www.nothen.com.ar
 Source0:	displaylink-1.0.138.txz
 
 Requires:	dkms, kernel > 3.14, kernel-devel > 3.14
-Packager:	Eric Nothen
-
 
 %description
 This package installs the DisplayLink "Plug and Display" module for various HDMI/VGA adapters, including Dell's 4-in-1 (DA100). Based on DisplayLink's officially supported Ubuntu driver, and repackaged for Fedora/CentOS/RHEL distros. Module is added to DKMS so that it's recompiled on future kernel updates.
