@@ -1,3 +1,5 @@
+%global debug_package %{nil}
+
 Name:		displaylink
 Version:	1.0.138
 Release:	3
