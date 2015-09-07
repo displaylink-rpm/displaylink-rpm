@@ -1,6 +1,6 @@
 Name:		displaylink
 Version:	1.0.138
-Release:	2
+Release:	3
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -88,6 +88,11 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Mon Sep 07 2015 Bastien Nocera <bnocera@redhat.com> 1.0.138-3
+- Create RPM directly from downloaded zip file
+- Add LICENSE
+- Create i386 RPM
+
 * Sun Sep 6  2015 Eric Nothen <enothen@gmail.com> - 1.0.138-2
 - Modified installed kernels detection section to be more precise
 
