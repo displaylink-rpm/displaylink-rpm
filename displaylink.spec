@@ -52,9 +52,12 @@ fi
 %changelog
 * Sun Sep 6  2015 Eric Nothen <enothen@gmail.com> - 1.0.138-2
 - Modified installed kernels detection section to be more precise
+
 * Wed Sep 2  2015 Eric Nothen <enothen@gmail.com> - 1.0.138-1
 - Updated driver to version 1.0.138, as published by DisplayLink
+
 * Wed Aug 19 2015 Eric Nothen <enothen@gmail.com> - 1.0.68-2
 - Changed udev rule to detect devices based on vendor rather than model
+
 * Thu Aug 13 2015 Eric Nothen <enothen@gmail.com> - 1.0.68-1
 - Initial package based on module version 1.0.68 available at http://www.displaylink.com/downloads/ubuntu.php
