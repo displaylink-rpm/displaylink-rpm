@@ -1,15 +1,15 @@
 %global debug_package %{nil}
 
 Name:		displaylink
-Version:	1.0.138
-Release:	4
+Version:	1.0.335
+Release:	1
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
 License:	GPL v2.0, LGPL v2.1 and others
 URL:		http://www.nothen.com.ar
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source0:	http://downloads.displaylink.com/publicsoftware/DisplayLink-Ubuntu-%{version}.zip
+Source0:	http://downloads.displaylink.com/publicsoftware/DisplayLink_Ubuntu_%{version}.zip
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
 ExclusiveArch:	i386 x86_64
@@ -56,7 +56,7 @@ cp -a ella-dock-release.spkg firefly-monitor-release.spkg $RPM_BUILD_ROOT/usr/li
 
 # Kernel driver sources
 pushd $RPM_BUILD_ROOT/usr/src/evdi-%{version} ; \
-tar xvzf $OLDPWD/evdi-1.0.138-src.tar.gz ; \
+tar xvzf $OLDPWD/evdi-%{version}-src.tar.gz ; \
 popd
 
 # systemd/udev
@@ -90,6 +90,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Mon Dec 14 2015 Bastien Nocera <bnocera@redhat.com> 1.0.335-1
+- Update to 1.0.335
+
 * Mon Sep 07 2015 Bastien Nocera <bnocera@redhat.com> 1.0.138-4
 - Disable debuginfo subpackage creation
 
