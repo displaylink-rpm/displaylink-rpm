@@ -1,17 +1,22 @@
 %global debug_package %{nil}
+%define daemon_version 1.0.335
 
 Name:		displaylink
-Version:	1.0.335
+Version:	1.0.453
 Release:	1
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
 License:	GPL v2.0, LGPL v2.1 and others
-URL:		http://www.nothen.com.ar
-# From http://www.displaylink.com/downloads/ubuntu.php
-Source0:	http://downloads.displaylink.com/publicsoftware/DisplayLink_Ubuntu_%{version}.zip
+Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
+# Generated with
+# git format-patch --stdout v1.0.453...
+# With some CRLF fixes
+Patch0:		upstream-evdi-fixes.patch
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
+# From http://www.displaylink.com/downloads/ubuntu.php
+Source3:	http://downloads.displaylink.com/publicsoftware/DisplayLink_Ubuntu_%{daemon_version}.zip
 ExclusiveArch:	i386 x86_64
 
 Requires:	dkms, kernel > 3.14, kernel-devel > 3.14
@@ -22,42 +27,52 @@ This package installs the DisplayLink "Plug and Display" module for various HDMI
 %define logfile /var/log/displaylink/%{name}.log
 
 %prep
-%setup -c %{name}-%{version} -T
+%setup -c evdi-%{version}
+cd evdi-%{version}
+sed -i 's/\r//' README.md
+%patch0 -p1
 
-unzip %{SOURCE0}
-chmod +x displaylink-driver-%{version}.run
-./displaylink-driver-%{version}.run --noexec --keep
+unzip %{SOURCE3}
+chmod +x displaylink-driver-%{daemon_version}.run
+./displaylink-driver-%{daemon_version}.run --noexec --keep
 # This creates a displaylink-driver-$version subdirectory
 
 %build
 
+cd evdi-%{version}/library/
+make %{?_smp_mflags}
+
 %install
 
-cd displaylink-driver-%{version}
 mkdir -p $RPM_BUILD_ROOT/usr/libexec/displaylink/	\
 	$RPM_BUILD_ROOT/usr/src/evdi-%{version}/	\
 	$RPM_BUILD_ROOT/usr/lib/systemd/system/		\
 	$RPM_BUILD_ROOT/etc/udev/rules.d/		\
 	$RPM_BUILD_ROOT/var/log/displaylink/
 
+# Kernel driver sources
+pushd $RPM_BUILD_ROOT/usr/src/evdi-%{version} ; \
+cp -a $OLDPWD/evdi-%{version}/module/* . ; \
+popd
+
 # Binaries
 # Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
+# Don't copy libevdi.so, we compiled it from source
+
+cd evdi-%{version}/displaylink-driver-%{daemon_version}
+
+cp LICENSE ../..
 
 %ifarch x86_64
-cp -a x64/DisplayLinkManager x64/libevdi.so $RPM_BUILD_ROOT/usr/libexec/displaylink/
+cp -a x64/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
 %endif
 
 %ifarch %ix86
-cp -a x86/DisplayLinkManager x86/libevdi.so $RPM_BUILD_ROOT/usr/libexec/displaylink/
+cp -a x86/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
 %endif
 
 # Firmwares
 cp -a ella-dock-release.spkg firefly-monitor-release.spkg $RPM_BUILD_ROOT/usr/libexec/displaylink/
-
-# Kernel driver sources
-pushd $RPM_BUILD_ROOT/usr/src/evdi-%{version} ; \
-tar xvzf $OLDPWD/evdi-%{version}-src.tar.gz ; \
-popd
 
 # systemd/udev
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/usr/lib/systemd/system/
@@ -90,6 +105,10 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Thu Apr 28 2016 Bastien Nocera <bnocera@redhat.com> 1.0.453-1
+- Update to 1.0.453
+- Compile the library from source
+
 * Mon Dec 14 2015 Bastien Nocera <bnocera@redhat.com> 1.0.335-1
 - Update to 1.0.335
 
