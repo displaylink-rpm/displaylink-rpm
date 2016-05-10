@@ -2,17 +2,13 @@
 %define daemon_version 1.0.335
 
 Name:		displaylink
-Version:	1.0.453
+Version:	1.1.61
 Release:	1
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
 License:	GPL v2.0, LGPL v2.1 and Proprietary
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
-# Generated with
-# git format-patch --stdout v1.0.453...
-# With some CRLF fixes
-Patch0:		upstream-evdi-fixes.patch
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
 # From http://www.displaylink.com/downloads/ubuntu.php
@@ -30,7 +26,6 @@ This package installs the DisplayLink "Plug and Display" module for various HDMI
 %setup -c evdi-%{version}
 cd evdi-%{version}
 sed -i 's/\r//' README.md
-%patch0 -p1
 
 unzip %{SOURCE3}
 chmod +x displaylink-driver-%{daemon_version}.run
@@ -105,6 +100,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue May 10 2016 Bastien Nocera <bnocera@redhat.com> 1.1.61-1
+- Update to 1.1.61
+
 * Thu Apr 28 2016 Bastien Nocera <bnocera@redhat.com> 1.0.453-1
 - Update to 1.0.453
 - Compile the library from source
