@@ -1,9 +1,9 @@
 %global debug_package %{nil}
-%define daemon_version 1.0.335
+%define daemon_version 1.1.62
 
 Name:		displaylink
 Version:	1.1.65
-Release:	1
+Release:	2
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -12,7 +12,7 @@ Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source3:	http://downloads.displaylink.com/publicsoftware/DisplayLink_Ubuntu_%{daemon_version}.zip
+Source3:	DisplayLink USB Graphics Software for Ubuntu 1.1.68.zip
 ExclusiveArch:	i386 x86_64
 
 Requires:	dkms, kernel > 3.14, kernel-devel > 3.14
@@ -27,7 +27,7 @@ This package installs the DisplayLink "Plug and Display" module for various HDMI
 cd evdi-%{version}
 sed -i 's/\r//' README.md
 
-unzip %{SOURCE3}
+unzip "%{SOURCE3}"
 chmod +x displaylink-driver-%{daemon_version}.run
 ./displaylink-driver-%{daemon_version}.run --noexec --keep
 # This creates a displaylink-driver-$version subdirectory
@@ -100,6 +100,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue May 17 2016 Bastien Nocera <bnocera@redhat.com> 1.1.65-2
+- Update to daemon 1.1.62 (with a zip file called 1.1.68, sigh)
+
 * Tue May 17 2016 Bastien Nocera <bnocera@redhat.com> 1.1.65-1
 - Update to 1.1.65
 
