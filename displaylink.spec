@@ -2,7 +2,7 @@
 %define daemon_version 1.0.335
 
 Name:		displaylink
-Version:	1.1.61
+Version:	1.1.65
 Release:	1
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
@@ -100,6 +100,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue May 17 2016 Bastien Nocera <bnocera@redhat.com> 1.1.65-1
+- Update to 1.1.65
+
 * Tue May 10 2016 Bastien Nocera <bnocera@redhat.com> 1.1.61-1
 - Update to 1.1.61
 
