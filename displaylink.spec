@@ -3,7 +3,7 @@
 
 Name:		displaylink
 Version:	1.1.65
-Release:	2
+Release:	3
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -15,6 +15,7 @@ Source2:	99-displaylink.rules
 Source3:	DisplayLink USB Graphics Software for Ubuntu 1.1.68.zip
 ExclusiveArch:	i386 x86_64
 
+BuildRequires:	libdrm-devel
 Requires:	dkms, kernel > 3.14, kernel-devel > 3.14
 
 %description
@@ -100,6 +101,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Sun May 22 2016 Bastien Nocera <bnocera@redhat.com> 1.1.65-3
+- Add missing libdrm-devel BR
+
 * Tue May 17 2016 Bastien Nocera <bnocera@redhat.com> 1.1.65-2
 - Update to daemon 1.1.62 (with a zip file called 1.1.68, sigh)
 
