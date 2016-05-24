@@ -3,7 +3,7 @@
 
 Name:		displaylink
 Version:	1.1.65
-Release:	3
+Release:	4
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -50,6 +50,9 @@ mkdir -p $RPM_BUILD_ROOT/usr/libexec/displaylink/	\
 pushd $RPM_BUILD_ROOT/usr/src/evdi-%{version} ; \
 cp -a $OLDPWD/evdi-%{version}/module/* . ; \
 popd
+
+# Library
+cp evdi-%{version}/library/libevdi.so $RPM_BUILD_ROOT/usr/libexec/displaylink
 
 # Binaries
 # Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
@@ -101,6 +104,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue May 24 2016 Bastien Nocera <bnocera@redhat.com> 1.1.65-4
+- Really copy the libevdi.so from the sources
+
 * Sun May 22 2016 Bastien Nocera <bnocera@redhat.com> 1.1.65-3
 - Add missing libdrm-devel BR
 
