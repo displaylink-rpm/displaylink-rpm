@@ -1,2 +1,2 @@
-ACTION=="add", SUBSYSTEM=="usb", ENV{ID_VENDOR}=="DisplayLink", MODE="0660", RUN+="/bin/systemctl start displaylink.service"
+ACTION=="add", SUBSYSTEM=="usb", ENV{ID_VENDOR}=="DisplayLink", MODE="0660", TAG+="systemd", ENV{SYSTEMD_WANTS}+="displaylink.service"
 ACTION=="remove", SUBSYSTEM=="usb", ENV{ID_VENDOR}=="DisplayLink", RUN+="/bin/systemctl stop displaylink.service"
