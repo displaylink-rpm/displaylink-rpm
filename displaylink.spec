@@ -19,7 +19,9 @@ BuildRequires:	libdrm-devel
 Requires:	dkms, kernel > 3.14, kernel-devel > 3.14
 
 %description
-This package installs the DisplayLink "Plug and Display" module for various HDMI/VGA adapters, including Dell's 4-in-1 (DA100). Based on DisplayLink's officially supported Ubuntu driver, and repackaged for Fedora/CentOS/RHEL distros. Module is added to DKMS so that it's recompiled on future kernel updates.
+This adds support for HDMI/VGA adapters built upon the DisplayLink DL-5xxx,
+DL-41xx and DL-3xxx series of chipsets. This includes numerous docking
+stations, USB monitors, and USB adapters.
 
 %define logfile /var/log/displaylink/%{name}.log
 
