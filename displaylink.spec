@@ -3,7 +3,7 @@
 
 Name:		displaylink
 Version:	1.1.65
-Release:	4
+Release:	5
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -11,8 +11,9 @@ License:	GPL v2.0, LGPL v2.1 and Proprietary
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
+Source3:        displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source3:	DisplayLink USB Graphics Software for Ubuntu 1.1.68.zip
+Source4:	DisplayLink USB Graphics Software for Ubuntu 1.1.68.zip
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
@@ -30,7 +31,7 @@ stations, USB monitors, and USB adapters.
 cd evdi-%{version}
 sed -i 's/\r//' README.md
 
-unzip "%{SOURCE3}"
+unzip "%{SOURCE4}"
 chmod +x displaylink-driver-%{daemon_version}.run
 ./displaylink-driver-%{daemon_version}.run --noexec --keep
 # This creates a displaylink-driver-$version subdirectory
@@ -45,6 +46,7 @@ make %{?_smp_mflags}
 mkdir -p $RPM_BUILD_ROOT/usr/libexec/displaylink/	\
 	$RPM_BUILD_ROOT/usr/src/evdi-%{version}/	\
 	$RPM_BUILD_ROOT/usr/lib/systemd/system/		\
+	$RPM_BUILD_ROOT/usr/lib/systemd/system-sleep	\
 	$RPM_BUILD_ROOT/etc/udev/rules.d/		\
 	$RPM_BUILD_ROOT/var/log/displaylink/
 
@@ -79,6 +81,10 @@ cp -a ella-dock-release.spkg firefly-monitor-release.spkg $RPM_BUILD_ROOT/usr/li
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/usr/lib/systemd/system/
 cp -a %{SOURCE2} $RPM_BUILD_ROOT/etc/udev/rules.d/
 
+# pm-util
+bash %{SOURCE3} displaylink-installer.sh > $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
+
+
 %post
 /usr/bin/systemctl daemon-reload
 /usr/bin/systemctl -q is-enabled dkms.service || /usr/bin/systemctl enable dkms.service
@@ -89,6 +95,7 @@ done
 %files
 %doc LICENSE
 /usr/lib/systemd/system/displaylink.service
+/usr/lib/systemd/system-sleep/displaylink.sh
 /etc/udev/rules.d/99-displaylink.rules
 %dir /usr/src/evdi-%{version}
 /usr/src/evdi-%{version}/*
@@ -106,6 +113,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Mon May 30 2016 Santiago Saavedra <ssaavedra@gpul.org> 1.1.65-5
+- Add systemd-sleep support
+
 * Tue May 24 2016 Bastien Nocera <bnocera@redhat.com> 1.1.65-4
 - Really copy the libevdi.so from the sources
 
