@@ -1,9 +1,9 @@
 %global debug_package %{nil}
-%define daemon_version 1.1.62
+%define daemon_version 1.2.58
 
 Name:		displaylink
-Version:	1.1.65
-Release:	5
+Version:	1.2.55
+Release:	1
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -13,11 +13,11 @@ Source1:	displaylink.service
 Source2:	99-displaylink.rules
 Source3:        displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source4:	DisplayLink USB Graphics Software for Ubuntu 1.1.68.zip
+Source4:	DisplayLink USB Graphics Software for Ubuntu 1.2.zip
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
-Requires:	dkms, kernel > 3.14, kernel-devel > 3.14
+Requires:	dkms, kernel > 4.7, kernel-devel > 4.7
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-5xxx,
@@ -67,11 +67,11 @@ cd evdi-%{version}/displaylink-driver-%{daemon_version}
 cp LICENSE ../..
 
 %ifarch x86_64
-cp -a x64/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
+cp -a x64-ubuntu-1604/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
 %endif
 
 %ifarch %ix86
-cp -a x86/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
+cp -a x86-ubuntu-1604/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
 %endif
 
 # Firmwares
@@ -113,6 +113,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Thu Sep 22 2016 Santiago Saavedra <ssaavedra@gpul.org> 1.2.55-1
+- Bump upstream version for both evdi and DisplayLink driver
+
 * Mon May 30 2016 Santiago Saavedra <ssaavedra@gpul.org> 1.1.65-5
 - Add systemd-sleep support
 
