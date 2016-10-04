@@ -3,7 +3,7 @@
 
 Name:		displaylink
 Version:	1.2.55
-Release:	1
+Release:	2
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -113,6 +113,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue Oct 04 2016 Victor Rehorst <victor@chuma.org> 1.2.55-2
+- Fix systemd-sleep support for DisplayLink driver 1.2.58 (which is now current for v1.2)
+
 * Thu Sep 22 2016 Santiago Saavedra <ssaavedra@gpul.org> 1.2.55-1
 - Bump upstream version for both evdi and DisplayLink driver
 
