@@ -1,5 +1,6 @@
 VERSION=1.2.55
 DAEMON_VERSION=1.2
+DOWNLOAD_ID=701 # This id number comes off the link on the displaylink website
 RELEASE=1
 
 .PHONY: srpm rpm
@@ -10,6 +11,9 @@ all: $(TARGETS)
 
 clean:
 	rm -f $(TARGETS) v$(VERSION).tar.gz
+
+DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip:
+	wget -O DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip http://www.displaylink.com/downloads/file?id=$(DOWNLOAD_ID)
 
 v$(VERSION).tar.gz:
 	wget -O v$(VERSION).tar.gz https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz
