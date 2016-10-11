@@ -1,6 +1,6 @@
-VERSION=1.2.55
-DAEMON_VERSION=1.2
-DOWNLOAD_ID=701 # This id number comes off the link on the displaylink website
+VERSION=1.2.64
+DAEMON_VERSION=1.2.1
+DOWNLOAD_ID=708 # This id number comes off the link on the displaylink website
 RELEASE=1
 
 .PHONY: srpm rpm

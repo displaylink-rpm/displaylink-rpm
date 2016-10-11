@@ -5,9 +5,9 @@ branches:
   - master
 env:
   global:
-    - VERSION=1.2.55
-    - DAEMON_VERSION=1.2
-    - RELEASE=2
+    - VERSION=1.2.64
+    - DAEMON_VERSION=1.2.1
+    - RELEASE=1
   matrix:
   - OS_TYPE=fedora OS_VERSION=24
   - OS_TYPE=fedora OS_VERSION=23

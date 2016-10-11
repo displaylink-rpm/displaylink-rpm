@@ -1,9 +1,9 @@
 %global debug_package %{nil}
-%define daemon_version 1.2.58
+%define daemon_version 1.2.65
 
 Name:		displaylink
-Version:	1.2.55
-Release:	2
+Version:	1.2.64
+Release:	1
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -13,7 +13,7 @@ Source1:	displaylink.service
 Source2:	99-displaylink.rules
 Source3:        displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source4:	DisplayLink USB Graphics Software for Ubuntu 1.2.zip
+Source4:	DisplayLink USB Graphics Software for Ubuntu 1.2.1.zip
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
@@ -113,6 +113,11 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue Oct 11 2016 Aaron Aichlmayr <waterfoul@gmail.com> 1.2.64
+- Bump downloaded version to 1.2.64
+- Add support for automatically downloading the .zip
+- Add travis CI support
+
 * Tue Oct 04 2016 Victor Rehorst <victor@chuma.org> 1.2.55-2
 - Fix systemd-sleep support for DisplayLink driver 1.2.58 (which is now current for v1.2)
 
