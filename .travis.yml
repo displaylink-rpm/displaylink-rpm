@@ -1,0 +1,40 @@
+language: generic
+sudo: required
+branches:
+  except:
+  - master
+env:
+  global:
+    - VERSION=1.2.55
+    - DAEMON_VERSION=1.2
+    - RELEASE=2
+  matrix:
+  - OS_TYPE=fedora OS_VERSION=24
+  - OS_TYPE=fedora OS_VERSION=23
+  - OS_TYPE=centos OS_VERSION=7
+services:
+- docker
+before_install:
+- echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"'
+  | sudo tee /etc/default/docker > /dev/null
+- sudo service docker restart
+- sleep 5
+- sudo docker pull ${OS_TYPE}:${OS_VERSION}
+script:
+- sudo docker run --rm=true -v `pwd`:/base-src:rw -t ${OS_TYPE}:${OS_VERSION} /bin/bash
+  -c /base-src/ci/${OS_TYPE}.sh
+- sudo mv displaylink-${VERSION}-${RELEASE}.src.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.src.rpm
+- sudo mv x86_64/displaylink-${VERSION}-${RELEASE}.x86_64.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.x86_64.rpm
+- sudo mv i386/displaylink-${VERSION}-${RELEASE}.i386.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.i386.rpm
+- sudo chown `id -u`:`id -g` -R .
+deploy:
+  provider: releases
+  skip_cleanup: true
+  on:
+    tags: true
+  api_key:
+    secure: faqfSs9slgmmDOquGF4qBu74gzClZ6Mr6aTn0wb8IWLQdfLXZ8kNufQU5qgMI+xOZBBAq9TAVAfpJ75MGoBkJC9xUFoA4E+i935ir/TPjy74KPoriHfg2rtKJW0P+Ma9BbG3NHs60/dIZKwMoXPR8YcTYQ6vNwckAxoHeXNfNmhoYNrLHgXEhKmPxWNFO/x4gLtA/w5bL1TR5TTHnFA7bmmHxXpIw0RH8zISYysWStOthZSyf7BBnyArM46kX1ez5gJQ/2RHHOiYp+KhzzLCDVIMDdXcCf18kxuSNiqbAkguSmhoQA53OUAuvcsBxwhm/zEBuhuhuZBGgZkArjuWIOh36bdCX1XfJLwOKiqvU3Gz99SDAHxc9VDZmTLXyUOIxu7BI8+1VSPUZT/0n9G7LUJzE3LgnuNtCcXP0LWQbt3cLyrKYVWZPtdGwQ+Q6EHM61MM5aGZBl+olHuCRMvkRWJYks88G+zWKSbwvRCwOolJNoKLvdeU2gqhia6Hfp0UHTZnvJRmvhrjNxrD5jXnL05fcr5h2g9C0uVCQAJNpC9qHRFk/WskGVrwRhlpSHME8ugawNsr5+/qzY4SZncbNoqn/iOTQE0wxNtdNNIYjofrPKsRMGErkOZzWFTzlF/2bdb2gOo2jU4QUCJwshOAv0gKJ3r1WJDaodKYXqasASA=
+  file: 
+    - ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.src.rpm
+    - ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.x86_64.rpm
+    - ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.i386.rpm
