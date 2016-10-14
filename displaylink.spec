@@ -115,8 +115,6 @@ fi
 %changelog
 * Tue Oct 11 2016 Aaron Aichlmayr <waterfoul@gmail.com> 1.2.64
 - Bump downloaded version to 1.2.64
-- Add support for automatically downloading the .zip
-- Add travis CI support
 
 * Tue Oct 04 2016 Victor Rehorst <victor@chuma.org> 1.2.55-2
 - Fix systemd-sleep support for DisplayLink driver 1.2.58 (which is now current for v1.2)
