@@ -1,8 +1,5 @@
 language: generic
 sudo: required
-branches:
-  except:
-  - master
 env:
   global:
     - VERSION=1.2.64
