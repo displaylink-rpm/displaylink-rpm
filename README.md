@@ -46,8 +46,7 @@ We manage four different upstream numbers for versioning:
 
 1. evdi kernel driver version
 2. DisplayLinkManager daemon and libraries version
-3. Advertised package version (for zip package name)
-4. Download ID number from DisplayLink (for automatic zip retrieval)
+3. Download ID number from DisplayLink (for automatic zip retrieval)
 
 These variables need to be changed in the following places:
 
