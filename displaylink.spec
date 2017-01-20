@@ -2,7 +2,7 @@
 %define daemon_version 1.2.65
 
 Name:		displaylink
-Version:	1.2.64
+Version:	1.3.43
 Release:	1
 Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
 
@@ -13,7 +13,7 @@ Source1:	displaylink.service
 Source2:	99-displaylink.rules
 Source3:        displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source4:	DisplayLink USB Graphics Software for Ubuntu 1.2.1.zip
+Source4:	DisplayLink USB Graphics Software for Ubuntu %{daemon_version}.zip
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel

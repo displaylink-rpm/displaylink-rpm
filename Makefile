@@ -1,5 +1,5 @@
-VERSION=1.2.64
-DAEMON_VERSION=1.2.1
+VERSION=1.3.43
+DAEMON_VERSION=1.2.65
 DOWNLOAD_ID=708 # This id number comes off the link on the displaylink website
 RELEASE=1
 

@@ -54,9 +54,6 @@ These variables need to be changed in the following places:
 - displaylink.spec
   - `%{daemon_version}` is the DisplayLinkManager version
   - `Version:` is currently the evdi driver version
-  - `Source4:` has to point to a valid zip name: change the advertised
-    version there
-
 - Makefile
   - `DAEMON_VERSION` is the advertised package version
   - `VERSION` is the same version as the specfile `Version:`
