@@ -12,7 +12,7 @@ Packages get automatically built by Travis CI and get uploaded to
 
 [displaylink]: http://www.displaylink.com/
 [evdi]: https://github.com/DisplayLink/evdi
-[releases]: https://github.com/ssaavedra/displaylink-rpm/releases
+[releases]: https://github.com/displaylink-rpm/displaylink-rpm/releases
 
 Usage
 =====
