@@ -3,7 +3,11 @@ DisplayLink RPM
 [![Build Status](https://travis-ci.org/displaylink-rpm/displaylink-rpm.svg?branch=master)](https://travis-ci.org/displaylink-rpm/displaylink-rpm)
 
 This is the recipe for building the [DisplayLink driver][displaylink]
-in a RPM package for Fedora and CentOS.
+in a RPM package for Fedora and CentOS. This driver supports the following
+device families:
+ - DL-5xxx
+ - DL-41xx
+ - DL-3xxx
 
 The package includes the Open Source [evdi][evdi] library.
 
