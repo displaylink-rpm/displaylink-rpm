@@ -42,7 +42,7 @@ New Upstream release
 From time to time, DisplayLink will update their driver. We try to do
 so, but for that we usually rely on pull requests.
 
-We manage four different upstream numbers for versioning:
+We manage three different upstream numbers for versioning:
 
 1. evdi kernel driver version
 2. DisplayLinkManager daemon and libraries version
