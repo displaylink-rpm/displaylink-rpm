@@ -5,6 +5,7 @@ DisplayLink RPM
 This is the recipe for building the [DisplayLink driver][displaylink]
 in a RPM package for Fedora and CentOS. This driver supports the following
 device families:
+ - DL-6xxx
  - DL-5xxx
  - DL-41xx
  - DL-3xxx

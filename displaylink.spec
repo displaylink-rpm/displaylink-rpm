@@ -1,10 +1,10 @@
 %global debug_package %{nil}
-%define daemon_version 1.2.65
+%define daemon_version 1.3.52
 
 Name:		displaylink
 Version:	1.3.43
 Release:	1
-Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
+Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
 License:	GPL v2.0, LGPL v2.1 and Proprietary
@@ -20,9 +20,9 @@ BuildRequires:	libdrm-devel
 Requires:	dkms, kernel > 4.7, kernel-devel > 4.7
 
 %description
-This adds support for HDMI/VGA adapters built upon the DisplayLink DL-5xxx,
-DL-41xx and DL-3xxx series of chipsets. This includes numerous docking
-stations, USB monitors, and USB adapters.
+This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
+DL-5xxx, DL-41xx and DL-3xxx series of chipsets. This includes numerous
+docking stations, USB monitors, and USB adapters.
 
 %define logfile /var/log/displaylink/%{name}.log
 
@@ -113,6 +113,10 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Sun Feb 19 2017 Richard Hofer <rofer@rofer.me> 1.3.52
+- Bump downloaded version to 1.3.52
+- Note support for DL-6xxx devices
+
 * Tue Oct 11 2016 Aaron Aichlmayr <waterfoul@gmail.com> 1.2.64
 - Bump downloaded version to 1.2.64
 
