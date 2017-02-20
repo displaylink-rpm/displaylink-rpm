@@ -1,7 +1,7 @@
 VERSION=1.3.43
 DAEMON_VERSION=1.3.52
 DOWNLOAD_ID=744 # This id number comes off the link on the displaylink website
-RELEASE=1
+RELEASE=2
 
 .PHONY: srpm rpm
 
@@ -26,7 +26,7 @@ i386/displaylink-$(VERSION)-$(RELEASE).i386.rpm: DisplayLink\ USB\ Graphics\ Sof
 x86_64/displaylink-$(VERSION)-$(RELEASE).x86_64.rpm: DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip v$(VERSION).tar.gz displaylink.spec
 	rpmbuild -bb --define "_topdir `pwd`" --define "_sourcedir `pwd`" --define "_rpmdir `pwd`" --define "_specdir `pwd`" --define "_srcrpmdir `pwd`" --define "_buildrootdir `mktemp -d /var/tmp/displayportXXXXXX`" --define "_builddir `mktemp -d /var/tmp/displayportXXXXXX`" --define "_tmppath `mktemp -d /var/tmp/displayportXXXXXX`" displaylink.spec --target=x86_64
 
-srpm: displaylink-$(VERSION)-$(RELEASE).src.rpm
+SRPM: displaylink-$(VERSION)-$(RELEASE).src.rpm
 
 displaylink-$(VERSION)-$(RELEASE).src.rpm: DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip v$(VERSION).tar.gz displaylink.spec
 	rpmbuild -bs --define "_topdir `pwd`" --define "_sourcedir `pwd`" --define "_rpmdir `pwd`" --define "_specdir `pwd`" --define "_srcrpmdir `pwd`" --define "_buildrootdir `mktemp -d /var/tmp/displayportXXXXXX`" --define "_builddir `mktemp -d /var/tmp/displayportXXXXXX`" --define "_tmppath `mktemp -d /var/tmp/displayportXXXXXX`" displaylink.spec
