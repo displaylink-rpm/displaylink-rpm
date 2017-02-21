@@ -55,17 +55,17 @@ We manage three different upstream numbers for versioning:
 
 These variables need to be changed in the following places:
 
-- displaylink.spec
-  - `%{daemon_version}` is the DisplayLinkManager version
-  - `Version:` is currently the evdi driver version
 - Makefile
-  - `DAEMON_VERSION` is the advertised package version
-  - `VERSION` is the same version as the specfile `Version:`
+  - `DAEMON_VERSION` is the DisplayLinkManager version
+  - `VERSION` is currently the evdi driver version
   - `DOWNLOAD_ID` is the `?download_id=` query parameter in
     DisplayLink website to download the zip
 - .travis.yml
   - `VERSION` is the same as in the Makefile
   - `DAEMON_VERSION` is the same version as in Makefile
+
+Also, please update the changelog at the bottom of the
+displaylink.spec file.
 
 
 Packaging change
