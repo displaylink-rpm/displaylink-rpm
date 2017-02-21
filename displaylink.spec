@@ -1,10 +1,9 @@
 %global debug_package %{nil}
-%define daemon_version 1.2.65
 
 Name:		displaylink
-Version:	1.3.43
-Release:	1
-Summary:	DisplayLink VGA/HDMI driver for DL-5xxx, DL-41xx and DL-3xxx adapters
+Version:	%{_version}
+Release:	%{_release}
+Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
 License:	GPL v2.0, LGPL v2.1 and Proprietary
@@ -13,16 +12,16 @@ Source1:	displaylink.service
 Source2:	99-displaylink.rules
 Source3:        displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source4:	DisplayLink USB Graphics Software for Ubuntu %{daemon_version}.zip
+Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
 Requires:	dkms, kernel > 4.7, kernel-devel > 4.7
 
 %description
-This adds support for HDMI/VGA adapters built upon the DisplayLink DL-5xxx,
-DL-41xx and DL-3xxx series of chipsets. This includes numerous docking
-stations, USB monitors, and USB adapters.
+This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
+DL-5xxx, DL-41xx and DL-3xxx series of chipsets. This includes numerous
+docking stations, USB monitors, and USB adapters.
 
 %define logfile /var/log/displaylink/%{name}.log
 
@@ -32,8 +31,8 @@ cd evdi-%{version}
 sed -i 's/\r//' README.md
 
 unzip "%{SOURCE4}"
-chmod +x displaylink-driver-%{daemon_version}.run
-./displaylink-driver-%{daemon_version}.run --noexec --keep
+chmod +x displaylink-driver-%{_daemon_version}.run
+./displaylink-driver-%{_daemon_version}.run --noexec --keep
 # This creates a displaylink-driver-$version subdirectory
 
 %build
@@ -62,7 +61,7 @@ cp evdi-%{version}/library/libevdi.so $RPM_BUILD_ROOT/usr/libexec/displaylink
 # Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
 # Don't copy libevdi.so, we compiled it from source
 
-cd evdi-%{version}/displaylink-driver-%{daemon_version}
+cd evdi-%{version}/displaylink-driver-%{_daemon_version}
 
 cp LICENSE ../..
 
@@ -113,6 +112,10 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Sun Feb 19 2017 Richard Hofer <rofer@rofer.me> 1.3.52
+- Bump downloaded version to 1.3.52
+- Note support for DL-6xxx devices
+
 * Tue Oct 11 2016 Aaron Aichlmayr <waterfoul@gmail.com> 1.2.64
 - Bump downloaded version to 1.2.64
 
