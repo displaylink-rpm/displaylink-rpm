@@ -1,9 +1,8 @@
 %global debug_package %{nil}
-%define daemon_version 1.3.52
 
 Name:		displaylink
-Version:	1.3.43
-Release:	1
+Version:	%{_version}
+Release:	%{_release}
 Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -13,7 +12,7 @@ Source1:	displaylink.service
 Source2:	99-displaylink.rules
 Source3:        displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
-Source4:	DisplayLink USB Graphics Software for Ubuntu %{daemon_version}.zip
+Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
@@ -32,8 +31,8 @@ cd evdi-%{version}
 sed -i 's/\r//' README.md
 
 unzip "%{SOURCE4}"
-chmod +x displaylink-driver-%{daemon_version}.run
-./displaylink-driver-%{daemon_version}.run --noexec --keep
+chmod +x displaylink-driver-%{_daemon_version}.run
+./displaylink-driver-%{_daemon_version}.run --noexec --keep
 # This creates a displaylink-driver-$version subdirectory
 
 %build
@@ -62,7 +61,7 @@ cp evdi-%{version}/library/libevdi.so $RPM_BUILD_ROOT/usr/libexec/displaylink
 # Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
 # Don't copy libevdi.so, we compiled it from source
 
-cd evdi-%{version}/displaylink-driver-%{daemon_version}
+cd evdi-%{version}/displaylink-driver-%{_daemon_version}
 
 cp LICENSE ../..
 
