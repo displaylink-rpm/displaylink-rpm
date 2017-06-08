@@ -112,6 +112,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Thu Jun 8 2017 Alan Halama <alhalama@gmail.com> 1.4.1
+- Update evdi version to 1.4.1
+
 * Sun Feb 19 2017 Richard Hofer <rofer@rofer.me> 1.3.52
 - Bump downloaded version to 1.3.52
 - Note support for DL-6xxx devices
