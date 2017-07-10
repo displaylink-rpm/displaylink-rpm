@@ -112,6 +112,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Sat Jul 8 2017 Alan Halama <alhalama@gmail.com> 1.3.54
+- Bump downloaded version to 1.3.54
+
 * Thu Jun 8 2017 Alan Halama <alhalama@gmail.com> 1.4.1
 - Update evdi version to 1.4.1
 
