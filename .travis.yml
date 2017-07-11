@@ -4,7 +4,7 @@ env:
   global:
     - VERSION=1.4.1
     - DAEMON_VERSION=1.3.54
-    - RELEASE=2
+    - RELEASE=3
   matrix:
   - OS_TYPE=fedora OS_VERSION=25
   - OS_TYPE=fedora OS_VERSION=24
@@ -32,7 +32,7 @@ deploy:
     tags: true
   api_key:
     secure: faqfSs9slgmmDOquGF4qBu74gzClZ6Mr6aTn0wb8IWLQdfLXZ8kNufQU5qgMI+xOZBBAq9TAVAfpJ75MGoBkJC9xUFoA4E+i935ir/TPjy74KPoriHfg2rtKJW0P+Ma9BbG3NHs60/dIZKwMoXPR8YcTYQ6vNwckAxoHeXNfNmhoYNrLHgXEhKmPxWNFO/x4gLtA/w5bL1TR5TTHnFA7bmmHxXpIw0RH8zISYysWStOthZSyf7BBnyArM46kX1ez5gJQ/2RHHOiYp+KhzzLCDVIMDdXcCf18kxuSNiqbAkguSmhoQA53OUAuvcsBxwhm/zEBuhuhuZBGgZkArjuWIOh36bdCX1XfJLwOKiqvU3Gz99SDAHxc9VDZmTLXyUOIxu7BI8+1VSPUZT/0n9G7LUJzE3LgnuNtCcXP0LWQbt3cLyrKYVWZPtdGwQ+Q6EHM61MM5aGZBl+olHuCRMvkRWJYks88G+zWKSbwvRCwOolJNoKLvdeU2gqhia6Hfp0UHTZnvJRmvhrjNxrD5jXnL05fcr5h2g9C0uVCQAJNpC9qHRFk/WskGVrwRhlpSHME8ugawNsr5+/qzY4SZncbNoqn/iOTQE0wxNtdNNIYjofrPKsRMGErkOZzWFTzlF/2bdb2gOo2jU4QUCJwshOAv0gKJ3r1WJDaodKYXqasASA=
-  file: 
+  file:
     - ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.src.rpm
     - ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.x86_64.rpm
     - ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.i386.rpm
