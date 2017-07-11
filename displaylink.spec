@@ -13,6 +13,7 @@ Source2:	99-displaylink.rules
 Source3:        displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
+Source5:    20-displaylink.conf
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
@@ -47,6 +48,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/libexec/displaylink/	\
 	$RPM_BUILD_ROOT/usr/lib/systemd/system/		\
 	$RPM_BUILD_ROOT/usr/lib/systemd/system-sleep	\
 	$RPM_BUILD_ROOT/etc/udev/rules.d/		\
+	$RPM_BUILD_ROOT/etc/X11/xorg.conf.d/		\
 	$RPM_BUILD_ROOT/var/log/displaylink/
 
 # Kernel driver sources
@@ -79,6 +81,7 @@ cp -a ella-dock-release.spkg firefly-monitor-release.spkg $RPM_BUILD_ROOT/usr/li
 # systemd/udev
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/usr/lib/systemd/system/
 cp -a %{SOURCE2} $RPM_BUILD_ROOT/etc/udev/rules.d/
+cp -a %{SOURCE5} $RPM_BUILD_ROOT/etc/X11/xorg.conf.d/
 
 # pm-util
 bash %{SOURCE3} displaylink-installer.sh > $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
@@ -96,6 +99,7 @@ done
 /usr/lib/systemd/system/displaylink.service
 /usr/lib/systemd/system-sleep/displaylink.sh
 /etc/udev/rules.d/99-displaylink.rules
+/etc/X11/xorg.conf.d/20-displaylink.conf
 %dir /usr/src/evdi-%{version}
 /usr/src/evdi-%{version}/*
 %dir /usr/libexec/displaylink
@@ -112,6 +116,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue Jul 11 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-3
+- Disable PageFlip if xorg is using modesetting driver
+
 * Sat Jul 8 2017 Alan Halama <alhalama@gmail.com> 1.3.54
 - Bump downloaded version to 1.3.54
 
