@@ -10,7 +10,7 @@ License:	GPL v2.0, LGPL v2.1 and Proprietary
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
-Source3:        displaylink-sleep-extractor.sh
+Source3:    displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:    20-displaylink.conf
@@ -86,6 +86,7 @@ cp -a %{SOURCE5} $RPM_BUILD_ROOT/etc/X11/xorg.conf.d/
 # pm-util
 bash %{SOURCE3} displaylink-installer.sh > $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 
+chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 
 %post
 /usr/bin/systemctl daemon-reload
