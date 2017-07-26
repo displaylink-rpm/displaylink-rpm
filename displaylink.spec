@@ -117,7 +117,7 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
-* Tue Jul 11 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-4
+* Wed Jul 26 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-4
 - Give systemd sleep script exec permissions
 
 * Tue Jul 11 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-3
