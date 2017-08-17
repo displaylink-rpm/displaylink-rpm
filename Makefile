@@ -15,6 +15,13 @@ clean:
 DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip:
 	wget --post-data="fileId=$(DOWNLOAD_ID)&accept_submit=Accept" -O DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip http://www.displaylink.com/downloads/file?id=$(DOWNLOAD_ID)
 
+/var/tmp/evdi-$(VERSION):
+	git clone --depth 1 -b devel https://github.com/DisplayLink/evdi.git /var/tmp/evdi-$(VERSION)
+
+evdi-devel: /var/tmp/evdi-$(VERSION)
+	cd /var/tmp/evdi-$(VERSION) && git pull
+	tar -z -c -f v$(VERSION).tar.gz -C /var/tmp evdi-$(VERSION)
+
 v$(VERSION).tar.gz:
 	wget -O v$(VERSION).tar.gz https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz
 
