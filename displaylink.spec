@@ -27,7 +27,7 @@ docking stations, USB monitors, and USB adapters.
 %define logfile /var/log/displaylink/%{name}.log
 
 %prep
-%setup -c evdi-%{version}
+%setup -q -c evdi-%{version}
 cd evdi-%{version}
 sed -i 's/\r//' README.md
 
@@ -89,11 +89,14 @@ bash %{SOURCE3} displaylink-installer.sh > $RPM_BUILD_ROOT/usr/lib/systemd/syste
 chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 
 %post
+# The displaylink service may crash as dkms rebuilds the module
+/usr/bin/systemctl stop displaylink.service
 /usr/bin/systemctl daemon-reload
 /usr/bin/systemctl -q is-enabled dkms.service || /usr/bin/systemctl enable dkms.service
 for kernel in $(rpm -q kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}\n') ;do
 	/sbin/dkms install evdi/%{version} -k $kernel >> %{logfile} 2>&1
 done
+/usr/bin/systemctl start displaylink.service
 
 %files
 %doc LICENSE
@@ -117,6 +120,10 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Wed Aug 17 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-5
+- Restart displaylink service around dkms rebuild
+- Make setup quiet as per fedora/redhat guidelines
+
 * Wed Jul 26 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-4
 - Give systemd sleep script exec permissions
 
