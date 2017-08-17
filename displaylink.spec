@@ -90,7 +90,7 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 
 %post
 # The displaylink service may crash as dkms rebuilds the module
-/usr/bin/systemctl stop displaylink.service
+//usr/bin/systemctl -q is-active displaylink.service && usr/bin/systemctl stop displaylink.service
 /usr/bin/systemctl daemon-reload
 /usr/bin/systemctl -q is-enabled dkms.service || /usr/bin/systemctl enable dkms.service
 for kernel in $(rpm -q kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}\n') ;do
