@@ -15,10 +15,6 @@ The package includes the Open Source [evdi][evdi] library.
 Packages get automatically built by Travis CI and get uploaded to
 [GitHub releases][releases].
 
-[displaylink]: http://www.displaylink.com/
-[evdi]: https://github.com/DisplayLink/evdi
-[releases]: https://github.com/displaylink-rpm/displaylink-rpm/releases
-
 Usage
 =====
 
@@ -99,4 +95,9 @@ Packaging change
 When changing a packaging rule, please increment the `RELEASE`
 variable by one in both displaylink.spec and .travis.yml (so that
 Travis can release the new artifact automatically).
+
+
+[displaylink]: http://www.displaylink.com/
+[evdi]: https://github.com/DisplayLink/evdi
+[releases]: https://github.com/displaylink-rpm/displaylink-rpm/releases
 
