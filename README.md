@@ -26,6 +26,31 @@ In order to compile the driver, just use make. The Makefile should
 download the file for you.
 
 
+Development Builds
+==================
+
+Generally we want to track the current stable release of the [evid][evid]
+library.  However Fedora kernels are often much newer than those officially
+supported by that release and it is not uncommon for a new kernel to
+completely break the build.  This can leave you in a situation where you cant
+upgrade your kernel without sacrificing your displaylink devices. This is not
+great if the new kernel has important security or performance fixes.
+
+Fortunately the evdi developers are usually pretty quick to make the
+appropriate fixes on their `devel` branch.  You can build a verison of the rpm
+that uses the current edvi `devel` branch with:
+
+    make rawhide
+
+The resulting RPM will have a fake version string that should have priority
+over the mainline version.
+
+Of course this `devel` branch will also include some experimental and less
+tested changes that may break things in other unexpected ways. So you should prefer the
+mainline build if it works, but if it breaks, you have the option of making
+a `rawhide ` build.
+
+
 Contributing
 ============
 
@@ -74,3 +99,4 @@ Packaging change
 When changing a packaging rule, please increment the `RELEASE`
 variable by one in both displaylink.spec and .travis.yml (so that
 Travis can release the new artifact automatically).
+
