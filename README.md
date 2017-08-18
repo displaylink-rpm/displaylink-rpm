@@ -15,6 +15,10 @@ The package includes the Open Source [evdi][evdi] library.
 Packages get automatically built by Travis CI and get uploaded to
 [GitHub releases][releases].
 
+[displaylink]: http://www.displaylink.com/
+[evdi]: https://github.com/DisplayLink/evdi
+[releases]: https://github.com/displaylink-rpm/displaylink-rpm/releases
+
 Usage
 =====
 
@@ -25,12 +29,12 @@ download the file for you.
 Development Builds
 ==================
 
-Generally we want to track the current stable release of the [evid][evid]
-library.  However Fedora kernels are often much newer than those officially
-supported by that release and it is not uncommon for a new kernel to
-completely break the build.  This can leave you in a situation where you cant
-upgrade your kernel without sacrificing your displaylink devices. This is not
-great if the new kernel has important security or performance fixes.
+Generally we want to track the current stable release of the evid library.
+However, Fedora kernels are often much newer than those officially supported by
+that release and it is not uncommon for a new kernel to completely break the
+build.  This can leave you in a situation where you cant upgrade your kernel
+without sacrificing your displaylink devices. This is not great if the new
+kernel has important security or performance fixes.
 
 Fortunately the evdi developers are usually pretty quick to make the
 appropriate fixes on their `devel` branch.  You can build a verison of the rpm
@@ -95,9 +99,4 @@ Packaging change
 When changing a packaging rule, please increment the `RELEASE`
 variable by one in both displaylink.spec and .travis.yml (so that
 Travis can release the new artifact automatically).
-
-
-[displaylink]: http://www.displaylink.com/
-[evdi]: https://github.com/DisplayLink/evdi
-[releases]: https://github.com/displaylink-rpm/displaylink-rpm/releases
 
