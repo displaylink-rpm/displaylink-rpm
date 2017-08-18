@@ -3,6 +3,7 @@
 #
 
 VERSION        = 1.4.1
+RAWHIDE        = 1.5.0
 DAEMON_VERSION = 1.3.54
 DOWNLOAD_ID    = 993    # This id number comes off the link on the displaylink website
 RELEASE        = 4
@@ -32,7 +33,7 @@ TARGETS    = $(i386_RPM) $(x86_64_RPM) $(SRPM)
 # PHONY targets
 #
 
-.PHONY: all rpm srpm devel clean
+.PHONY: all rpm srpm devel rawhide clean clean-rawhide clean-mainline
 
 all: $(TARGETS)
 
@@ -42,10 +43,18 @@ srpm: $(SRPM)
 
 devel: $(EVDI_DEVEL)
 	cd /var/tmp/evdi-$(VERSION) && git pull
-	tar -z -c -f $(EVDI_PKG) -C $(EVDI_DEVEL)
+	tar -z -c -f $(EVDI_PKG) -C /var/tmp evdi-$(VERSION)
 
-clean:
-	rm -f $(TARGETS) v$(VERSION).tar.gz
+rawhide:
+	$(MAKE) VERSION=$(RAWHIDE) devel all
+
+clean-rawhide:
+	$(MAKE) VERSION=$(RAWHIDE) clean-mainline
+
+clean-mainline:
+	rm -rf $(TARGETS) $(EVDI_DEVEL) $(EVDI_PKG)
+
+clean: clean-mainline clean-rawhide
 
 #
 # Real targets
