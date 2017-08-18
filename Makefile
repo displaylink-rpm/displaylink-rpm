@@ -3,7 +3,7 @@
 #
 
 VERSION        = 1.4.1
-RAWHIDE        = 1.5.0
+RAWHIDE        = 1.5.0  # fake development release version
 DAEMON_VERSION = 1.3.54
 DOWNLOAD_ID    = 993    # This id number comes off the link on the displaylink website
 RELEASE        = 4
