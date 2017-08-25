@@ -42,9 +42,6 @@ that uses the current edvi `devel` branch with:
 
     make rawhide
 
-The resulting RPM will have a fake version string that should have priority
-over the mainline version.
-
 Of course this `devel` branch will also include some experimental and less
 tested changes that may break things in other unexpected ways. So you should prefer the
 mainline build if it works, but if it breaks, you have the option of making
