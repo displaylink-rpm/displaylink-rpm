@@ -3,10 +3,12 @@
 #
 
 VERSION        = 1.4.1
-RAWHIDE        = 1.5.0  # fake development release version
 DAEMON_VERSION = 1.3.54
 DOWNLOAD_ID    = 993    # This id number comes off the link on the displaylink website
 RELEASE        = 4
+
+# We dont want recursive expansion for the following
+RAWHIDE       := $(RELEASE).rawhide.$(shell date "+%Y%m%d")
 
 #
 # Dependencies
@@ -15,7 +17,12 @@ RELEASE        = 4
 DAEMON_PKG = DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip
 EVDI_PKG   = v$(VERSION).tar.gz
 SPEC_FILE  = displaylink.spec
-EVDI_DEVEL = /var/tmp/evdi-$(VERSION)
+
+# The following is a little clunky, but we need to ensure the resulting
+# tarball expands the same way as upstream
+EVDI_DEVEL_BRANCH = devel
+EVDI_DEVEL_BASE_DIR = /var/tmp
+EVDI_DEVEL = $(EVDI_DEVEL_BASE_DIR)/evdi-$(VERSION)
 
 BUILD_DEPS = $(DAEMON_PKG) $(EVDI_PKG) $(SPEC_FILE)
 
@@ -42,14 +49,14 @@ rpm: $(i386_RPM) $(x86_64_RPM)
 srpm: $(SRPM)
 
 devel: $(EVDI_DEVEL)
-	cd /var/tmp/evdi-$(VERSION) && git pull
-	tar -z -c -f $(EVDI_PKG) -C /var/tmp evdi-$(VERSION)
+	cd $(EVDI_DEVEL) && git pull
+	tar -z -c -f $(EVDI_PKG) -C $(EVDI_DEVEL_BASE_DIR) evdi-$(VERSION)
 
 rawhide:
-	$(MAKE) VERSION=$(RAWHIDE) devel all
+	$(MAKE) RELEASE=$(RAWHIDE) devel all
 
 clean-rawhide:
-	$(MAKE) VERSION=$(RAWHIDE) clean-mainline
+	$(MAKE) RELEASE=$(RAWHIDE) clean-mainline
 
 clean-mainline:
 	rm -rf $(TARGETS) $(EVDI_DEVEL) $(EVDI_PKG)
@@ -61,14 +68,16 @@ clean: clean-mainline clean-rawhide
 #
 
 $(EVDI_DEVEL):
-	git clone --depth 1 -b devel https://github.com/DisplayLink/evdi.git /var/tmp/evdi-$(VERSION)
+	git clone --depth 1 -b $(EVDI_DEVEL_BRANCH) \
+		https://github.com/DisplayLink/evdi.git $(EVDI_DEVEL)
 
 $(DAEMON_PKG):
 	wget --post-data="fileId=$(DOWNLOAD_ID)&accept_submit=Accept" -O $(DAEMON_PKG) \
 		 http://www.displaylink.com/downloads/file?id=$(DOWNLOAD_ID)
 
 $(EVDI_PKG):
-	wget -O v$(VERSION).tar.gz https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz
+	wget -O v$(VERSION).tar.gz \
+		https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz
 
 BUILD_DEFINES =                                                     \
     --define "_topdir `pwd`"                                        \
