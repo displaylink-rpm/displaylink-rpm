@@ -5,7 +5,7 @@
 VERSION        = 1.4.1
 DAEMON_VERSION = 1.3.54
 DOWNLOAD_ID    = 993    # This id number comes off the link on the displaylink website
-RELEASE        = 4
+RELEASE        = 5
 
 # We dont want recursive expansion for the following
 RAWHIDE       := $(RELEASE).rawhide.$(shell date "+%Y%m%d")
