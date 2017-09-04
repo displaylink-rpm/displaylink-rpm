@@ -120,7 +120,7 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
-* Wed Aug 17 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-5
+* Thu Aug 17 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-5
 - Restart displaylink service around dkms rebuild
 - Make setup quiet as per fedora/redhat guidelines
 
