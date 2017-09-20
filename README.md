@@ -29,15 +29,15 @@ download the file for you.
 Development Builds
 ==================
 
-Generally we want to track the current stable release of the evid library.
+Generally we want to track the current stable release of the evdi library.
 However, Fedora kernels are often much newer than those officially supported by
 that release and it is not uncommon for a new kernel to completely break the
-build.  This can leave you in a situation where you cant upgrade your kernel
+build. This can leave you in a situation where you cannot upgrade your kernel
 without sacrificing your displaylink devices. This is not great if the new
 kernel has important security or performance fixes.
 
 Fortunately the evdi developers are usually pretty quick to make the
-appropriate fixes on their `devel` branch.  You can build a verison of the rpm
+appropriate fixes on their `devel` branch.  You can build a version of the rpm
 that uses the current edvi `devel` branch with:
 
     make rawhide
@@ -45,7 +45,7 @@ that uses the current edvi `devel` branch with:
 Of course this `devel` branch will also include some experimental and less
 tested changes that may break things in other unexpected ways. So you should prefer the
 mainline build if it works, but if it breaks, you have the option of making
-a `rawhide ` build.
+a `rawhide` build.
 
 
 Contributing
