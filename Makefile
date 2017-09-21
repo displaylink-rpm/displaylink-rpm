@@ -7,21 +7,6 @@ DOWNLOAD_ID    := 993    # This id number comes off the link on the displaylink 
 VERSION        := 1.4.1
 RELEASE        := 5
 
-EDVI_GITHUB := https://api.github.com/repos/DisplayLink/evdi
-
-define get_latest_prerelease
-	curl -s $(EDVI_GITHUB)/releases?per_page=1 \
-		-H "Accept: application/vnd.github.full+json" |\
-		grep tag_name | sed s/[^0-9\.]//g
-endef
-
-define get_devel_date
-	curl -s $(EDVI_GITHUB)/branches/devel \
-		-H "Accept: application/vnd.github.full+json" |\
-		grep date | head -1 | cut -d: -f 2- |\
-		sed s/[^0-9TZ]//g
-endef
-
 #
 # Dependencies
 #
@@ -47,6 +32,25 @@ x86_64_RPM := x86_64/displaylink-$(VERSION)-$(RELEASE).x86_64.rpm
 SRPM       := displaylink-$(VERSION)-$(RELEASE).src.rpm
 
 TARGETS    := $(i386_RPM) $(x86_64_RPM) $(SRPM)
+
+#
+# Upstream checks
+#
+
+EDVI_GITHUB := https://api.github.com/repos/DisplayLink/evdi
+
+define get_latest_prerelease
+	curl -s $(EDVI_GITHUB)/releases?per_page=1 \
+		-H "Accept: application/vnd.github.full+json" |\
+		grep tag_name | sed s/[^0-9\.]//g
+endef
+
+define get_devel_date
+	curl -s $(EDVI_GITHUB)/branches/devel \
+		-H "Accept: application/vnd.github.full+json" |\
+		grep date | head -1 | cut -d: -f 2- |\
+		sed s/[^0-9TZ]//g
+endef
 
 #
 # PHONY targets
