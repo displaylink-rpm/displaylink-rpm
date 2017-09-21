@@ -4,26 +4,23 @@
 
 DAEMON_VERSION := 1.3.54
 DOWNLOAD_ID    := 993    # This id number comes off the link on the displaylink website
+VERSION        := 1.4.1
 RELEASE        := 5
 
 EDVI_GITHUB := https://api.github.com/repos/DisplayLink/evdi
 
-define get_latest_prerelease =
+define get_latest_prerelease
 	curl -s $(EDVI_GITHUB)/releases?per_page=1 \
 		-H "Accept: application/vnd.github.full+json" |\
 		grep tag_name | sed s/[^0-9\.]//g
 endef
 
-define get_devel_date =
+define get_devel_date
 	curl -s $(EDVI_GITHUB)/branches/devel \
 		-H "Accept: application/vnd.github.full+json" |\
 		grep date | head -1 | cut -d: -f 2- |\
 		sed s/[^0-9TZ]//g
 endef
-
-VERSION     := $(shell $(get_latest_prerelease))
-DEVEL_DATE  := $(shell $(get_devel_date))
-RAWHIDE     := $(RELEASE).rawhide.$(DEVEL_DATE)
 
 #
 # Dependencies
@@ -55,7 +52,7 @@ TARGETS    := $(i386_RPM) $(x86_64_RPM) $(SRPM)
 # PHONY targets
 #
 
-.PHONY: all rpm srpm devel rawhide clean clean-rawhide clean-mainline versions
+.PHONY: all rpm srpm devel rawhide clean clean-rawhide clean-mainline clean-all versions
 
 all: $(TARGETS)
 
@@ -68,21 +65,33 @@ devel: $(EVDI_DEVEL)
 	tar -z -c -f $(EVDI_PKG) -C $(EVDI_DEVEL_BASE_DIR) evdi-$(VERSION)
 
 rawhide:
-	$(MAKE) RELEASE=$(RAWHIDE) devel all
+	@echo Checking last upstream commit date...
+	@rawhide=$(RELEASE).rawhide.`$(get_devel_date)`; \
+	$(MAKE) RELEASE=$$rawhide devel all
 
 clean-rawhide:
-	$(MAKE) RELEASE=$(RAWHIDE) clean-mainline
+	@echo Checking last upstream commit date...
+	@rawhide=$(RELEASE).rawhide.`$(get_devel_date)`; \
+	$(MAKE) RELEASE=$$rawhide clean-mainline
 
 clean-mainline:
 	rm -rf $(TARGETS) $(EVDI_DEVEL) $(EVDI_PKG)
 
 clean: clean-mainline clean-rawhide
 
+clean-all:
+	rm -rf i386/*.rpm x86_64/*.rpm displaylink*.src.rpm $(EVDI_PKG) $(EVDI_DEVEL)
+
 # for testing our version construction
 versions:
-	@echo $(VERSION)
-	@echo $(DEVEL_DATE)
-	@echo $(RAWHIDE)
+	@echo VERSION: $(VERSION)
+	@echo Checking upstream version...
+	@version=`$(get_latest_prerelease)` && echo UPSTREAM: $$version
+	@echo Checking upstream version...done
+	@echo
+	@echo Checking last upstream commit date...
+	@devel_date=`$(get_devel_date)` && echo DEVEL_DATE: $$devel_date
+	@echo Checking last upstream commit date...done
 
 #
 # Real targets
