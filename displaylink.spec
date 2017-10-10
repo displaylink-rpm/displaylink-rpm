@@ -10,10 +10,10 @@ License:	GPL v2.0, LGPL v2.1 and Proprietary
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
-Source3:    displaylink-sleep-extractor.sh
+Source3:	displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
-Source5:    20-displaylink.conf
+Source5:	20-displaylink.conf
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
