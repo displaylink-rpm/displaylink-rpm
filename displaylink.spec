@@ -19,10 +19,17 @@ Source3:	displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
+Source6:	http://mirrors.kernel.org/ubuntu/pool/main/g/gcc-6/libstdc++6_6.3.0-12ubuntu2_i386.deb
+Source7:	http://mirrors.kernel.org/ubuntu/pool/main/g/gcc-6/libstdc++6_6.3.0-12ubuntu2_amd64.deb
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
 Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7
+
+%if 0%{?rhel}
+# Avoid provides/requires from private libraries
+%global __requires_exclude_from ^/usr/libexec/displaylink/DisplayLinkManager$
+%endif
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -78,6 +85,19 @@ cp -a x64-ubuntu-1604/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink
 
 %ifarch %ix86
 cp -a x86-ubuntu-1604/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
+%endif
+
+%if 0%{?rhel}
+%ifarch %ix86
+ar x %{SOURCE6}
+%endif
+%ifarch x86_64
+ar x %{SOURCE7}
+%endif
+tar xvJ --strip-components=4 -C $RPM_BUILD_ROOT/usr/libexec/displaylink/ -f data.tar.xz \
+	./usr/lib/*/libstdc++.so.6.0.22
+mv $RPM_BUILD_ROOT/usr/libexec/displaylink/libstdc++.so.6.0.22 \
+	$RPM_BUILD_ROOT/usr/libexec/displaylink/libstdc++.so.6
 %endif
 
 # Firmwares

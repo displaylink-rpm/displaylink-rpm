@@ -14,6 +14,8 @@ RELEASE        := 2
 DAEMON_PKG := DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip
 EVDI_PKG   := v$(VERSION).tar.gz
 SPEC_FILE  := displaylink.spec
+LIBSTDCXX_I386 := libstdc++6_6.3.0-12ubuntu2_i386.deb
+LIBSTDCXX_X86_64 := libstdc++6_6.3.0-12ubuntu2_amd64.deb
 
 # The following is a little clunky, but we need to ensure the resulting
 # tarball expands the same way as the upstream tarball
@@ -21,7 +23,7 @@ EVDI_DEVEL_BRANCH   := devel
 EVDI_DEVEL_BASE_DIR := /var/tmp
 EVDI_DEVEL          := $(EVDI_DEVEL_BASE_DIR)/evdi-$(VERSION)
 
-BUILD_DEPS := $(DAEMON_PKG) $(EVDI_PKG) $(SPEC_FILE)
+BUILD_DEPS := $(DAEMON_PKG) $(EVDI_PKG) $(LIBSTDCXX_I386) $(LIBSTDCXX_X86_64) $(SPEC_FILE)
 
 #
 # Targets
@@ -112,6 +114,12 @@ $(DAEMON_PKG):
 $(EVDI_PKG):
 	wget -O v$(VERSION).tar.gz \
 		https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz
+
+$(LIBSTDCXX_X86_64):
+	wget http://mirrors.kernel.org/ubuntu/pool/main/g/gcc-6/libstdc++6_6.3.0-12ubuntu2_amd64.deb
+
+$(LIBSTDCXX_I386):
+	wget http://mirrors.kernel.org/ubuntu/pool/main/g/gcc-6/libstdc++6_6.3.0-12ubuntu2_i386.deb
 
 BUILD_DEFINES =                                                     \
     --define "_topdir `pwd`"                                        \
