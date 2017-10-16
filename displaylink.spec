@@ -120,6 +120,10 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue Oct 10 2017 Alan Halama <alhalama@gmail.com> 1.5
+- Update evdi version to 1.5
+- Bump downloaded version to 1.4
+
 * Thu Aug 17 2017 Kahlil Hodgson <kahlil.hodgson999@gmail.com> 1.1.4-5
 - Restart displaylink service around dkms rebuild
 - Make setup quiet as per fedora/redhat guidelines
