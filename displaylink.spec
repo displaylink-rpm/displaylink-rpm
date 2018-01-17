@@ -120,6 +120,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Wed Jan 17 2018 fgiff <ffgiff@gmail.com> 1.5.0-2
+- Bump downloaded version to 4.1.9
+
 * Tue Oct 10 2017 Alan Halama <alhalama@gmail.com> 1.5
 - Update evdi version to 1.5
 - Bump downloaded version to 1.4
