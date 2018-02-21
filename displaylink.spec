@@ -98,9 +98,7 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 /usr/bin/systemctl -q is-active displaylink.service && /usr/bin/systemctl stop displaylink.service
 /usr/bin/systemctl daemon-reload
 /usr/bin/systemctl -q is-enabled dkms.service || /usr/bin/systemctl enable dkms.service
-for kernel in $(rpm -q kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}\n') ;do
-	/sbin/dkms install evdi/%{version} -k $kernel >> %{logfile} 2>&1
-done
+/sbin/dkms install evdi/%{version} >> %{logfile} 2>&1
 /usr/bin/systemctl start displaylink.service
 
 %files
