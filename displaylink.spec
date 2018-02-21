@@ -1,4 +1,9 @@
 %global debug_package %{nil}
+%if 0%{?rhel}
+%global kernel_pkg_name kernel-mt
+%else
+%global kernel_pkg_name kernel
+%endif
 
 Name:		displaylink
 Version:	%{_version}
@@ -17,7 +22,7 @@ Source5:	20-displaylink.conf
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
-Requires:	dkms, kernel > 4.7, kernel-devel > 4.7
+Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
