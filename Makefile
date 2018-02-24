@@ -18,6 +18,7 @@ SPEC_FILE  := displaylink.spec
 # The following is a little clunky, but we need to ensure the resulting
 # tarball expands the same way as the upstream tarball
 EVDI_DEVEL_BRANCH   := devel
+EVDI_DEVEL_REPO     := https://github.com/DisplayLink/evdi.git
 EVDI_DEVEL_BASE_DIR := /var/tmp
 EVDI_DEVEL          := $(EVDI_DEVEL_BASE_DIR)/evdi-$(VERSION)
 
@@ -102,8 +103,7 @@ versions:
 #
 
 $(EVDI_DEVEL):
-	git clone --depth 1 -b $(EVDI_DEVEL_BRANCH) \
-		https://github.com/DisplayLink/evdi.git $(EVDI_DEVEL)
+	git clone --depth 1 -b $(EVDI_DEVEL_BRANCH) $(EVDI_DEVEL_REPO) $(EVDI_DEVEL)
 
 $(DAEMON_PKG):
 	wget --post-data="fileId=$(DOWNLOAD_ID)&accept_submit=Accept" -O $(DAEMON_PKG) \
