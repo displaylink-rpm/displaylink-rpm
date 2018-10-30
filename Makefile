@@ -2,10 +2,10 @@
 # Versions
 #
 
-DAEMON_VERSION := 4.2.29
-DOWNLOAD_ID    := 1123    # This id number comes off the link on the displaylink website
-VERSION        := 1.5.0.2
-RELEASE        := 2
+DAEMON_VERSION := 4.4.24
+DOWNLOAD_ID    := 1261    # This id number comes off the link on the displaylink website
+VERSION        := 1.5.1
+RELEASE        := 1
 
 #
 # Dependencies
