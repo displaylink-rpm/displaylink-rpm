@@ -19,7 +19,6 @@ Source3:	displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
-Source6:	80-evdidevice.conf
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
@@ -88,7 +87,6 @@ cp -a ella-dock-release.spkg firefly-monitor-release.spkg $RPM_BUILD_ROOT/usr/li
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/usr/lib/systemd/system/
 cp -a %{SOURCE2} $RPM_BUILD_ROOT/etc/udev/rules.d/
 cp -a %{SOURCE5} $RPM_BUILD_ROOT/etc/X11/xorg.conf.d/
-cp -a %{SOURCE6} $RPM_BUILD_ROOT/etc/X11/xorg.conf.d/
 
 # pm-util
 bash %{SOURCE3} displaylink-installer.sh > $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
@@ -109,7 +107,6 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 /usr/lib/systemd/system-sleep/displaylink.sh
 /etc/udev/rules.d/99-displaylink.rules
 /etc/X11/xorg.conf.d/20-displaylink.conf
-/etc/X11/xorg.conf.d/80-evdidevice.conf
 %dir /usr/src/evdi-%{version}
 /usr/src/evdi-%{version}/*
 %dir /usr/libexec/displaylink
@@ -126,6 +123,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Mon Nov 05 2018 okay_awright <okay_awright@ddcr.biz> 1.5.1-2
+- Removed workaround for xorg-server 1.20.1 and glamorgl acceleration with evdi now that fedora ships xorg-server 1.20.3 which fixes the problem
+
 * Tue Oct 30 2018 okay_awright <okay_awright@ddcr.biz> 1.5.1
 - Update evdi version to 1.5.1
 - Bump downloaded version to 4.4.24
