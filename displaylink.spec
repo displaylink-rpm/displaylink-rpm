@@ -22,7 +22,7 @@ Source5:	20-displaylink.conf
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel
-Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7
+Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7, xorg-x11-server-Xorg > 1.20.1
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
