@@ -107,7 +107,7 @@ $(EVDI_DEVEL):
 
 $(DAEMON_PKG):
 	wget --post-data="fileId=$(DOWNLOAD_ID)&accept_submit=Accept" -O $(DAEMON_PKG) \
-		 http://www.displaylink.com/downloads/file?id=$(DOWNLOAD_ID)
+		 https://www.displaylink.com/downloads/file?id=$(DOWNLOAD_ID)
 
 $(EVDI_PKG):
 	wget -O v$(VERSION).tar.gz \
