@@ -22,7 +22,7 @@ Source5:	20-displaylink.conf
 Source6:	80-evdidevice.conf
 ExclusiveArch:	i386 x86_64
 
-BuildRequires:	libdrm-devel
+BuildRequires:	libdrm-devel make gcc-c++
 Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7
 
 %description
@@ -46,6 +46,7 @@ chmod +x displaylink-driver-%{_daemon_version}.run
 
 cd evdi-%{version}/library/
 make %{?_smp_mflags}
+[ $? -ne 0 ] && echo "Building evdi-%{version} failed"
 
 %install
 
@@ -126,6 +127,10 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue Dec 11 2018 Orsiris de Jong <ozy@netpower.fr> 1.5.1-1
+- Update build requirements
+- Added error message on evdi build failure
+
 * Tue Oct 30 2018 okay_awright <okay_awright@ddcr.biz> 1.5.1
 - Update evdi version to 1.5.1
 - Bump downloaded version to 4.4.24
