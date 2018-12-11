@@ -21,7 +21,9 @@ Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
 ExclusiveArch:	i386 x86_64
 
+BuildRequires:  gcc-c++
 BuildRequires:	libdrm-devel
+BuildRequires:  make
 Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7, xorg-x11-server-Xorg > 1.20.1
 
 %description
@@ -123,6 +125,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue Dec 11 2018 Orsiris de Jong <ozy@netpower.fr> 1.5.1-2
+- Add make and gcc-c++ build requirements
+
 * Mon Nov 05 2018 okay_awright <okay_awright@ddcr.biz> 1.5.1-2
 - Removed workaround for xorg-server 1.20.1 and glamorgl acceleration with evdi now that fedora ships xorg-server 1.20.3 which fixes the problem
 
