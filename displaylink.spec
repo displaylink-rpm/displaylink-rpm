@@ -19,11 +19,10 @@ Source3:	displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
-Source6:	80-evdidevice.conf
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	libdrm-devel make gcc-c++
-Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7
+Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7, xorg-x11-server-Xorg > 1.20.1
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -89,7 +88,6 @@ cp -a ella-dock-release.spkg firefly-monitor-release.spkg $RPM_BUILD_ROOT/usr/li
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/usr/lib/systemd/system/
 cp -a %{SOURCE2} $RPM_BUILD_ROOT/etc/udev/rules.d/
 cp -a %{SOURCE5} $RPM_BUILD_ROOT/etc/X11/xorg.conf.d/
-cp -a %{SOURCE6} $RPM_BUILD_ROOT/etc/X11/xorg.conf.d/
 
 # pm-util
 bash %{SOURCE3} displaylink-installer.sh > $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
@@ -110,7 +108,6 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 /usr/lib/systemd/system-sleep/displaylink.sh
 /etc/udev/rules.d/99-displaylink.rules
 /etc/X11/xorg.conf.d/20-displaylink.conf
-/etc/X11/xorg.conf.d/80-evdidevice.conf
 %dir /usr/src/evdi-%{version}
 /usr/src/evdi-%{version}/*
 %dir /usr/libexec/displaylink
@@ -118,7 +115,7 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 %dir /var/log/displaylink/
 
 %preun
-if [ $1 -eq 0 ] ;then
+if [ $1 -eq 0 ]; then
 	/usr/bin/systemctl -q is-active displaylink.service && /usr/bin/systemctl stop displaylink.service
 	/sbin/dkms remove evdi/%{version} --all >> %{logfile}
 fi
@@ -127,9 +124,12 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
-* Tue Dec 11 2018 Orsiris de Jong <ozy@netpower.fr> 1.5.1-1
+* Tue Dec 11 2018 Orsiris de Jong <ozy@netpower.fr> 1.5.1-3
 - Update build requirements
 - Added error message on evdi build failure
+
+* Mon Nov 05 2018 okay_awright <okay_awright@ddcr.biz> 1.5.1-2
+- Removed workaround for xorg-server 1.20.1 and glamorgl acceleration with evdi now that fedora ships xorg-server 1.20.3 which fixes the problem
 
 * Tue Oct 30 2018 okay_awright <okay_awright@ddcr.biz> 1.5.1
 - Update evdi version to 1.5.1

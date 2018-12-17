@@ -5,7 +5,7 @@
 DAEMON_VERSION := 4.4.24
 DOWNLOAD_ID    := 1261    # This id number comes off the link on the displaylink website
 VERSION        := 1.5.1
-RELEASE        := 1
+RELEASE        := 2 
 
 #
 # Dependencies
@@ -107,7 +107,7 @@ $(EVDI_DEVEL):
 
 $(DAEMON_PKG):
 	wget --post-data="fileId=$(DOWNLOAD_ID)&accept_submit=Accept" -O $(DAEMON_PKG) \
-		 http://www.displaylink.com/downloads/file?id=$(DOWNLOAD_ID)
+		 https://www.displaylink.com/downloads/file?id=$(DOWNLOAD_ID)
 
 $(EVDI_PKG):
 	wget -O v$(VERSION).tar.gz \
