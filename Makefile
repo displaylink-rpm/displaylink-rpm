@@ -46,6 +46,10 @@ define get_latest_prerelease
 		grep tag_name | sed s/[^0-9\.]//g
 endef
 
+define get_release_version
+        echo -e "$(RELEASE)" | tr -d '[:space:]'
+endef
+
 define get_devel_date
 	curl -s $(EDVI_GITHUB)/branches/devel \
 		-H "Accept: application/vnd.github.full+json" |\
@@ -71,13 +75,11 @@ devel: $(EVDI_DEVEL)
 
 rawhide:
 	@echo Checking last upstream commit date...
-	@rawhide=$(RELEASE).rawhide.`$(get_devel_date)`; \
-	$(MAKE) RELEASE=$$rawhide devel all
+	$(MAKE) RELEASE="`$(get_release_version)`.rawhide.`$(get_devel_date)`" devel all
 
 clean-rawhide:
 	@echo Checking last upstream commit date...
-	@rawhide=$(RELEASE).rawhide.`$(get_devel_date)`; \
-	$(MAKE) RELEASE=$$rawhide clean-mainline
+	$(MAKE) RELEASE="`$(get_release_version)`.rawhide.`$(get_devel_date)`" clean-mainline
 
 clean-mainline:
 	rm -rf $(TARGETS) $(EVDI_DEVEL) $(EVDI_PKG)
