@@ -126,6 +126,10 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue Feb 19 2019 Michael L. Young <elgueromexicano@gmail.com> 1.6.0-1
+- Update DisplayLink Manager to 5.1.26
+- Update evdi to 1.6.0
+
 * Tue Dec 11 2018 Orsiris de Jong <ozy@netpower.fr> 1.5.1-2
 - Add make and gcc-c++ build requirements
 
