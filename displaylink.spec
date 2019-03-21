@@ -106,7 +106,7 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 
 %triggerin -- kernel
 NEWEST_KERNEL=$(rpm -q kernel|sort -V|head -1|cut -d- -f2-)
-/sbin/dkms install evdi/%{version} ${NEWEST_KERNEL}
+/sbin/dkms install evdi/%{version} ${NEWEST_KERNEL} >>%{logfile} 2>&1
 
 %files
 %doc LICENSE
