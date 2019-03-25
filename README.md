@@ -29,6 +29,8 @@ download the file for you.
 Hardware-specific behavior
 --------------------------
 
+###Dell D6000
+
 When used with the Dell D6000 docking station, DisplayLink 5.1.26 regularly
 loses communication with attached monitors, causing them to go blank and enter
 power-saving mode.  At the time the monitors blank, the kernel logs two error
