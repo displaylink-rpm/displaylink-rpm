@@ -26,6 +26,31 @@ In order to compile the driver, just use make. The Makefile should
 download the file for you.
 
 
+Hardware-specific behavior
+--------------------------
+
+###Dell D6000
+
+When used with the Dell D6000 docking station, DisplayLink 5.1.26 regularly
+loses communication with attached monitors, causing them to go blank and enter
+power-saving mode.  At the time the monitors blank, the kernel logs two error
+messages:
+
+```
+kernel: usb <xxx>: Disable of device-initiated U1 failed.
+kernel: usb <xxx>: Disable of device-initiated U2 failed.
+```
+
+To [work around this issue][workaround], disable power management for the audio
+device by commenting out a line in `/etc/pulse/default.pa`:
+
+```
+### Automatically suspend sinks/sources that become idle for too long
+# load-module module-suspend-on-idle
+```
+
+[workaround]: https://displaylink.org/forum/showpost.php?p=85116
+
 Development Builds
 ==================
 
