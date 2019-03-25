@@ -130,6 +130,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Mon Mar 25 2019 Peter Janes <peter.janes@autodata.net> 1.6.0-2
+- Add trigger on kernel postinstall to compile evdi via dkms for the new version
+
 * Tue Feb 19 2019 Michael L. Young <elgueromexicano@gmail.com> 1.6.0-1
 - Update DisplayLink Manager to 5.1.26
 - Update evdi to 1.6.0
