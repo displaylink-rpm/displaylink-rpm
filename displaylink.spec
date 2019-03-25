@@ -104,6 +104,10 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 /sbin/dkms install evdi/%{version} >> %{logfile} 2>&1
 /usr/bin/systemctl start displaylink.service
 
+%triggerin -- kernel
+NEWEST_KERNEL=$(rpm -q kernel|sort -V|head -1|cut -d- -f2-)
+/sbin/dkms install evdi/%{version} ${NEWEST_KERNEL} >>%{logfile} 2>&1
+
 %files
 %doc LICENSE
 /usr/lib/systemd/system/displaylink.service
