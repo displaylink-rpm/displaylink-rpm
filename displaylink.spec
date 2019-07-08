@@ -130,6 +130,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Mon Jul 08 2019 Michael L. Young <elgueromexicano@gmail.com> 1.6.2-1
+- Update evdi to 1.6.2
+
 * Wed May 08 2019 Michael L. Young <elgueromexicano@gmail.com> 1.6.1-1
 - Update evdi to 1.6.1
 
