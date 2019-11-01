@@ -6,6 +6,7 @@ env:
     - DAEMON_VERSION=5.2.14
     - RELEASE=1
   matrix:
+  - OS_TYPE=fedora OS_VERSION=31
   - OS_TYPE=fedora OS_VERSION=30
   - OS_TYPE=fedora OS_VERSION=29
   - OS_TYPE=fedora OS_VERSION=28
