@@ -130,6 +130,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Tue Nov 05 2019 Michael L. Young <elgueromexicano@gmail.com> 1.6.3-1
+- Update the evdi driver to 1.6.3
+
 * Mon Aug 19 2019 Michael L. Young <elgueromexicano@gmail.com> 1.6.2-2
 - Update Displaylink driver to 5.2.14
 
