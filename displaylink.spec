@@ -130,6 +130,9 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Fri Jan 10 2020 Alan Halama <alhalama@gmail.com> 1.6.4-1
+- Update the evdi driver to 1.6.4
+
 * Tue Nov 05 2019 Michael L. Young <elgueromexicano@gmail.com> 1.6.3-1
 - Update the evdi driver to 1.6.3
 
