@@ -2,7 +2,7 @@ language: generic
 sudo: required
 env:
   global:
-    - VERSION=1.6.3
+    - VERSION=1.6.4
     - DAEMON_VERSION=5.2.14
     - RELEASE=1
   matrix:
