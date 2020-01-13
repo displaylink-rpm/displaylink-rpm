@@ -21,6 +21,9 @@ Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
 ExclusiveArch:	i386 x86_64
 
+Patch0:         evdi-all-in-one-fixes.patch
+Patch1:         evdi-dkms-fix.patch
+
 BuildRequires:  gcc-c++
 BuildRequires:	libdrm-devel
 BuildRequires:  make
@@ -37,6 +40,8 @@ docking stations, USB monitors, and USB adapters.
 %prep
 %setup -q -c evdi-%{version}
 cd evdi-%{version}
+%patch0 -p1
+%patch1 -p0
 sed -i 's/\r//' README.md
 
 unzip "%{SOURCE4}"
@@ -65,7 +70,7 @@ cp -a $OLDPWD/evdi-%{version}/module/* . ; \
 popd
 
 # Library
-cp evdi-%{version}/library/libevdi.so $RPM_BUILD_ROOT/usr/libexec/displaylink
+cp evdi-%{version}/library/libevdi.so.%{version} $RPM_BUILD_ROOT/usr/libexec/displaylink
 
 # Binaries
 # Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
@@ -102,6 +107,7 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 /usr/bin/systemctl daemon-reload
 /usr/bin/systemctl -q is-enabled dkms.service || /usr/bin/systemctl enable dkms.service
 /sbin/dkms install evdi/%{version} >> %{logfile} 2>&1
+ln -s /usr/libexec/displaylink/libevdi.so.%{version} /usr/libexec/displaylink/libevdi.so
 /usr/bin/systemctl start displaylink.service
 
 %triggerin -- kernel
@@ -123,6 +129,7 @@ NEWEST_KERNEL=$(rpm -q kernel|sort -V|head -1|cut -d- -f2-)
 %preun
 if [ $1 -eq 0 ] ;then
 	/usr/bin/systemctl -q is-active displaylink.service && /usr/bin/systemctl stop displaylink.service
+        %{__rm} -f /usr/libexec/displaylink/libevdi.so.%{version} /usr/libexec/displaylink/libevdi.so
 	/sbin/dkms remove evdi/%{version} --all >> %{logfile}
 fi
 
@@ -130,6 +137,12 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Fri Feb 07 2020 Michael L. Young <elgueromexicano@gmail.com> 1.6.4-2
+- Apply patches contributed by abucodonosor and severach on GitHub to get evdi
+  working on kernel 5.4.
+  See https://github.com/DisplayLink/evdi/issues/172#issuecomment-561394805
+  See https://github.com/DisplayLink/evdi/issues/172#issuecomment-561964789
+
 * Fri Jan 10 2020 Alan Halama <alhalama@gmail.com> 1.6.4-1
 - Update the evdi driver to 1.6.4
 

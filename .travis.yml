@@ -4,7 +4,7 @@ env:
   global:
     - VERSION=1.6.4
     - DAEMON_VERSION=5.2.14
-    - RELEASE=1
+    - RELEASE=2
   matrix:
   - OS_TYPE=fedora OS_VERSION=31
   - OS_TYPE=fedora OS_VERSION=30
