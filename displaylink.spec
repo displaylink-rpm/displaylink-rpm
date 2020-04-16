@@ -21,9 +21,6 @@ Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
 ExclusiveArch:	i386 x86_64
 
-Patch0:         evdi-all-in-one-fixes.patch
-Patch1:         evdi-dkms-fix.patch
-
 BuildRequires:  gcc-c++
 BuildRequires:	libdrm-devel
 BuildRequires:  make
@@ -40,8 +37,6 @@ docking stations, USB monitors, and USB adapters.
 %prep
 %setup -q -c evdi-%{version}
 cd evdi-%{version}
-%patch0 -p1
-%patch1 -p0
 sed -i 's/\r//' README.md
 
 unzip "%{SOURCE4}"
@@ -137,6 +132,10 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Thu Apr 15 2020 Michael L. Young <elgueromexicano@gmail.com> 1.6.4-3
+- Remove patches that are no longer needed.  This restores the ability
+  to build against rawhide.
+
 * Fri Feb 07 2020 Michael L. Young <elgueromexicano@gmail.com> 1.6.4-2
 - Apply patches contributed by abucodonosor and severach on GitHub to get evdi
   working on kernel 5.4.
