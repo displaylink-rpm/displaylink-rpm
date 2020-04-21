@@ -124,7 +124,7 @@ NEWEST_KERNEL=$(rpm -q kernel|sort -V|head -1|cut -d- -f2-)
 %preun
 if [ $1 -eq 0 ] ;then
 	/usr/bin/systemctl -q is-active displaylink.service && /usr/bin/systemctl stop displaylink.service
-        %{__rm} -f /usr/libexec/displaylink/libevdi.so.%{version} /usr/libexec/displaylink/libevdi.so
+        %{__rm} -f /usr/libexec/displaylink/libevdi.so /usr/libexec/displaylink/libevdi.so.%{version}
 	/sbin/dkms remove evdi/%{version} --all >> %{logfile}
 fi
 
