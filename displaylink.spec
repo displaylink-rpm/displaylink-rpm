@@ -132,7 +132,7 @@ fi
 /usr/bin/systemctl daemon-reload
 
 %changelog
-* Thu Apr 15 2020 Michael L. Young <elgueromexicano@gmail.com> 1.6.4-3
+* Thu Apr 16 2020 Michael L. Young <elgueromexicano@gmail.com> 1.6.4-3
 - Remove patches that are no longer needed.  This restores the ability
   to build against rawhide.
 
