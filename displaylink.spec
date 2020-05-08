@@ -24,7 +24,7 @@ ExclusiveArch:	i386 x86_64
 BuildRequires:  gcc-c++
 BuildRequires:	libdrm-devel
 BuildRequires:  make
-Requires:       dkms, %{kernel_pkg_name} > 4.7, %{kernel_pkg_name}-devel > 4.7
+Requires:       dkms, %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
 Conflicts:      xorg-x11-server-Xorg = 1.20.1
 
 %description
@@ -84,7 +84,7 @@ cp -a x86-ubuntu-1604/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink
 %endif
 
 # Firmwares
-cp -a ella-dock-release.spkg firefly-monitor-release.spkg $RPM_BUILD_ROOT/usr/libexec/displaylink/
+cp -a ella-dock-release.spkg firefly-monitor-release.spkg ridge-dock-release.spkg $RPM_BUILD_ROOT/usr/libexec/displaylink/
 
 # systemd/udev
 cp -a %{SOURCE1} $RPM_BUILD_ROOT/usr/lib/systemd/system/
@@ -101,13 +101,11 @@ chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
 /usr/bin/systemctl -q is-active displaylink.service && /usr/bin/systemctl stop displaylink.service
 /usr/bin/systemctl daemon-reload
 /usr/bin/systemctl -q is-enabled dkms.service || /usr/bin/systemctl enable dkms.service
+/sbin/dkms add evdi/%{version} --rpm_safe_upgrade >> %{logfile} 2>&1
+/sbin/dkms build evdi/%{version} >> %{logfile} 2>&1
 /sbin/dkms install evdi/%{version} >> %{logfile} 2>&1
 ln -s /usr/libexec/displaylink/libevdi.so.%{version} /usr/libexec/displaylink/libevdi.so
 /usr/bin/systemctl start displaylink.service
-
-%triggerin -- kernel
-NEWEST_KERNEL=$(rpm -q kernel|sort -V|head -1|cut -d- -f2-)
-/sbin/dkms install evdi/%{version} ${NEWEST_KERNEL} >>%{logfile} 2>&1
 
 %files
 %doc LICENSE
@@ -124,14 +122,22 @@ NEWEST_KERNEL=$(rpm -q kernel|sort -V|head -1|cut -d- -f2-)
 %preun
 if [ $1 -eq 0 ] ;then
 	/usr/bin/systemctl -q is-active displaylink.service && /usr/bin/systemctl stop displaylink.service
-        %{__rm} -f /usr/libexec/displaylink/libevdi.so /usr/libexec/displaylink/libevdi.so.%{version}
-	/sbin/dkms remove evdi/%{version} --all >> %{logfile}
+	%{__rm} -f /usr/libexec/displaylink/libevdi.so
+	/sbin/dkms remove evdi/%{version} --all --rpm_safe_upgrade >> %{logfile}
 fi
 
 %postun
 /usr/bin/systemctl daemon-reload
 
 %changelog
+* Mon May 04 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-1
+- Update to evdi driver version 1.7.0.
+- Update to Displaylink driver 5.3.1.
+- The minimum kernel supported in evdi is now 4.15. Adjusting spec to match.
+- Fix support for DL-6xxx devices. The firmware image was not being copied from
+  the DisplayLink driver package.
+- Adjust how we use dkms inside the rpm to follow recommended way in documentation.
+
 * Thu Apr 16 2020 Michael L. Young <elgueromexicano@gmail.com> 1.6.4-3
 - Remove patches that are no longer needed.  This restores the ability
   to build against rawhide.
