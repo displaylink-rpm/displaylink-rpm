@@ -1,0 +1,6 @@
+/var/log/displaylink/*log {
+	missingok
+	notifempty
+	compress
+	delaycompress
+}

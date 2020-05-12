@@ -19,11 +19,20 @@ Source3:	displaylink-sleep-extractor.sh
 # From http://www.displaylink.com/downloads/ubuntu.php
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
+Source6:	95-displaylink.preset
+Source7:	%{name}.logrotate
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:  gcc-c++
 BuildRequires:	libdrm-devel
 BuildRequires:  make
+
+%if 0%{?fedora} < 30 || 0%{?rhel}
+BuildRequires:  systemd
+%else
+BuildRequires:	systemd-rpm-macros
+%endif
+
 Requires:       dkms, %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
 Conflicts:      xorg-x11-server-Xorg = 1.20.1
 
@@ -32,7 +41,7 @@ This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
 DL-5xxx, DL-41xx and DL-3xxx series of chipsets. This includes numerous
 docking stations, USB monitors, and USB adapters.
 
-%define logfile /var/log/displaylink/%{name}.log
+%define logfile %{_localstatedir}/log/%{name}/%{name}.log
 
 %prep
 %setup -q -c evdi-%{version}
@@ -47,25 +56,28 @@ chmod +x displaylink-driver-%{_daemon_version}.run
 %build
 
 cd evdi-%{version}/library/
-make %{?_smp_mflags}
+%make_build
 
 %install
 
-mkdir -p $RPM_BUILD_ROOT/usr/libexec/displaylink/	\
-	$RPM_BUILD_ROOT/usr/src/evdi-%{version}/	\
-	$RPM_BUILD_ROOT/usr/lib/systemd/system/		\
-	$RPM_BUILD_ROOT/usr/lib/systemd/system-sleep	\
-	$RPM_BUILD_ROOT/etc/udev/rules.d/		\
-	$RPM_BUILD_ROOT/etc/X11/xorg.conf.d/		\
-	$RPM_BUILD_ROOT/var/log/displaylink/
+mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
+	%{buildroot}%{_prefix}/src/evdi-%{version}/		\
+	%{buildroot}%{_unitdir}/				\
+	%{buildroot}%{_prefix}/lib/systemd/system-preset/	\
+	%{buildroot}%{_prefix}/lib/systemd/system-sleep/	\
+	%{buildroot}%{_sysconfdir}/logrotate.d/			\
+	%{buildroot}%{_sysconfdir}/udev/rules.d/		\
+	%{buildroot}%{_sysconfdir}/X11/xorg.conf.d/		\
+	%{buildroot}%{_localstatedir}/log/%{name}/
 
 # Kernel driver sources
-pushd $RPM_BUILD_ROOT/usr/src/evdi-%{version} ; \
+pushd %{buildroot}%{_prefix}/src/evdi-%{version} ; \
 cp -a $OLDPWD/evdi-%{version}/module/* . ; \
 popd
 
 # Library
-cp evdi-%{version}/library/libevdi.so.%{version} $RPM_BUILD_ROOT/usr/libexec/displaylink
+cp -a evdi-%{version}/library/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/
+ln -s %{_libexecdir}/%{name}/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/libevdi.so
 
 # Binaries
 # Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
@@ -73,70 +85,104 @@ cp evdi-%{version}/library/libevdi.so.%{version} $RPM_BUILD_ROOT/usr/libexec/dis
 
 cd evdi-%{version}/displaylink-driver-%{_daemon_version}
 
-cp LICENSE ../..
+cp -a LICENSE ../..
 
 %ifarch x86_64
-cp -a x64-ubuntu-1604/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
+cp -a x64-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
 %endif
 
 %ifarch %ix86
-cp -a x86-ubuntu-1604/DisplayLinkManager $RPM_BUILD_ROOT/usr/libexec/displaylink/
+cp -a x86-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
 %endif
 
 # Firmwares
-cp -a ella-dock-release.spkg firefly-monitor-release.spkg ridge-dock-release.spkg $RPM_BUILD_ROOT/usr/libexec/displaylink/
+cp -a ella-dock-release.spkg firefly-monitor-release.spkg ridge-dock-release.spkg %{buildroot}%{_libexecdir}/%{name}/
 
 # systemd/udev
-cp -a %{SOURCE1} $RPM_BUILD_ROOT/usr/lib/systemd/system/
-cp -a %{SOURCE2} $RPM_BUILD_ROOT/etc/udev/rules.d/
-cp -a %{SOURCE5} $RPM_BUILD_ROOT/etc/X11/xorg.conf.d/
+cp -a %{SOURCE1} %{buildroot}%{_unitdir}/
+cp -a %{SOURCE2} %{buildroot}%{_sysconfdir}/udev/rules.d/
+cp -a %{SOURCE5} %{buildroot}%{_sysconfdir}/X11/xorg.conf.d/
+cp -a %{SOURCE6} %{buildroot}%{_prefix}/lib/systemd/system-preset/
+cp -a %{SOURCE7} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 
 # pm-util
-bash %{SOURCE3} displaylink-installer.sh > $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
+bash %{SOURCE3} displaylink-installer.sh > %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
-chmod +x $RPM_BUILD_ROOT/usr/lib/systemd/system-sleep/displaylink.sh
+chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
 %post
-# The displaylink service may crash as dkms rebuilds the module
-/usr/bin/systemctl -q is-active displaylink.service && /usr/bin/systemctl stop displaylink.service
-/usr/bin/systemctl daemon-reload
-/usr/bin/systemctl -q is-enabled dkms.service || /usr/bin/systemctl enable dkms.service
-/sbin/dkms add evdi/%{version} --rpm_safe_upgrade >> %{logfile} 2>&1
-/sbin/dkms build evdi/%{version} >> %{logfile} 2>&1
-/sbin/dkms install evdi/%{version} >> %{logfile} 2>&1
-ln -s /usr/libexec/displaylink/libevdi.so.%{version} /usr/libexec/displaylink/libevdi.so
-/usr/bin/systemctl start displaylink.service
+%systemd_post displaylink.service
+%{_sbindir}/dkms add evdi/%{version} --rpm_safe_upgrade >> %{logfile} 2>&1
+%{_sbindir}/dkms build evdi/%{version} >> %{logfile} 2>&1
+%{_sbindir}/dkms install evdi/%{version} >> %{logfile} 2>&1
+%{_bindir}/systemctl start displaylink.service
 
 %files
 %doc LICENSE
-/usr/lib/systemd/system/displaylink.service
-/usr/lib/systemd/system-sleep/displaylink.sh
-/etc/udev/rules.d/99-displaylink.rules
-/etc/X11/xorg.conf.d/20-displaylink.conf
-%dir /usr/src/evdi-%{version}
-/usr/src/evdi-%{version}/*
-%dir /usr/libexec/displaylink
-/usr/libexec/displaylink/*
-%dir /var/log/displaylink/
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
+%{_unitdir}/displaylink.service
+%{_prefix}/lib/systemd/system-preset/95-displaylink.preset
+%{_prefix}/lib/systemd/system-sleep/displaylink.sh
+%{_sysconfdir}/udev/rules.d/99-displaylink.rules
+%{_sysconfdir}/X11/xorg.conf.d/20-displaylink.conf
+
+%dir %{_prefix}/src/evdi-%{version}
+%{_prefix}/src/evdi-%{version}/Kconfig
+%{_prefix}/src/evdi-%{version}/LICENSE
+%{_prefix}/src/evdi-%{version}/Makefile
+%{_prefix}/src/evdi-%{version}/dkms.conf
+%{_prefix}/src/evdi-%{version}/evdi_connector.c
+%{_prefix}/src/evdi-%{version}/evdi_cursor.c
+%{_prefix}/src/evdi-%{version}/evdi_cursor.h
+%{_prefix}/src/evdi-%{version}/evdi_debug.c
+%{_prefix}/src/evdi-%{version}/evdi_debug.h
+%{_prefix}/src/evdi-%{version}/evdi_drm.h
+%{_prefix}/src/evdi-%{version}/evdi_drv.c
+%{_prefix}/src/evdi-%{version}/evdi_drv.h
+%{_prefix}/src/evdi-%{version}/evdi_encoder.c
+%{_prefix}/src/evdi-%{version}/evdi_fb.c
+%{_prefix}/src/evdi-%{version}/evdi_gem.c
+%{_prefix}/src/evdi-%{version}/evdi_ioc32.c
+%{_prefix}/src/evdi-%{version}/evdi_main.c
+%{_prefix}/src/evdi-%{version}/evdi_modeset.c
+%{_prefix}/src/evdi-%{version}/evdi_painter.c
+%{_prefix}/src/evdi-%{version}/evdi_params.c
+%{_prefix}/src/evdi-%{version}/evdi_params.h
+
+%dir %{_libexecdir}/%{name}
+%{_libexecdir}/%{name}/DisplayLinkManager
+%{_libexecdir}/%{name}/ella-dock-release.spkg
+%{_libexecdir}/%{name}/firefly-monitor-release.spkg
+%{_libexecdir}/%{name}/libevdi.so
+%{_libexecdir}/%{name}/libevdi.so.1.7.0
+%{_libexecdir}/%{name}/ridge-dock-release.spkg
+
+%dir %{_localstatedir}/log/%{name}/
 
 %preun
-if [ $1 -eq 0 ] ;then
-	/usr/bin/systemctl -q is-active displaylink.service && /usr/bin/systemctl stop displaylink.service
-	%{__rm} -f /usr/libexec/displaylink/libevdi.so
-	/sbin/dkms remove evdi/%{version} --all --rpm_safe_upgrade >> %{logfile}
-fi
+%systemd_preun displaylink.service
+%{_sbindir}/dkms remove evdi/%{version} --all --rpm_safe_upgrade >> %{logfile}
 
 %postun
-/usr/bin/systemctl daemon-reload
+%systemd_postun_with_restart displaylink.service
 
 %changelog
-* Mon May 04 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-1
+* Mon May 11 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-1
 - Update to evdi driver version 1.7.0.
 - Update to Displaylink driver 5.3.1.
 - The minimum kernel supported in evdi is now 4.15. Adjusting spec to match.
 - Fix support for DL-6xxx devices. The firmware image was not being copied from
   the DisplayLink driver package.
 - Adjust how we use dkms inside the rpm to follow recommended way in documentation.
+- Switch spec to using macro for buildroot instead of variable for consistency.
+- Change hardcoded paths to rpm macros
+- List out files instead of using a wild card.  This Will help catch potential
+  issues if files are missing or changed with new version releases.
+- Use systemd scriplets for handling systemd unit file
+- Use systemd preset file to enable displaylink.service by default
+- Remove calls to enable dkms service since this is already enabled by policy
+  on Fedora.
+- Add logrotate config file
 
 * Thu Apr 16 2020 Michael L. Young <elgueromexicano@gmail.com> 1.6.4-3
 - Remove patches that are no longer needed.  This restores the ability
