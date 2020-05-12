@@ -26,7 +26,13 @@ ExclusiveArch:	i386 x86_64
 BuildRequires:  gcc-c++
 BuildRequires:	libdrm-devel
 BuildRequires:  make
-BuildRequires:  systemd-rpm-macros
+
+%if 0%{?fedora} < 30 || 0%{?rhel}
+BuildRequires:  systemd
+%else
+BuildRequires:	systemd-rpm-macros
+%endif
+
 Requires:       dkms, %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
 Conflicts:      xorg-x11-server-Xorg = 1.20.1
 
