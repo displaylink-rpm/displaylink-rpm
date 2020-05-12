@@ -29,6 +29,7 @@ script:
 - sudo chown `id -u`:`id -g` -R .
 deploy:
   provider: releases
+  skip_cleanup: true
   on:
     tags: true
   token:
