@@ -1,11 +1,11 @@
-language: generic
-sudo: required
+language: minimal
+os: linux
 env:
   global:
     - VERSION=1.7.0
     - DAEMON_VERSION=5.3.1.34
     - RELEASE=1
-  matrix:
+  jobs:
   - OS_TYPE=fedora OS_VERSION=32
   - OS_TYPE=fedora OS_VERSION=31
   - OS_TYPE=fedora OS_VERSION=30
@@ -29,10 +29,9 @@ script:
 - sudo chown `id -u`:`id -g` -R .
 deploy:
   provider: releases
-  skip_cleanup: true
   on:
     tags: true
-  api_key:
+  token:
     secure: faqfSs9slgmmDOquGF4qBu74gzClZ6Mr6aTn0wb8IWLQdfLXZ8kNufQU5qgMI+xOZBBAq9TAVAfpJ75MGoBkJC9xUFoA4E+i935ir/TPjy74KPoriHfg2rtKJW0P+Ma9BbG3NHs60/dIZKwMoXPR8YcTYQ6vNwckAxoHeXNfNmhoYNrLHgXEhKmPxWNFO/x4gLtA/w5bL1TR5TTHnFA7bmmHxXpIw0RH8zISYysWStOthZSyf7BBnyArM46kX1ez5gJQ/2RHHOiYp+KhzzLCDVIMDdXcCf18kxuSNiqbAkguSmhoQA53OUAuvcsBxwhm/zEBuhuhuZBGgZkArjuWIOh36bdCX1XfJLwOKiqvU3Gz99SDAHxc9VDZmTLXyUOIxu7BI8+1VSPUZT/0n9G7LUJzE3LgnuNtCcXP0LWQbt3cLyrKYVWZPtdGwQ+Q6EHM61MM5aGZBl+olHuCRMvkRWJYks88G+zWKSbwvRCwOolJNoKLvdeU2gqhia6Hfp0UHTZnvJRmvhrjNxrD5jXnL05fcr5h2g9C0uVCQAJNpC9qHRFk/WskGVrwRhlpSHME8ugawNsr5+/qzY4SZncbNoqn/iOTQE0wxNtdNNIYjofrPKsRMGErkOZzWFTzlF/2bdb2gOo2jU4QUCJwshOAv0gKJ3r1WJDaodKYXqasASA=
   file:
     - ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.src.rpm
