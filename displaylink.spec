@@ -167,9 +167,10 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
-* Sat May 30 2020 Mitya Eremeev <mitossvyaz@mail.ru>
+* Sat May 30 2020 Mitya Eremeev <mitossvyaz@mail.ru> 1.7.0-2
 - fix typo in kernel package name
 - tested package in CentOS 8
+
 * Mon May 11 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-1
 - Update to evdi driver version 1.7.0.
 - Update to Displaylink driver 5.3.1.
