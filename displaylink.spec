@@ -23,18 +23,20 @@ Source6:	95-displaylink.preset
 Source7:	%{name}.logrotate
 ExclusiveArch:	i386 x86_64
 
-BuildRequires:  gcc-c++
+BuildRequires:	gcc-c++
 BuildRequires:	libdrm-devel
-BuildRequires:  make
+BuildRequires:	make
 
 %if 0%{?fedora} < 30 || 0%{?rhel}
-BuildRequires:  systemd
+BuildRequires:	systemd
 %else
 BuildRequires:	systemd-rpm-macros
 %endif
 
-Requires:       dkms, %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
-Conflicts:      xorg-x11-server-Xorg = 1.20.1
+Requires:	dkms
+Requires:	%{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
+Requires:	make
+Conflicts:	xorg-x11-server-Xorg = 1.20.1
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -167,6 +169,10 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Mon Jun 22 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-2
+- Add 'make' as a requirement for installing the RPM since DKMS needs it to
+  build the evdi module.
+
 * Sat May 30 2020 Mitya Eremeev <mitossvyaz@mail.ru> 1.7.0-2
 - fix typo in kernel package name
 - tested package in CentOS 8
