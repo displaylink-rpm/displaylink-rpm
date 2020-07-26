@@ -1,0 +1,123 @@
+diff -urN evdi-1.7.0-orig/module/evdi_connector.c evdi-1.7.0/module/evdi_connector.c
+--- evdi-1.7.0-orig/module/evdi_connector.c	2020-04-16 10:20:45.000000000 +0200
++++ evdi-1.7.0/module/evdi_connector.c	2020-07-26 12:21:26.852187682 +0200
+@@ -18,9 +18,7 @@
+ #include <drm/drm_atomic_helper.h>
+ #include "evdi_drv.h"
+ 
+-#if KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE
+ #include <drm/drm_probe_helper.h>
+-#endif
+ 
+ /*
+  * dummy connector to just get EDID,
+@@ -36,19 +34,11 @@
+ 	edid = (struct edid *)evdi_painter_get_edid_copy(evdi);
+ 
+ 	if (!edid) {
+-#if KERNEL_VERSION(4, 19, 0) <= LINUX_VERSION_CODE
+ 		drm_connector_update_edid_property(connector, NULL);
+-#else
+-		drm_mode_connector_update_edid_property(connector, NULL);
+-#endif
+ 		return 0;
+ 	}
+ 
+-#if KERNEL_VERSION(4, 19, 0) <= LINUX_VERSION_CODE
+ 	ret = drm_connector_update_edid_property(connector, edid);
+-#else
+-	ret = drm_mode_connector_update_edid_property(connector, edid);
+-#endif
+ 
+ 	if (!ret)
+ 		ret = drm_add_edid_modes(connector, edid);
+@@ -151,10 +141,6 @@
+ 
+ 	drm_connector_register(connector);
+ 
+-#if KERNEL_VERSION(4, 19, 0) <= LINUX_VERSION_CODE
+ 	drm_connector_attach_encoder(connector, encoder);
+-#else
+-	drm_mode_connector_attach_encoder(connector, encoder);
+-#endif
+ 	return 0;
+ }
+diff -urN evdi-1.7.0-orig/module/evdi_fb.c evdi-1.7.0/module/evdi_fb.c
+--- evdi-1.7.0-orig/module/evdi_fb.c	2020-04-16 10:20:45.000000000 +0200
++++ evdi-1.7.0/module/evdi_fb.c	2020-07-26 12:22:13.409667834 +0200
+@@ -410,22 +410,12 @@
+ 	info->fix.smem_len = size;
+ 	info->fix.smem_start = (unsigned long)efbdev->efb.obj->vmapping;
+ 
+-#if KERNEL_VERSION(4, 20, 0) <= LINUX_VERSION_CODE
+ 	info->flags = FBINFO_DEFAULT;
+-#else
+-	info->flags = FBINFO_DEFAULT | FBINFO_CAN_FORCE_OUTPUT;
+-#endif
+ 
+ 	efbdev->fb_ops = evdifb_ops;
+ 	info->fbops = &efbdev->fb_ops;
+ 
+-#if KERNEL_VERSION(5, 2, 0) <= LINUX_VERSION_CODE
+ 	drm_fb_helper_fill_info(info, &efbdev->helper, sizes);
+-#else
+-	drm_fb_helper_fill_fix(info, fb->pitches[0], fb->format->depth);
+-	drm_fb_helper_fill_var(info, &efbdev->helper, sizes->fb_width,
+-			       sizes->fb_height);
+-#endif
+ 
+ 	ret = fb_alloc_cmap(&info->cmap, 256, 0);
+ 	if (ret) {
+diff -urN evdi-1.7.0-orig/module/evdi_ioc32.c evdi-1.7.0/module/evdi_ioc32.c
+--- evdi-1.7.0-orig/module/evdi_ioc32.c	2020-04-16 10:20:45.000000000 +0200
++++ evdi-1.7.0/module/evdi_ioc32.c	2020-07-26 12:34:47.257630259 +0200
+@@ -60,11 +60,7 @@
+ 		return -EFAULT;
+ 
+ 	request = compat_alloc_user_space(sizeof(*request));
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE
+ 	if (!access_ok(request, sizeof(*request))
+-#else
+-	if (!access_ok(VERIFY_WRITE, request, sizeof(*request))
+-#endif
+ 		|| __put_user(req32.connected, &request->connected)
+ 		|| __put_user(req32.dev_index, &request->dev_index)
+ 		|| __put_user((void __user *)(unsigned long)req32.edid_ptr32,
+@@ -88,11 +84,7 @@
+ 		return -EFAULT;
+ 
+ 	request = compat_alloc_user_space(sizeof(*request));
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE
+ 	if (!access_ok(request, sizeof(*request))
+-#else
+-	if (!access_ok(VERIFY_WRITE, request, sizeof(*request))
+-#endif
+ 		|| __put_user(req32.mode, &request->mode)
+ 		|| __put_user(req32.buf_width, &request->buf_width)
+ 		|| __put_user(req32.buf_height, &request->buf_height)
+diff -urN evdi-1.7.0-orig/module/evdi_main.c evdi-1.7.0/module/evdi_main.c
+--- evdi-1.7.0-orig/module/evdi_main.c	2020-04-16 10:20:45.000000000 +0200
++++ evdi-1.7.0/module/evdi_main.c	2020-07-26 12:35:11.712407561 +0200
+@@ -20,9 +20,7 @@
+ #include "evdi_drv.h"
+ #include "evdi_cursor.h"
+ 
+-#if KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE
+ #include <drm/drm_probe_helper.h>
+-#endif
+ 
+ int evdi_driver_setup(struct drm_device *dev)
+ {
+diff -urN evdi-1.7.0-orig/module/evdi_painter.c evdi-1.7.0/module/evdi_painter.c
+--- evdi-1.7.0-orig/module/evdi_painter.c	2020-04-16 10:20:45.000000000 +0200
++++ evdi-1.7.0/module/evdi_painter.c	2020-07-26 12:35:27.544910806 +0200
+@@ -24,9 +24,7 @@
+ 
+ #include <linux/dma-buf.h>
+ 
+-#if KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE
+ #include <drm/drm_probe_helper.h>
+-#endif
+ 
+ struct evdi_event_cursor_set_pending {
+ 	struct drm_pending_event base;

@@ -28,11 +28,12 @@ BUILD_DEPS := $(DAEMON_PKG) $(EVDI_PKG) $(SPEC_FILE)
 # Targets
 #
 
-i386_RPM   := i386/displaylink-$(VERSION)-$(RELEASE).i386.rpm
-x86_64_RPM := x86_64/displaylink-$(VERSION)-$(RELEASE).x86_64.rpm
+i386_RPM        := i386/displaylink-$(VERSION)-$(RELEASE).i386.rpm
+x86_64_RPM      := x86_64/displaylink-$(VERSION)-$(RELEASE).x86_64.rpm
+x86_64_EL81_RPM := x86_64/displaylink-$(VERSION)-$(RELEASE).el8.x86_64.rpm
 SRPM       := displaylink-$(VERSION)-$(RELEASE).src.rpm
 
-TARGETS    := $(i386_RPM) $(x86_64_RPM) $(SRPM)
+TARGETS    := $(i386_RPM) $(x86_64_RPM) $(x86_64_EL81_RPM) $(SRPM)
 
 #
 # Upstream checks
@@ -133,6 +134,9 @@ $(i386_RPM): $(BUILD_DEPS)
 
 $(x86_64_RPM): $(BUILD_DEPS)
 	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --target=x86_64
+
+$(x86_64_EL81_RPM): $(BUILD_DEPS)
+	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --with=el81 --target=x86_64
 
 $(SRPM): $(BUILD_DEPS)
 	rpmbuild -bs $(BUILD_DEFINES) displaylink.spec

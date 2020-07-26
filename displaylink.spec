@@ -1,13 +1,18 @@
 %global debug_package %{nil}
-%if 0%{?rhel}
+%if 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
 %else
+%bcond_with el81
 %global kernel_pkg_name kernel
 %endif
 
 Name:		displaylink
 Version:	%{_version}
+%if %{with el81}
+Release:        %{_release}%{?dist}
+%else
 Release:	%{_release}
+%endif
 Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
@@ -21,6 +26,9 @@ Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
 Source6:	95-displaylink.preset
 Source7:	%{name}.logrotate
+%if %{with el81}
+Patch0:		evdi-el81.patch
+%endif
 ExclusiveArch:	i386 x86_64
 
 BuildRequires:	gcc-c++
@@ -48,6 +56,9 @@ docking stations, USB monitors, and USB adapters.
 %prep
 %setup -q -c evdi-%{version}
 cd evdi-%{version}
+%if %{with el81}
+%patch0 -p1
+%endif
 sed -i 's/\r//' README.md
 
 unzip "%{SOURCE4}"
@@ -169,6 +180,9 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Sun Jul 26 2020 Stefan Bluhm <stefan.bluhm@clacee.eu> 1.7.0-2
+- Add 'el81' flag to patch evdi für RHEL 8.1+ kernels.
+
 * Mon Jun 22 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-2
 - Add 'make' as a requirement for installing the RPM since DKMS needs it to
   build the evdi module.
