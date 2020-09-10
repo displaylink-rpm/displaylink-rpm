@@ -13,6 +13,8 @@ env:
   - OS_TYPE=fedora OS_VERSION=29
   - OS_TYPE=fedora OS_VERSION=28
   - OS_TYPE=centos OS_VERSION=7
+  - OS_TYPE=centos OS_VERSION=8
+
 services:
 - docker
 before_install:
