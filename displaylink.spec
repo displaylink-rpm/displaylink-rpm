@@ -78,8 +78,9 @@ cp -a $OLDPWD/evdi-%{version}/module/* . ; \
 popd
 
 # Library
-cp -a evdi-%{version}/library/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/
-ln -s %{_libexecdir}/%{name}/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/libevdi.so
+so_version=`sed 's/\.[^.]*$//'  <<< "%{version}"`.0
+cp -a evdi-%{version}/library/libevdi.so.${so_version} %{buildroot}%{_libexecdir}/%{name}/
+ln -s %{_libexecdir}/%{name}/libevdi.so.${so_version} %{buildroot}%{_libexecdir}/%{name}/libevdi.so
 
 # Binaries
 # Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
