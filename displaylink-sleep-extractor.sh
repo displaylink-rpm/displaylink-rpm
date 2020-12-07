@@ -11,6 +11,8 @@ source <(
 COREDIR=$(mktemp -d)
 add_pm_script "systemd"
 
+sed -i -e '1 s/^.*$/\#!\/usr\/bin\/bash/' "$COREDIR/suspend.sh"
+
 cat "$COREDIR/suspend.sh"
 
 rm -rf "$COREDIR"
