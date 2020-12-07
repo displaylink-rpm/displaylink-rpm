@@ -156,7 +156,7 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %{_libexecdir}/%{name}/ella-dock-release.spkg
 %{_libexecdir}/%{name}/firefly-monitor-release.spkg
 %{_libexecdir}/%{name}/libevdi.so
-%{_libexecdir}/%{name}/libevdi.so.1.7.0
+%{_libexecdir}/%{name}/libevdi.so.%{version}
 %{_libexecdir}/%{name}/ridge-dock-release.spkg
 
 %dir %{_localstatedir}/log/%{name}/
@@ -169,6 +169,9 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Mon Dec 07 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-2
+- Remove hard coded libevdi.so.1.7.0 reference in the files section
+
 * Mon Jun 22 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-2
 - Add 'make' as a requirement for installing the RPM since DKMS needs it to
   build the evdi module.
