@@ -1,5 +1,5 @@
 %global debug_package %{nil}
-%if 0%{?rhel}
+%if 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
 %else
 %global kernel_pkg_name kernel
@@ -31,6 +31,10 @@ BuildRequires:	make
 BuildRequires:	systemd
 %else
 BuildRequires:	systemd-rpm-macros
+%endif
+
+%if 0%{?rhel}
+Requires:	epel-release
 %endif
 
 Requires:	dkms
@@ -169,7 +173,11 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
-* Mon Dec 07 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-2
+* Tue Dec 08 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.2-1
+- Add the requirement for epel if distro is RHEL based
+- Remove requirement for 'ml' kernel for RHEL distro greater than 7
+
+* Mon Dec 07 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.2-1
 - Remove hard coded libevdi.so.1.7.0 reference in the files section
 
 * Mon Jun 22 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.0-2
