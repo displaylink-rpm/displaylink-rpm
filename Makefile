@@ -4,8 +4,8 @@
 
 DAEMON_VERSION := 5.3.1.34
 DOWNLOAD_ID    := 1576    # This id number comes off the link on the displaylink website
-VERSION        := 1.7.0
-RELEASE        := 2
+VERSION        := 1.7.2
+RELEASE        := 1
 
 #
 # Dependencies
@@ -17,7 +17,7 @@ SPEC_FILE  := displaylink.spec
 
 # The following is a little clunky, but we need to ensure the resulting
 # tarball expands the same way as the upstream tarball
-EVDI_DEVEL_BRANCH   := devel
+EVDI_DEVEL_BRANCH   := v1.7.x
 EVDI_DEVEL_REPO     := https://github.com/DisplayLink/evdi.git
 EVDI_DEVEL_BASE_DIR := /var/tmp
 EVDI_DEVEL          := $(EVDI_DEVEL_BASE_DIR)/evdi-$(VERSION)

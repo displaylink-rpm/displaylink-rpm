@@ -1,5 +1,5 @@
 %global debug_package %{nil}
-%if 0%{?rhel} <= 7
+%if 0%{?rhel} && 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
 %else
 %global kernel_pkg_name kernel
@@ -173,6 +173,9 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Fri Dec 11 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.2-1
+- Update to evdi driver version 1.7.2
+
 * Tue Dec 08 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.2-1
 - Add the requirement for epel if distro is RHEL based
 - Remove requirement for 'ml' kernel for RHEL distro greater than 7
