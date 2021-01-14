@@ -4,7 +4,7 @@ env:
   global:
     - VERSION=1.7.2
     - DAEMON_VERSION=5.3.1.34
-    - RELEASE=1
+    - RELEASE=2
   jobs:
   - OS_TYPE=fedora OS_VERSION=33
   - OS_TYPE=fedora OS_VERSION=32

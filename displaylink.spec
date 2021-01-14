@@ -81,6 +81,9 @@ pushd %{buildroot}%{_prefix}/src/evdi-%{version} ; \
 cp -a $OLDPWD/evdi-%{version}/module/* . ; \
 popd
 
+# Turn off weak modules symlink being added for dkms build of evdi
+echo "NO_WEAK_MODULES=yes" >> %{buildroot}%{_prefix}/src/evdi-%{version}/dkms.conf
+
 # Library
 cp -a evdi-%{version}/library/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/
 ln -s %{_libexecdir}/%{name}/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/libevdi.so
@@ -173,6 +176,10 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Thu Jan 14 2021 Michael L. Young <elgueromexicano@gmail.com> 1.7.2-2
+- Prevent DKMS from adding a symlink for weak modules on Fedora.
+  See DKMS documentation.
+
 * Fri Dec 11 2020 Michael L. Young <elgueromexicano@gmail.com> 1.7.2-1
 - Update to evdi driver version 1.7.2
 
