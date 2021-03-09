@@ -26,6 +26,35 @@ In order to compile the driver, just use make. The Makefile should
 download the file for you.
 
 
+Secure boot on Fedora
+--------------------------
+To use displaylink-rpm and the evdi kernel module with secure boot enabled on 
+Fedora you need to sign the module with an enrolled Machine Owner Key (MOK).
+
+First create a self signed MOK:
+```
+$ openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out \
+MOK.der -nodes -days 36500 -subj "/CN=Displaylink/"
+```
+Then register the MOK with secure boot:
+```
+$ sudo mokutil --import MOK.der
+```
+Then reboot your Fedora host and follow the instructions to enroll the key.
+
+Now you can sign the evdi module. This must be done for every kernel upgrade:
+```
+$ sudo modinfo -n evdi
+/lib/modules/5.10.19-200.fc33.x86_64/extra/evdi.ko.xz
+$ sudo unxz $(modinfo -n evdi)
+$ sudo /usr/src/kernels/$(uname -r)/scripts/sign-file sha256 ./MOK.priv \
+./MOK.der /lib/modules/$(uname -r)/extra/evdi.ko
+$ xz -f /lib/modules/$(uname -r)/extra/evdi.ko
+```
+Now any display, hdmi and/or dvi ports on your docking station should work, 
+and the displaylink.service should run.
+
+
 Hardware-specific behavior
 --------------------------
 
