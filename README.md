@@ -22,6 +22,10 @@ Packages get automatically built by Travis CI and get uploaded to
 Usage
 =====
 
+EDIT: now buildable cleanly via .spec file (in mock f.e.). Download files via `make srpm`.
+
+_____________________
+
 In order to compile the driver, just use make. The Makefile should
 download the file for you.
 
