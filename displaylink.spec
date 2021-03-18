@@ -14,7 +14,6 @@ Version:	%{_version}
 Release:	%{_release}
 Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
-Group:		User Interface/X Hardware Support
 License:	GPL v2.0, LGPL v2.1 and Proprietary
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
