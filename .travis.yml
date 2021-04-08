@@ -16,6 +16,9 @@ env:
   - OS_TYPE=centos OS_VERSION=7
   - OS_TYPE=centos OS_VERSION=8
 
+jobs:
+  allow_failures:
+    - env: OS_TYPE=centos OS_VERSION=7
 services:
 - docker
 before_install:
@@ -26,9 +29,10 @@ before_install:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then echo "$DOCKER_PASSWORD" | sudo -E docker login -u "$DOCKER_USERNAME" --password-stdin; fi
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sleep 5; fi
 - sudo docker pull ${OS_TYPE}:${OS_VERSION}
+- sudo apt-get update && sudo apt-get install -y libseccomp2
 script:
 - sudo docker run --rm=true -v `pwd`:/base-src:rw -t ${OS_TYPE}:${OS_VERSION} /bin/bash
-  -c /base-src/ci/${OS_TYPE}.sh
+  -c "/base-src/ci/${OS_TYPE}.sh && /base-src/akmod-specs/ci/${OS_TYPE}.sh && /base-src/akmod-specs/ci/${OS_TYPE}-test.sh"
 - sudo mv displaylink-${VERSION}-${RELEASE}.src.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.src.rpm
 - sudo mv x86_64/displaylink-${VERSION}-${RELEASE}.x86_64.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.x86_64.rpm
 - sudo mv i386/displaylink-${VERSION}-${RELEASE}.i386.rpm ${OS_TYPE}-${OS_VERSION}-displaylink-${VERSION}-${RELEASE}.i386.rpm
