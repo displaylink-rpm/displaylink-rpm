@@ -146,17 +146,24 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %{_prefix}/src/evdi-%{version}/evdi_debug.c
 %{_prefix}/src/evdi-%{version}/evdi_debug.h
 %{_prefix}/src/evdi-%{version}/evdi_drm.h
-%{_prefix}/src/evdi-%{version}/evdi_drv.c
-%{_prefix}/src/evdi-%{version}/evdi_drv.h
+%{_prefix}/src/evdi-%{version}/evdi_drm_drv.c
+%{_prefix}/src/evdi-%{version}/evdi_drm_drv.h
 %{_prefix}/src/evdi-%{version}/evdi_encoder.c
 %{_prefix}/src/evdi-%{version}/evdi_fb.c
 %{_prefix}/src/evdi-%{version}/evdi_gem.c
+%{_prefix}/src/evdi-%{version}/evdi_i2c.c
+%{_prefix}/src/evdi-%{version}/evdi_i2c.h
 %{_prefix}/src/evdi-%{version}/evdi_ioc32.c
-%{_prefix}/src/evdi-%{version}/evdi_main.c
 %{_prefix}/src/evdi-%{version}/evdi_modeset.c
 %{_prefix}/src/evdi-%{version}/evdi_painter.c
 %{_prefix}/src/evdi-%{version}/evdi_params.c
 %{_prefix}/src/evdi-%{version}/evdi_params.h
+%{_prefix}/src/evdi-%{version}/evdi_platform_dev.c
+%{_prefix}/src/evdi-%{version}/evdi_platform_dev.h
+%{_prefix}/src/evdi-%{version}/evdi_platform_drv.c
+%{_prefix}/src/evdi-%{version}/evdi_platform_drv.h
+%{_prefix}/src/evdi-%{version}/evdi_sysfs.c
+%{_prefix}/src/evdi-%{version}/evdi_sysfs.h
 
 %dir %{_libexecdir}/%{name}
 %{_libexecdir}/%{name}/DisplayLinkManager
@@ -176,6 +183,10 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Tue Apr 06 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
+- Update to evdi driver version 1.9.1
+- Update to Displaylink driver 5.4.0
+
 * Thu Jan 14 2021 Michael L. Young <elgueromexicano@gmail.com> 1.7.2-2
 - Prevent DKMS from adding a symlink for weak modules on Fedora.
   See DKMS documentation.

@@ -2,10 +2,10 @@
 # Versions
 #
 
-DAEMON_VERSION := 5.3.1.34
-DOWNLOAD_ID    := 1576    # This id number comes off the link on the displaylink website
-VERSION        := 1.7.2
-RELEASE        := 2
+DAEMON_VERSION := 5.4.0-55.153
+DOWNLOAD_ID    := 3751    # This id number comes off the link on the displaylink website
+VERSION        := 1.9.1
+RELEASE        := 1
 
 #
 # Dependencies
@@ -17,7 +17,7 @@ SPEC_FILE  := displaylink.spec
 
 # The following is a little clunky, but we need to ensure the resulting
 # tarball expands the same way as the upstream tarball
-EVDI_DEVEL_BRANCH   := v1.7.x
+EVDI_DEVEL_BRANCH   := devel
 EVDI_DEVEL_REPO     := https://github.com/DisplayLink/evdi.git
 EVDI_DEVEL_BASE_DIR := /var/tmp
 EVDI_DEVEL          := $(EVDI_DEVEL_BASE_DIR)/evdi-$(VERSION)
@@ -108,8 +108,8 @@ $(EVDI_DEVEL):
 	git clone --depth 1 -b $(EVDI_DEVEL_BRANCH) $(EVDI_DEVEL_REPO) $(EVDI_DEVEL)
 
 $(DAEMON_PKG):
-	wget --post-data="fileId=$(DOWNLOAD_ID)&accept_submit=Accept" -O $(DAEMON_PKG) \
-		 https://www.displaylink.com/downloads/file?id=$(DOWNLOAD_ID)
+	wget -O $(DAEMON_PKG) \
+		https://www.synaptics.com/sites/default/files/exe_files/2021-04/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu5.4-EXE.zip
 
 $(EVDI_PKG):
 	wget -O v$(VERSION).tar.gz \
