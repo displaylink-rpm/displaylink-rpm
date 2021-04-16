@@ -16,7 +16,7 @@ Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
 Source3:	displaylink-sleep-extractor.sh
-# From http://www.displaylink.com/downloads/ubuntu.php
+# From https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
 Source6:	95-displaylink.preset
@@ -183,6 +183,10 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Fri Apr 16 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
+- Updated reference to download url for the DisplayLink driver. It is now on
+  synaptics site.
+
 * Tue Apr 06 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
 - Update to evdi driver version 1.9.1
 - Update to Displaylink driver 5.4.0

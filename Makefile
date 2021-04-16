@@ -109,7 +109,7 @@ $(EVDI_DEVEL):
 
 $(DAEMON_PKG):
 	wget -O $(DAEMON_PKG) \
-		https://www.synaptics.com/sites/default/files/exe_files/2021-04/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu5.4-EXE.zip
+		"https://www.synaptics.com/sites/default/files/exe_files/2021-04/DisplayLink USB Graphics Software for Ubuntu5.4-EXE.zip"
 
 $(EVDI_PKG):
 	wget -O v$(VERSION).tar.gz \
