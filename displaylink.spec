@@ -1,6 +1,6 @@
-%global _daemon_version 5.3.1.34
-%global _version 1.7.2
-%global _release 2
+%global _daemon_version 5.4.0-55.153
+%global _version 1.9.1
+%global _release 1
 
 %global debug_package %{nil}
 %if 0%{?rhel} && 0%{?rhel} <= 7
