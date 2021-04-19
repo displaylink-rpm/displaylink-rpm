@@ -188,6 +188,9 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Mon Apr 19 2021 Pavel Valena <pvalena@redhat.com> 1.9.1-1
+- Enable spec to build cleanly using mock.
+
 * Mon Apr 19 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
 - Add a 'Provides' to indicate the bundled library in this package.
 - Add a 'Requires' for libusbx
