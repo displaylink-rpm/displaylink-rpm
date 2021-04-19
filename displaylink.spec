@@ -11,7 +11,7 @@ Release:	%{_release}
 Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
 Group:		User Interface/X Hardware Support
-License:	GPL v2.0, LGPL v2.1 and Proprietary
+License:	GPLv2 and LGPLv2 and MIT and ASL 2.0 and Proprietary
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
@@ -40,7 +40,10 @@ Requires:	epel-release
 Requires:	dkms
 Requires:	%{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
 Requires:	make
+Requires:	libusbx
 Conflicts:	xorg-x11-server-Xorg = 1.20.1
+
+Provides:	bundled(libevdi) = 1.9.1
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -127,7 +130,7 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %{_bindir}/systemctl start displaylink.service
 
 %files
-%doc LICENSE
+%license LICENSE
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %{_unitdir}/displaylink.service
 %{_prefix}/lib/systemd/system-preset/95-displaylink.preset
@@ -183,6 +186,11 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Mon Apr 19 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
+- Add a 'Provides' to indicate the bundled library in this package.
+- Add a 'Requires' for libusbx
+- Use Fedora short names for license field
+
 * Fri Apr 16 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
 - Updated reference to download url for the DisplayLink driver. It is now on
   synaptics site.
