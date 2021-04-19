@@ -1,3 +1,7 @@
+%global _daemon_version 5.4.0-55.153
+%global _version 1.9.1
+%global _release 1
+
 %global debug_package %{nil}
 %if 0%{?rhel} && 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
@@ -10,7 +14,6 @@ Version:	%{_version}
 Release:	%{_release}
 Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
-Group:		User Interface/X Hardware Support
 License:	GPLv2 and LGPLv2 and MIT and ASL 2.0 and Proprietary
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
@@ -21,7 +24,6 @@ Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
 Source6:	95-displaylink.preset
 Source7:	%{name}.logrotate
-ExclusiveArch:	i386 x86_64
 
 BuildRequires:	gcc-c++
 BuildRequires:	libdrm-devel
@@ -186,6 +188,9 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Mon Apr 19 2021 Pavel Valena <pvalena@redhat.com> 1.9.1-1
+- Enable spec to build cleanly using mock.
+
 * Mon Apr 19 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
 - Add a 'Provides' to indicate the bundled library in this package.
 - Add a 'Requires' for libusbx
