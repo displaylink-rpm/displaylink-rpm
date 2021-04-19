@@ -14,12 +14,12 @@ Version:	%{_version}
 Release:	%{_release}
 Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
-License:	GPL v2.0, LGPL v2.1 and Proprietary
+License:	GPLv2 and LGPLv2 and MIT and ASL 2.0 and Proprietary
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
 Source3:	displaylink-sleep-extractor.sh
-# From http://www.displaylink.com/downloads/ubuntu.php
+# From https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
 Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
 Source6:	95-displaylink.preset
@@ -42,7 +42,10 @@ Requires:	epel-release
 Requires:	dkms
 Requires:	%{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
 Requires:	make
+Requires:	libusbx
 Conflicts:	xorg-x11-server-Xorg = 1.20.1
+
+Provides:	bundled(libevdi) = 1.9.1
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -129,7 +132,7 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %{_bindir}/systemctl start displaylink.service
 
 %files
-%doc LICENSE
+%license LICENSE
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
 %{_unitdir}/displaylink.service
 %{_prefix}/lib/systemd/system-preset/95-displaylink.preset
@@ -148,17 +151,24 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %{_prefix}/src/evdi-%{version}/evdi_debug.c
 %{_prefix}/src/evdi-%{version}/evdi_debug.h
 %{_prefix}/src/evdi-%{version}/evdi_drm.h
-%{_prefix}/src/evdi-%{version}/evdi_drv.c
-%{_prefix}/src/evdi-%{version}/evdi_drv.h
+%{_prefix}/src/evdi-%{version}/evdi_drm_drv.c
+%{_prefix}/src/evdi-%{version}/evdi_drm_drv.h
 %{_prefix}/src/evdi-%{version}/evdi_encoder.c
 %{_prefix}/src/evdi-%{version}/evdi_fb.c
 %{_prefix}/src/evdi-%{version}/evdi_gem.c
+%{_prefix}/src/evdi-%{version}/evdi_i2c.c
+%{_prefix}/src/evdi-%{version}/evdi_i2c.h
 %{_prefix}/src/evdi-%{version}/evdi_ioc32.c
-%{_prefix}/src/evdi-%{version}/evdi_main.c
 %{_prefix}/src/evdi-%{version}/evdi_modeset.c
 %{_prefix}/src/evdi-%{version}/evdi_painter.c
 %{_prefix}/src/evdi-%{version}/evdi_params.c
 %{_prefix}/src/evdi-%{version}/evdi_params.h
+%{_prefix}/src/evdi-%{version}/evdi_platform_dev.c
+%{_prefix}/src/evdi-%{version}/evdi_platform_dev.h
+%{_prefix}/src/evdi-%{version}/evdi_platform_drv.c
+%{_prefix}/src/evdi-%{version}/evdi_platform_drv.h
+%{_prefix}/src/evdi-%{version}/evdi_sysfs.c
+%{_prefix}/src/evdi-%{version}/evdi_sysfs.h
 
 %dir %{_libexecdir}/%{name}
 %{_libexecdir}/%{name}/DisplayLinkManager
@@ -178,6 +188,19 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Mon Apr 19 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
+- Add a 'Provides' to indicate the bundled library in this package.
+- Add a 'Requires' for libusbx
+- Use Fedora short names for license field
+
+* Fri Apr 16 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
+- Updated reference to download url for the DisplayLink driver. It is now on
+  synaptics site.
+
+* Tue Apr 06 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-1
+- Update to evdi driver version 1.9.1
+- Update to Displaylink driver 5.4.0
+
 * Thu Jan 14 2021 Michael L. Young <elgueromexicano@gmail.com> 1.7.2-2
 - Prevent DKMS from adding a symlink for weak modules on Fedora.
   See DKMS documentation.
