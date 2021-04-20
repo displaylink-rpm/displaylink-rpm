@@ -1,6 +1,14 @@
+%if 0%{!?_daemon_version}
 %global _daemon_version 5.4.0-55.153
+%endif
+
+%if 0%{!?_version}
 %global _version 1.9.1
+%endif
+
+%if 0%{!?_release}
 %global _release 1
+%endif
 
 %global debug_package %{nil}
 %if 0%{?rhel} && 0%{?rhel} <= 7
@@ -9,13 +17,20 @@
 %global kernel_pkg_name kernel
 %endif
 
+%if 0%{?_unbundled}
+%global _unbundled_release .unbundled_evdi
+%endif
+
 Name:		displaylink
 Version:	%{_version}
-Release:	%{_release}
+Release:	%{_release}%{?_unbundled_release}
 Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
 License:	GPLv2 and LGPLv2 and MIT and ASL 2.0 and Proprietary
+
+%if 0%{?_unbundled}
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
+%endif
 Source1:	displaylink.service
 Source2:	99-displaylink.rules
 Source3:	displaylink-sleep-extractor.sh
@@ -55,14 +70,25 @@ docking stations, USB monitors, and USB adapters.
 %define logfile %{_localstatedir}/log/%{name}/%{name}.log
 
 %prep
-%setup -q -c evdi-%{version}
-cd evdi-%{version}
-sed -i 's/\r//' README.md
+%setup -T -c
 
-unzip "%{SOURCE4}"
+%setup -T -D -a 4
 chmod +x displaylink-driver-%{_daemon_version}.run
 ./displaylink-driver-%{_daemon_version}.run --noexec --keep
 # This creates a displaylink-driver-$version subdirectory
+
+mkdir -p evdi-%{version}
+
+%if 0%{!?_unbundled:1}
+mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
+cd evdi-%{version}
+gzip -dc evdi.tar.gz | tar -xvvf -
+%else
+%setup -T -D -a 0
+cd evdi-%{version}
+%endif
+
+sed -i 's/\r//' README.md
 
 %build
 
@@ -97,9 +123,9 @@ ln -s %{_libexecdir}/%{name}/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{
 # Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
 # Don't copy libevdi.so, we compiled it from source
 
-cd evdi-%{version}/displaylink-driver-%{_daemon_version}
+cd displaylink-driver-%{_daemon_version}
 
-cp -a LICENSE ../..
+cp -a LICENSE ../
 
 %ifarch x86_64
 cp -a x64-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
