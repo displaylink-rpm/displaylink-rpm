@@ -70,9 +70,9 @@ docking stations, USB monitors, and USB adapters.
 %define logfile %{_localstatedir}/log/%{name}/%{name}.log
 
 %prep
-%setup -T -c
+%setup -q -T -c
 
-%setup -T -D -a 4
+%setup -q -T -D -a 4
 chmod +x displaylink-driver-%{_daemon_version}.run
 ./displaylink-driver-%{_daemon_version}.run --noexec --keep
 # This creates a displaylink-driver-$version subdirectory
@@ -84,7 +84,7 @@ mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
 %else
-%setup -T -D -a 0
+%setup -q -T -D -a 0
 cd evdi-%{version}
 %endif
 
