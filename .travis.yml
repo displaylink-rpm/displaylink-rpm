@@ -22,8 +22,8 @@ before_install:
   | sudo tee /etc/default/docker > /dev/null
 - sudo service docker restart
 - sleep 5
-- echo "$DOCKER_PASSWORD" | sudo -E docker login -u "$DOCKER_USERNAME" --password-stdin
-- sleep 5
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then echo "$DOCKER_PASSWORD" | sudo -E docker login -u "$DOCKER_USERNAME" --password-stdin; fi
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then sleep 5; fi
 - sudo docker pull ${OS_TYPE}:${OS_VERSION}
 script:
 - sudo docker run --rm=true -v `pwd`:/base-src:rw -t ${OS_TYPE}:${OS_VERSION} /bin/bash
