@@ -6,6 +6,7 @@ env:
     - DAEMON_VERSION=5.4.0-55.153
     - RELEASE=1
   jobs:
+  - OS_TYPE=fedora OS_VERSION=34
   - OS_TYPE=fedora OS_VERSION=33
   - OS_TYPE=fedora OS_VERSION=32
   - OS_TYPE=fedora OS_VERSION=31
