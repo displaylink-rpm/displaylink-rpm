@@ -69,7 +69,7 @@ docking stations, USB monitors, and USB adapters.
 %{_presetdir}/95-displaylink.preset
 
 %post config
-%systemd_post displaylink-service
+%systemd_post displaylink.service
 
 
 
