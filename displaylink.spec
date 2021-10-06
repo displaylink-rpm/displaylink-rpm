@@ -1,5 +1,5 @@
 %if 0%{!?_daemon_version}
-%global _daemon_version 5.4.0-55.153
+%global _daemon_version 5.4.1-55.174
 %endif
 
 %if 0%{!?_version}
@@ -7,7 +7,7 @@
 %endif
 
 %if 0%{!?_release}
-%global _release 1
+%global _release 2
 %endif
 
 %global debug_package %{nil}
@@ -214,6 +214,9 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Tue Oct 19 2021 Rodrigo Araujo <araujo.rm@gmail.com> 1.9.1-2
+- Update driver version to 5.4.1-55.174
+
 * Mon Apr 19 2021 Pavel Valena <pvalena@redhat.com> 1.9.1-1
 - Enable spec to build cleanly using mock.
 
