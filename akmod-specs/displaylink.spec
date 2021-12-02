@@ -1,11 +1,12 @@
 Name:		displaylink
-Version:	5.4.0
+Version:	5.4.1
 %global config_release 1
+%global displaylink_rpm_commit 6e33df48ec0e9e965f5461b22291cabe1ba7f620
 Release:	1%{?dist}
 Summary:	Meta-package for proprietary DisplayLinkManager application
 URL:		https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-Source0:	https://www.synaptics.com/sites/default/files/exe_files/2021-04/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu5.4-EXE.zip
-Source1:	https://github.com/displaylink-rpm/displaylink-rpm/archive/v%{version}.tar.gz
+Source0:	https://www.synaptics.com/sites/default/files/exe_files/2021-09/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu%{version}-EXE.zip
+Source1:	https://github.com/displaylink-rpm/displaylink-rpm/archive/%{displaylink_rpm_commit}.tar.gz
 License:	MIT
 Requires:	akmod-evdi, %{name}-config, %{name}-manager
 
@@ -74,7 +75,7 @@ docking stations, USB monitors, and USB adapters.
 
 
 %prep
-%setup -q -T -D -a 1 -c -n %{name}-rpm-%{version}
+%setup -q -T -D -a 1 -c -n %{name}-rpm-%{displaylink_rpm_commit}
 for i in displaylink.service	\
 	displaylink.logrotate	\
 	95-displaylink.preset	\
@@ -82,12 +83,12 @@ for i in displaylink.service	\
 	20-displaylink.conf	\
 	displaylink-sleep-extractor.sh
 do
-  cp -v displaylink-rpm-%{version}/$i .
+  cp -v %{name}-rpm-%{displaylink_rpm_commit}/$i .
 done
 unzip "%{SOURCE0}"
-chmod +x displaylink-driver-%{version}-55.153.run
-./displaylink-driver-%{version}-55.153.run --noexec --keep
-chmod 644 displaylink-driver-%{version}-55.153/LICENSE
+chmod +x displaylink-driver-%{version}-55.174.run
+./displaylink-driver-%{version}-55.174.run --noexec --keep
+chmod 644 displaylink-driver-%{version}-55.174/LICENSE
 
 %install
 mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
@@ -100,7 +101,7 @@ mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
 	%{buildroot}%{_localstatedir}/log/%{name}/
 
 # DisplayLinkManager
-pushd displaylink-driver-%{version}-55.153
+pushd displaylink-driver-%{version}-55.174
 
 cp LICENSE ..
 
@@ -134,5 +135,5 @@ cp -a 99-displaylink.rules %{buildroot}%{_udevrulesdir}
 cp -a 20-displaylink.conf %{buildroot}%{_datadir}/X11/xorg.conf.d
 
 %changelog
-* Sat May 01 2021 ffgiff <ffgiff@gmail.com> 5.4.0-1
+* Mon Oct 18 2021 ffgiff <ffgiff@gmail.com> 5.4.1-1
 - First version
