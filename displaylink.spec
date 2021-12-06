@@ -10,6 +10,11 @@
 %global _release 2
 %endif
 
+# Disable RPATH since DisplayLinkManager contains this.
+# Fedora 35 enforces this check and will stop rpmbuild from
+# proceeding.
+%global __brp_check_rpaths %{nil}
+
 %global debug_package %{nil}
 %if 0%{?rhel} && 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
