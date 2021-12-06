@@ -40,6 +40,9 @@ jobs:
         - os: centos
           version: 8.4.2105
           dockernamespace: centos
+        - os: rocky
+          version: 8
+          dockernamespace: rockylinux/rockylinux
 
     steps:
       - uses: actions/checkout@v2
