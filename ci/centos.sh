@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 yum install -y gcc rpm-build make wget yum-utils --enablerepo=extras
 

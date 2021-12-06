@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 dnf install -y rpm-build make gcc wget 'dnf-command(builddep)'
 
