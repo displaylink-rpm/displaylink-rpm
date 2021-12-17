@@ -1,6 +1,6 @@
 # DisplayLink RPM
 
-[![Build Status](https://github.com/elguero/displaylink-rpm/actions/workflows/buildcheck.yml/badge.svg)](https://github.com/elguero/displaylink-rpm/actions/workflows/buildcheck.yml)
+[![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/buildcheck.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/buildcheck.yml)
 
 This is the recipe for building the [DisplayLink driver][displaylink]
 in a RPM package for Fedora and CentOS. This driver supports the following
