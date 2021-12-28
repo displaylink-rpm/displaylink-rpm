@@ -6,4 +6,4 @@ cd /base-src
 
 dnf builddep -y --spec ./displaylink.spec
 
-make ${{ env.SPECIFICTARGET }}
+make $(SPECIFICTARGET)

@@ -8,4 +8,4 @@ yum-builddep -y ./displaylink.spec
 
 chown `id -u`:`id -g` -R .
 
-make ${{ env.SPECIFICTARGET }}
+make $(SPECIFICTARGET)
