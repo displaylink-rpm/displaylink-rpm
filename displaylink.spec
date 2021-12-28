@@ -22,18 +22,18 @@
 %global kernel_pkg_name kernel
 %endif
 
-%if 0%{?_unbundled}
-%global _unbundled_release .unbundled_evdi
+%if 0%{?_github}
+%global _github_release .github_evdi
 %endif
 
 Name:		displaylink
 Version:	%{_version}
-Release:	%{_release}%{?_unbundled_release}
+Release:	%{_release}%{?_github_release}
 Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
 License:	GPLv2 and LGPLv2 and MIT and ASL 2.0 and Proprietary
 
-%if 0%{?_unbundled}
+%if 0%{?_github}
 Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 %endif
 Source1:	displaylink.service
@@ -84,7 +84,7 @@ chmod +x displaylink-driver-%{_daemon_version}.run
 
 mkdir -p evdi-%{version}
 
-%if 0%{!?_unbundled:1}
+%if 0%{!?_github:1}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
@@ -219,6 +219,10 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Mon Dec 27 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-2
+- Change 'unbundled' to 'github' as part of attempt to clarify
+  which evdi driver is being used in the RPM that is produced.
+
 * Tue Oct 19 2021 Rodrigo Araujo <araujo.rm@gmail.com> 1.9.1-2
 - Update driver version to 5.4.1-55.174
 

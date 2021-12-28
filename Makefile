@@ -23,7 +23,7 @@ EVDI_DEVEL_BASE_DIR := /var/tmp
 EVDI_DEVEL          := $(EVDI_DEVEL_BASE_DIR)/evdi-$(VERSION)
 
 BUILD_DEPS := $(DAEMON_PKG) $(SPEC_FILE)
-BUILD_DEPS_UNBUNDLED_EVDI := $(DAEMON_PKG) $(EVDI_PKG) $(SPEC_FILE)
+BUILD_DEPS_GITHUB_EVDI := $(DAEMON_PKG) $(EVDI_PKG) $(SPEC_FILE)
 
 #
 # Targets
@@ -35,11 +35,13 @@ SRPM       := displaylink-$(VERSION)-$(RELEASE).src.rpm
 
 TARGETS    := $(i386_RPM) $(x86_64_RPM) $(SRPM)
 
-i386_RPM_UNBUNDLED_EVDI   := i386/displaylink-$(VERSION)-$(RELEASE)-unbundled_evdi.i386.rpm
-x86_64_RPM_UNBUNDLED_EVDI := x86_64/displaylink-$(VERSION)-$(RELEASE)-unbundled_evdi.x86_64.rpm
-SRPM_UNBUNDLED_EVDI       := displaylink-$(VERSION)-$(RELEASE)-unbundled_evdi.src.rpm
+# Use release found on GitHub instead of what comes in the
+# Displaylink download
+i386_RPM_GITHUB_EVDI   := i386/displaylink-$(VERSION)-$(RELEASE)-github_evdi.i386.rpm
+x86_64_RPM_GITHUB_EVDI := x86_64/displaylink-$(VERSION)-$(RELEASE)-github_evdi.x86_64.rpm
+SRPM_GITHUB_EVDI       := displaylink-$(VERSION)-$(RELEASE)-github_evdi.src.rpm
 
-TARGETS_UNBUNDLED_EVDI := $(i386_RPM_UNBUNDLED_EVDI) $(x86_64_RPM_UNBUNDLED_EVDI) $(SRPM_UNBUNDLED_EVDI)
+TARGETS_GITHUB_EVDI := $(i386_RPM_GITHUB_EVDI) $(x86_64_RPM_GITHUB_EVDI) $(SRPM_GITHUB_EVDI)
 
 #
 # Upstream checks
@@ -68,27 +70,30 @@ endef
 # PHONY targets
 #
 
-.PHONY: all unbundled rpm srpm rpm-unbundled srpm-unbundled devel rawhide clean clean-rawhide clean-mainline clean-all versions
+.PHONY: all github rpm srpm rpm-github srpm-github devel rawhide clean clean-rawhide clean-mainline clean-all versions
 
 all: $(TARGETS)
 
-unbundled: $(TARGETS_UNBUNDLED_EVDI)
+# Use evdi tagged release on Github instead of using what is bundled in Displaylink download
+github-release: $(TARGETS_GITHUB_EVDI)
 
 rpm: $(i386_RPM) $(x86_64_RPM)
 
 srpm: $(i386_RPM) $(x86_64_RPM)
 
-rpm-unbundled: $(i386_RPM_UNBUNDLED_EVDI) $(x86_64_RPM_UNBUNDLED_EVDI)
+rpm-github: $(i386_RPM_GITHUB_EVDI) $(x86_64_RPM_GITHUB_EVDI)
 
-srpm-unbundled: $(SRPM_UNBUNDLED_EVDI)
+srpm-github: $(SRPM_GITHUB_EVDI)
 
+# Pull latest code from devel branch
 devel: $(EVDI_DEVEL)
 	cd $(EVDI_DEVEL) && git pull
 	tar -z -c -f $(EVDI_PKG) -C $(EVDI_DEVEL_BASE_DIR) evdi-$(VERSION)
 
+# Change release version for running on Fedora Rawhide
 rawhide:
 	@echo Checking last upstream commit date...
-	$(MAKE) RELEASE="`$(get_release_version)`.rawhide.`$(get_devel_date)`" devel all
+	$(MAKE) RELEASE="`$(get_release_version)`.rawhide.`$(get_devel_date)`" devel github-release
 
 clean-rawhide:
 	@echo Checking last upstream commit date...
@@ -141,7 +146,7 @@ BUILD_DEFINES =                                                     \
     --define "_version $(VERSION)"                                  \
     --define "_tmppath `mktemp -d /var/tmp/displayportXXXXXX`"      \
 
-BUILD_DEFINES_UNBUNDLED_EVDI = --define "_unbundled 1"
+BUILD_DEFINES_GITHUB_EVDI = --define "_github 1"
 
 $(i386_RPM): $(BUILD_DEPS)
 	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --target=i386
@@ -152,11 +157,11 @@ $(x86_64_RPM): $(BUILD_DEPS)
 $(SRPM): $(BUILD_DEPS)
 	rpmbuild -bs $(BUILD_DEFINES) displaylink.spec
 
-$(i386_RPM_UNBUNDLED_EVDI): $(BUILD_DEPS_UNBUNDLED_EVDI)
-	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_UNBUNDLED_EVDI) displaylink.spec --target=i386
+$(i386_RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
+	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec --target=i386
 
-$(x86_64_RPM_UNBUNDLED_EVDI): $(BUILD_DEPS_UNBUNDLED_EVDI)
-	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_UNBUNDLED_EVDI) displaylink.spec --target=x86_64
+$(x86_64_RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
+	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec --target=x86_64
 
-$(SRPM_UNBUNDLED_EVDI): $(BUILD_DEPS_UNBUNDLED_EVDI)
-	rpmbuild -bs $(BUILD_DEFINES)$(BUILD_DEFINES_UNBUNDLED_EVDI) displaylink.spec
+$(SRPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
+	rpmbuild -bs $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec
