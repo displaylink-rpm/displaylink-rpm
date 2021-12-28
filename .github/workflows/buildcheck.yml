@@ -61,6 +61,6 @@ jobs:
         run: |
           echo "SPECIFICTARGET=\"\"" >> $GITHUB_ENV
 
-      - if: always()
+      - if: ${{ always() }}
         name: Run CI
         run: ci/${{ matrix.os }}.sh
