@@ -40,7 +40,7 @@
 
 
 <!-- Provide the following information -->
-  * Fedora or CentOS
+  * Fedora / CentOS / Rocky Linux
   * Version
   * Kernel version `(uname -a)`
 

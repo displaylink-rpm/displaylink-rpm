@@ -37,12 +37,12 @@ jobs:
         - os: centos
           version: 7.9.2009
           dockernamespace: centos
-        - os: centos
-          version: 8.4.2105
-          dockernamespace: centos
+        - os: centos-stream
+          version: stream8
+          dockernamespace: quay.io/centos/centos
         - os: rocky
           version: 8
-          dockernamespace: rockylinux/rockylinux
+          dockernamespace: rockylinux
 
     steps:
       - uses: actions/checkout@v2

@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 dnf install -y gcc gcc-c++ libdrm-devel rpm-build make wget dnf-utils --enablerepo=extras
 
@@ -11,7 +11,6 @@ chown `id -u`:`id -g` -R .
 echo "Testing 'make srpm'"
 make srpm
 
-
 if [ $? -ne 0 ]; then exit 1; fi
 make clean-all
 
@@ -21,14 +20,14 @@ make rpm
 if [ $? -ne 0 ]; then exit 1; fi
 make clean-all
 
-echo "Testing 'make srpm-unbundled'"
-make srpm-unbundled
+echo "Testing 'make srpm-github'"
+make srpm-github
 
 if [ $? -ne 0 ]; then exit 1; fi
 make clean-all
 
-echo "Testing 'make rpm-unbundled'"
-make rpm-unbundled
+echo "Testing 'make rpm-github'"
+make rpm-github
 
 if [ $? -ne 0 ]; then exit 1; fi
 make clean-all
@@ -39,8 +38,8 @@ make all
 if [ $? -ne 0 ]; then exit 1; fi
 make clean-all
 
-echo "Testing 'make unbundled'"
-make unbundled
+echo "Testing 'make github-release'"
+make github-release
 
 if [ $? -ne 0 ]; then exit 1; fi
 make clean-all
