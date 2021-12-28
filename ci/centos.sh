@@ -1,6 +1,6 @@
 #!/bin/bash
 
-yum install -y gcc rpm-build make wget yum-utils --enablerepo=extras
+yum install -y gcc gcc-c++ libdrm-devel rpm-build make wget yum-utils --enablerepo=extras
 
 cd /base-src
 
