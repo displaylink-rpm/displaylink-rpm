@@ -1,6 +1,8 @@
 # DisplayLink RPM
 
 [![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/buildcheck.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/buildcheck.yml)
+[![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/devbuild.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/devbuild.yml)
+[![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/rawhidebuilds.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/rawhidebuilds.yml)
 
 This is the recipe for building the [DisplayLink driver][displaylink]
 in a RPM package for Fedora, CentOS 7 and Rocky Linux. This driver supports the following

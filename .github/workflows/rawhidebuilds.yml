@@ -1,4 +1,4 @@
-name: Build Check With Rawhide Operating Systems
+name: Rawhide Build
 
 on:
   schedule:

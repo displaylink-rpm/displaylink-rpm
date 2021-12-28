@@ -1,4 +1,4 @@
-name: Devel Branch Build Check
+name: Devel Branch Build
 
 on:
   schedule:
