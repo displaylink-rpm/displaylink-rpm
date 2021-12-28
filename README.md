@@ -78,6 +78,8 @@ and the displaylink.service should run.
 
 ## Hardware-specific behavior
 
+---
+
 ### Dell D6000
 
 When used with the Dell D6000 docking station, DisplayLink 5.1.26 regularly
@@ -101,6 +103,8 @@ device by commenting out a line in `/etc/pulse/default.pa`:
 [workaround]: https://displaylink.org/forum/showpost.php?p=85116
 
 ## Development Builds
+
+---
 
 Generally we want to track the current stable release of the evdi library.
 However, Fedora kernels are often much newer than those officially supported by
@@ -145,6 +149,8 @@ make rawhide
 [roadmap_discussion]: https://github.com/DisplayLink/evdi/issues/309#issuecomment-979831346
 
 ## Contributing
+
+---
 
 The easiest way to contribute with the package is to fork it and send
 a pull request in GitHub.
