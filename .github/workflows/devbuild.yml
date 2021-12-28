@@ -1,22 +1,11 @@
-name: Build Check
+name: Devel Branch Build Check
 
 on:
-  push:
-  pull_request:
-    branches: [ master ]
+  schedule:
+    - cron: '30, 5, *, *, 1'
 
 jobs:
-  makeTest:
-    runs-on: ubuntu-latest
-    container: 
-      image: rockylinux:8
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Test Makefile Targets
-        run: ci/testbuilding.sh
-
-  buildTest:
+  develBuild:
     runs-on: ubuntu-latest
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
@@ -56,6 +45,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Specify Build Target
+        run: |
+          echo "SPECIFICTARGET=devel" >> $GITHUB_ENV
 
       - name: Run CI
         run: ci/${{ matrix.os }}.sh

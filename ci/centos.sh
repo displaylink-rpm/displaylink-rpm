@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 yum install -y gcc rpm-build make wget yum-utils --enablerepo=extras
 
@@ -8,4 +8,4 @@ yum-builddep -y ./displaylink.spec
 
 chown `id -u`:`id -g` -R .
 
-make
+make ${{ env.SPECIFICTARGET }}
