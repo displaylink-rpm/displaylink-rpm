@@ -1,6 +1,14 @@
-%{!?_daemon_version:%global _daemon_version 5.4.1-55.174}
-%{!?_version:%global _version 1.9.1}
-%{!?_release:%global _release 3}
+%if 0%{!?_daemon_version}
+%global _daemon_version 5.5.0-beta-59.118
+%endif
+
+%if 0%{!?_version}
+%global _version 1.10.0
+%endif
+
+%if 0%{!?_release}
+%global _release 1.beta
+%endif
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -16,50 +24,54 @@
 
 %{?_github:%global _github_release .github_evdi}
 
-Name:		displaylink
-Version:	%{_version}
-Release:	%{_release}%{?_github_release}
-Summary:	DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
+Name:     displaylink
+Version:  %{_version}
+Release:  %{_release}%{?_github_release}
+Summary:  DisplayLink VGA/HDMI driver for DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx adapters
 
-License:	GPLv2 and LGPLv2 and MIT and ASL 2.0 and Proprietary
+License:  GPLv2 and LGPLv2 and MIT and ASL 2.0 and Proprietary
 
 %if 0%{?_github}
-Source0:	https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
+Source0:  https://github.com/DisplayLink/evdi/archive/v%{version}.tar.gz
 %endif
-Source1:	displaylink.service
-Source2:	99-displaylink.rules
-Source3:	displaylink-sleep-extractor.sh
+Source1:  displaylink-driver.service
+Source2:  99-displaylink.rules
+Source3:  displaylink-sleep-extractor.sh
 # From https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
-Source5:	20-displaylink.conf
-Source6:	95-displaylink.preset
-Source7:	%{name}.logrotate
+Source4:  DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
+Source5:  20-displaylink.conf
+Source6:  95-displaylink.preset
+Source7:  %{name}.logrotate
+Source8:  displaylink-udev-extractor.sh
+Source9:  evdi.conf
 
 %if 0%{?rhel} && 0%{?rhel} >= 8
-Patch1:   0001-Fix-compiling-on-EL8-distros-due-to-backports-presen.patch
+Patch1: 0001-Fix-compiling-on-EL8-distros-due-to-backports-presen.patch
 %endif
 
-BuildRequires:	gcc-c++
-BuildRequires:	libdrm-devel
-BuildRequires:	make
+BuildRequires:  gcc-c++
+BuildRequires:  libdrm-devel
+BuildRequires:  make
 
 %if 0%{?fedora} < 30 || 0%{?rhel}
-BuildRequires:	systemd
+BuildRequires:  systemd
 %else
-BuildRequires:	systemd-rpm-macros
+BuildRequires:  systemd-rpm-macros
 %endif
 
 %if 0%{?rhel}
-Requires:	epel-release
+Requires: epel-release
 %endif
 
-Requires:	dkms
-Requires:	%{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
-Requires:	make
-Requires:	libusbx
-Conflicts:	xorg-x11-server-Xorg = 1.20.1
+Requires:   dkms
+Requires:   %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
+Requires:   make
+Requires:   libusbx
+Requires:   xorg-x11-server-Xorg >= 1.16
+Requires:   mutter >= 3.32
+Conflicts:  xorg-x11-server-Xorg = 1.20.1
 
-Provides:	bundled(libevdi) = 1.9.1
+Provides:   bundled(libevdi) = 1.10.0
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -79,7 +91,9 @@ chmod +x displaylink-driver-%{_daemon_version}.run
 mkdir -p evdi-%{version}
 
 %if 0%{!?_github:1}
-mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
+# Temporary while in BETA
+#mv displaylink-driver-%%{_daemon_version}/evdi.tar.gz evdi-%%{version}
+mv displaylink-driver-5.5.0-59.118/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
 
@@ -101,18 +115,19 @@ cd evdi-%{version}/library/
 
 %install
 
-mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
-	%{buildroot}%{_prefix}/src/evdi-%{version}/		\
-	%{buildroot}%{_unitdir}/				\
-	%{buildroot}%{_prefix}/lib/systemd/system-preset/	\
-	%{buildroot}%{_prefix}/lib/systemd/system-sleep/	\
-	%{buildroot}%{_sysconfdir}/logrotate.d/			\
-	%{buildroot}%{_sysconfdir}/udev/rules.d/		\
-	%{buildroot}%{_sysconfdir}/X11/xorg.conf.d/		\
-	%{buildroot}%{_localstatedir}/log/%{name}/
+mkdir -p %{buildroot}%{_libexecdir}/%{name}/        \
+  %{buildroot}%{_prefix}/src/evdi-%{version}/       \
+  %{buildroot}%{_unitdir}/                          \
+  %{buildroot}%{_prefix}/lib/systemd/system-preset/ \
+  %{buildroot}%{_prefix}/lib/systemd/system-sleep/  \
+  %{buildroot}%{_sysconfdir}/logrotate.d/           \
+  %{buildroot}%{_sysconfdir}/modprobe.d/            \
+  %{buildroot}%{_sysconfdir}/udev/rules.d/          \
+  %{buildroot}%{_sysconfdir}/X11/xorg.conf.d/       \
+  %{buildroot}%{_localstatedir}/log/%{name}/
 
 # Kernel driver sources
-pushd %{buildroot}%{_prefix}/src/evdi-%{version} ; \
+pushd %{buildroot}%{_prefix}/src/evdi-%{version} ;  \
 cp -a $OLDPWD/evdi-%{version}/module/* . ; \
 popd
 
@@ -121,22 +136,41 @@ echo "NO_WEAK_MODULES=yes" >> %{buildroot}%{_prefix}/src/evdi-%{version}/dkms.co
 
 # Library
 cp -a evdi-%{version}/library/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/
-ln -s %{_libexecdir}/%{name}/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/libevdi.so
+ln -sf %{_libexecdir}/%{name}/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/libevdi.so
 
-# Binaries
-# Don't copy libusb-1.0.so.0.1.0 it's already shipped by libusbx
+# Copy over binaries in package
+
+# Don't copy libusb-1.0.so.0.2.0 it's already shipped by newer versions of libusbx
+# CentOS 7 still has older libusbx. Copy over for this distro.
+
 # Don't copy libevdi.so, we compiled it from source
 
-cd displaylink-driver-%{_daemon_version}
+# Temporary while in BETA
+#cd displaylink-driver-%%{_daemon_version}
+cd displaylink-driver-5.5.0-59.118
 
 cp -a LICENSE ../
 
 %ifarch x86_64
 cp -a x64-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
+
+  %if 0%{?rhel} && 0%{?rhel} <= 7
+  cp -a x64-ubuntu-1604/libusb-1.0.so.0.2.0 %{buildroot}%{_libexecdir}/%{name}/
+  ln -sf %{_libexecdir}/%{name}/libusb-1.0.so.0.2.0 %{buildroot}/%{_libexecdir}/%{name}/libusb-1.0.so.0
+  ln -sf %{_libexecdir}/%{name}/libusb-1.0.so.0.2.0 %{buildroot}/%{_libexecdir}/%{name}/libusb-1.0.so
+  %endif
+
 %endif
 
 %ifarch %ix86
 cp -a x86-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
+
+  %if 0%{?rhel} && 0%{?rhel} <= 7
+  cp -a x86-ubuntu-1604/libusb-1.0.so.0.2.0 %{buildroot}%{_libexecdir}/%{name}/
+  ln -sf %{_libexecdir}/%{name}/libusb-1.0.so.0.2.0 %{buildroot}/%{_libexecdir}/%{name}/libusb-1.0.so.0
+  ln -sf %{_libexecdir}/%{name}/libusb-1.0.so.0.2.0 %{buildroot}/%{_libexecdir}/%{name}/libusb-1.0.so
+  %endif
+
 %endif
 
 # Firmwares
@@ -149,24 +183,37 @@ cp -a %{SOURCE5} %{buildroot}%{_sysconfdir}/X11/xorg.conf.d/
 cp -a %{SOURCE6} %{buildroot}%{_prefix}/lib/systemd/system-preset/
 cp -a %{SOURCE7} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 
+# evdi module options
+cp -a %{SOURCE9} %{buildroot}%{_sysconfdir}/modprobe.d/
+
 # pm-util
 bash %{SOURCE3} displaylink-installer.sh > %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
-
 chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
+# udev trigger scripts
+bash %{SOURCE8} udev-installer.sh > %{buildroot}%{_libexecdir}/%{name}/udev.sh
+chmod +x %{buildroot}%{_libexecdir}/%{name}/udev.sh
+
 %post
-%systemd_post displaylink.service
+%systemd_post displaylink-driver.service
 %{_sbindir}/dkms add evdi/%{version} --rpm_safe_upgrade >> %{logfile} 2>&1
 %{_sbindir}/dkms build evdi/%{version} >> %{logfile} 2>&1
 %{_sbindir}/dkms install evdi/%{version} >> %{logfile} 2>&1
-%{_bindir}/systemctl start displaylink.service
+
+# Trigger udev if devices are connected
+%{_bindir}/grep -lw 17e9 /sys/bus/usb/devices/*/idVendor | while IFS= read -r device; do
+  %{_bindir}/udevadm trigger --action=add "$(dirname "$device")"
+done
+
+%{_bindir}/systemctl start displaylink-driver.service
 
 %files
 %license LICENSE
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
-%{_unitdir}/displaylink.service
+%{_unitdir}/displaylink-driver.service
 %{_prefix}/lib/systemd/system-preset/95-displaylink.preset
 %{_prefix}/lib/systemd/system-sleep/displaylink.sh
+%{_sysconfdir}/modprobe.d/evdi.conf
 %{_sysconfdir}/udev/rules.d/99-displaylink.rules
 %{_sysconfdir}/X11/xorg.conf.d/20-displaylink.conf
 
@@ -207,17 +254,33 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %{_libexecdir}/%{name}/libevdi.so
 %{_libexecdir}/%{name}/libevdi.so.%{version}
 %{_libexecdir}/%{name}/ridge-dock-release.spkg
+%{_libexecdir}/%{name}/udev.sh
+
+%if 0%{?rhel} && 0%{?rhel} <= 7
+%{_libexecdir}/%{name}/libusb-1.0.so.0.2.0
+%{_libexecdir}/%{name}/libusb-1.0.so.0
+%{_libexecdir}/%{name}/libusb-1.0.so
+%endif
 
 %dir %{_localstatedir}/log/%{name}/
 
 %preun
-%systemd_preun displaylink.service
+%systemd_preun displaylink-driver.service
 %{_sbindir}/dkms remove evdi/%{version} --all --rpm_safe_upgrade >> %{logfile}
 
 %postun
-%systemd_postun_with_restart displaylink.service
+%systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Tue Dec 28 2021 Michael L. Young <elgueromexicano@gmail.com> 1.10.0-1.beta
+- Update evdi version to 1.10.0
+- Update Displaylink driver to 5.5-beta
+- Add new udev.sh trigger script
+- Add handling of newer libusb library for CentOS 7
+- Change 'displaylink.service' to 'displaylink-driver.service' to match upstream
+- Update udev rules to match upstream
+- Add modprobe options for evdi
+
 * Wed Dec 29 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-3
 - Add patch to fix compile error on EL8
 - Fix checking for defined macros

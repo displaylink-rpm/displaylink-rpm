@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 file=$1
 
 startline=$(grep -n "add_pm_script()" "$file" | cut -d: -f1 |head -1)

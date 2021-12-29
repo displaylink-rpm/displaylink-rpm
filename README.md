@@ -74,7 +74,7 @@ sudo xz -f /lib/modules/$(uname -r)/extra/evdi.ko
 ```
 
 Now any display, hdmi and/or dvi ports on your docking station should work,
-and the displaylink.service should run.
+and the displaylink-driver.service should run.
 
 ## Hardware-specific behavior
 
