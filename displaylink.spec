@@ -1,14 +1,6 @@
-%if 0%{!?_daemon_version}
-%global _daemon_version 5.4.1-55.174
-%endif
-
-%if 0%{!?_version}
-%global _version 1.9.1
-%endif
-
-%if 0%{!?_release}
-%global _release 3
-%endif
+%{!?_daemon_version:%global _daemon_version 5.4.1-55.174}
+%{!?_version:%global _version 1.9.1}
+%{!?_release:%global _release 3}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -22,9 +14,7 @@
 %global kernel_pkg_name kernel
 %endif
 
-%if 0%{?_github}
-%global _github_release .github_evdi
-%endif
+%{?_github:%global _github_release .github_evdi}
 
 Name:		displaylink
 Version:	%{_version}
@@ -230,6 +220,7 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %changelog
 * Wed Dec 29 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-3
 - Add patch to fix compile error on EL8
+- Fix checking for defined macros
 
 * Mon Dec 27 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-2
 - Change 'unbundled' to 'github' as part of attempt to clarify
