@@ -64,3 +64,21 @@ jobs:
       - if: ${{ always() }}
         name: Run CI
         run: ci/${{ matrix.os }}.sh
+
+  mockTest:
+    runs-on: ubuntu-latest
+    container: 
+      image: rockylinux:8
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Test Mock Build From Spec
+        run: |
+          echo "Install Mock"
+          dnf -y install epel-release
+          dnf -y install mock gcc gcc-c++ libdrm-devel rpm-build make wget
+          echo "Get source files"
+          make
+          echo "Run mock build"
+          mock -r epel-8-x86_64 --spec displaylink.spec --source .
