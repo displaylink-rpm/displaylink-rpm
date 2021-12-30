@@ -7,7 +7,7 @@
 %endif
 
 %if 0%{!?_release}
-%global _release 2
+%global _release 3
 %endif
 
 # Disable RPATH since DisplayLinkManager contains this.
@@ -44,6 +44,10 @@ Source4:	DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
 Source5:	20-displaylink.conf
 Source6:	95-displaylink.preset
 Source7:	%{name}.logrotate
+
+%if 0%{?rhel} && 0%{?rhel} >= 8
+Patch1:   0001-Fix-compiling-on-EL8-distros-due-to-backports-presen.patch
+%endif
 
 BuildRequires:	gcc-c++
 BuildRequires:	libdrm-devel
@@ -88,6 +92,11 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
+
+%if 0%{?rhel} && 0%{?rhel} >= 8
+%patch1 -p1
+%endif
+
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
@@ -219,6 +228,9 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 %systemd_postun_with_restart displaylink.service
 
 %changelog
+* Wed Dec 29 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-3
+- Add patch to fix compile error on EL8
+
 * Mon Dec 27 2021 Michael L. Young <elgueromexicano@gmail.com> 1.9.1-2
 - Change 'unbundled' to 'github' as part of attempt to clarify
   which evdi driver is being used in the RPM that is produced.
