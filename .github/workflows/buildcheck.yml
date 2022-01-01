@@ -59,7 +59,7 @@ jobs:
 
       - name: Specify Build Target
         run: |
-          echo "SPECIFICTARGET=\"\"" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=" >> $GITHUB_ENV
 
       - if: ${{ always() }}
         name: Run CI
