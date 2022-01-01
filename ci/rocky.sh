@@ -6,4 +6,4 @@ dnf-builddep -y ./displaylink.spec
 
 chown `id -u`:`id -g` -R .
 
-make $(SPECIFICTARGET)
+make $SPECIFICTARGET
