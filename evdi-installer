@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+if [[ ! -v MOK_PAIR_DIR ]]; then
+    MOK_PAIR_DIR="${HOME}"/.certs
+fi
+
+echo "MOK_PAIR_DIR: ${MOK_PAIR_DIR}"
+
+if [[ ! -f "${MOK_PAIR_DIR}"/MOK.priv ]] || [[ ! -f "${MOK_PAIR_DIR}"/MOK.der ]]; then
+    echo "No MOK key pair found!"
+    echo "Generate and import new pair? [y/N]"
+    read -r answer
+    if [[ "${answer}" == "y" ]]; then
+        mkdir -p -- "${MOK_PAIR_DIR}"
+        openssl req -new -x509 -newkey rsa:2048 -keyout "${MOK_PAIR_DIR}"/MOK.priv -outform DER -out "${MOK_PAIR_DIR}"/MOK.der -nodes -days 36500 -subj "/CN=Displaylink/"
+        sudo mokutil --import "${MOK_PAIR_DIR}"/MOK.der
+    else
+        exit 1
+    fi
+fi
+
+if [[ ! -v EVDI_DIR ]]; then
+    EVDI_DIR="${HOME}"/projects/evdi
+fi
+
+echo "EVDI_DIR: ${EVDI_DIR}"
+
+if [[ ! -d "${EVDI_DIR}" ]]; then
+    git clone https://github.com/DisplayLink/evdi.git "${EVDI_DIR}"
+    cd "${EVDI_DIR}"
+    git switch devel
+else
+    cd "${EVDI_DIR}"
+fi
+
+make -j"$(nproc)"
+sudo make install
+sudo /usr/src/kernels/"$(uname -r)"/scripts/sign-file sha256 "${MOK_PAIR_DIR}"/MOK.priv "${MOK_PAIR_DIR}"/MOK.der /lib/modules/"$(uname -r)"/kernel/drivers/gpu/drm/evdi/evdi.ko
