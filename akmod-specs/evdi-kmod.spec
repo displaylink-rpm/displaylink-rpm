@@ -7,15 +7,15 @@
 %global debug_package %{nil}
 
 Name:		evdi-kmod
-Version:	1.9.1
+Version:	1.10.0
 # Taken over by kmodtool
 Release:	3%{?dist}
 Summary:	Extensible Virtual Display Interface Kernel module
 License:	GPLv2
 URL:		https://github.com/DisplayLink/evdi
-Source0:	%{url}/archive/d6b28414a4ceb41a904077318b48fa8a7d8981d1.tar.gz
-# libevdi CI tests from kernel 4.15 to 5.12
-Requires:	kernel >= 4.15, kernel <= 5.12
+Source0:	%{url}/archive/v%{version}.tar.gz
+# libevdi CI tests from kernel 4.15 to 5.15
+Requires:	kernel >= 4.15, kernel <= 5.15
 # get the needed BuildRequires (in parts depending on what we build for)
 %global AkmodsBuildRequires %{_bindir}/kmodtool
 BuildRequires:	%{AkmodsBuildRequires}
@@ -35,7 +35,7 @@ The evdi %{version} display driver kernel module for kernel %{kversion}.
 kmodtool  --target %{_target_cpu}  --repo rpmfusion --kmodname %{name} %{?buildforkernels:--%{buildforkernels}} %{?kernels:--for-kernels "%{?kernels}"} 2>/dev/null
 %setup -q -c -T -a 0
 for kernel_version  in %{?kernel_versions} ; do
-	cp -a evdi-d6b28414a4ceb41a904077318b48fa8a7d8981d1/module _kmod_build_${kernel_version%%___*}
+	cp -a evdi-%{version}/module _kmod_build_${kernel_version%%___*}
 done
 
 %build
@@ -56,6 +56,8 @@ done
 
 
 %changelog
+* Thu Feb 10 2022 ffgiff <ffgiff@gmail.com> 1.10.0-1
+- Use latest tagged commit
 * Wed Dec 01 2021 ffgiff <ffgiff@gmail.com> 1.9.1-3
 - Use latest devel commit to support 5.15
 * Sat Jul 24 2021 ffgiff <ffgiff@gmail.com> 1.9.1-2

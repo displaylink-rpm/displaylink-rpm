@@ -1,11 +1,11 @@
 Name:		displaylink
-Version:	5.4.1
+Version:	5.5
 %global config_release 1
-%global displaylink_rpm_commit 6e33df48ec0e9e965f5461b22291cabe1ba7f620
+%global displaylink_rpm_commit 048bc85ea2e33b23c9b0d32160b60a3fcbf954b8
 Release:	1%{?dist}
 Summary:	Meta-package for proprietary DisplayLinkManager application
 URL:		https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-Source0:	https://www.synaptics.com/sites/default/files/exe_files/2021-09/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu%{version}-EXE.zip
+Source0:	https://www.synaptics.com/sites/default/files/exe_files/2021-12/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu%20%28Beta%29%{version}%20Beta-EXE.zip
 Source1:	https://github.com/displaylink-rpm/displaylink-rpm/archive/%{displaylink_rpm_commit}.tar.gz
 License:	MIT
 Requires:	akmod-evdi, %{name}-config, %{name}-manager
@@ -25,10 +25,10 @@ adapters along with additional config files.
 Summary:	Proprietary DisplayLink Manager application
 License:	Redistributable, no modification permitted
 URL:		https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-ExclusiveArch:	armv7hl i386 x86_64
+ExclusiveArch:	aarch64 armv7hl i386 x86_64
 BuildRequires:	libdrm-devel
 # The DisplayLinkManager binary is linked at run-time to a specific version of libevdi
-Requires:	libevdi == 1.9.1
+Requires:	libevdi == 1.10.0
 
 %description manager
 This contains the proprietary tools needed to communicate with and manage
@@ -86,9 +86,9 @@ do
   cp -v %{name}-rpm-%{displaylink_rpm_commit}/$i .
 done
 unzip "%{SOURCE0}"
-chmod +x displaylink-driver-%{version}-55.174.run
-./displaylink-driver-%{version}-55.174.run --noexec --keep
-chmod 644 displaylink-driver-%{version}-55.174/LICENSE
+chmod +x displaylink-driver-%{version}.0-beta-59.118.run
+./displaylink-driver-%{version}.0-beta-59.118.run --noexec --keep
+chmod 644 displaylink-driver-%{version}.0-59.118/LICENSE
 
 %install
 mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
@@ -101,7 +101,7 @@ mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
 	%{buildroot}%{_localstatedir}/log/%{name}/
 
 # DisplayLinkManager
-pushd displaylink-driver-%{version}-55.174
+pushd displaylink-driver-%{version}.0-59.118
 
 cp LICENSE ..
 
@@ -115,6 +115,10 @@ cp -a x86-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
 
 %ifarch armv7hl
 cp -a arm-linux-gnueabihf/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
+%endif
+
+%ifarch aarch64
+cp -a aarch64-linux-gnu/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
 %endif
 
 # Firmwares
@@ -135,5 +139,7 @@ cp -a 99-displaylink.rules %{buildroot}%{_udevrulesdir}
 cp -a 20-displaylink.conf %{buildroot}%{_datadir}/X11/xorg.conf.d
 
 %changelog
+* Thu Feb 10 2022 ffgiff <ffgiff@gmail.com> 5.5-1
+- Latest 5.5 beta for kernel 5.16
 * Mon Oct 18 2021 ffgiff <ffgiff@gmail.com> 5.4.1-1
 - First version
