@@ -45,10 +45,6 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-%if 0%{?rhel} && 0%{?rhel} >= 8
-Patch1: 0001-Fix-compiling-on-EL8-distros-due-to-backports-presen.patch
-%endif
-
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
 BuildRequires:  make
@@ -96,10 +92,6 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-5.5.0-59.118/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-
-%if 0%{?rhel} && 0%{?rhel} >= 8
-%patch1 -p1
-%endif
 
 %else
 %setup -q -T -D -a 0
