@@ -272,7 +272,7 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
-* Tue Dec 28 2021 Michael L. Young <elgueromexicano@gmail.com> 1.10.0-1.beta
+* Tue Mar 01 2022 Michael L. Young <elgueromexicano@gmail.com> 1.10.0-1.beta
 - Update evdi version to 1.10.0
 - Update Displaylink driver to 5.5-beta
 - Add new udev.sh trigger script
