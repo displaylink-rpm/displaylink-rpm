@@ -18,7 +18,7 @@ source <(
 )
 
 COREDIR=$(mktemp -d)
-create_bootstrap_file "systemd" "/usr/libexec/displaylink/udev.sh"
+create_bootstrap_file "systemd" "$COREDIR/udev.sh"
 
 sed -i -e '1 s/^.*$/\#!\/usr\/bin\/bash/' "$COREDIR/udev.sh"
 
