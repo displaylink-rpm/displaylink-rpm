@@ -1,14 +1,6 @@
-%if 0%{!?_daemon_version}
-%global _daemon_version 5.5.0-beta-59.118
-%endif
-
-%if 0%{!?_version}
-%global _version 1.10.0
-%endif
-
-%if 0%{!?_release}
-%global _release 1.beta
-%endif
+%{!?_daemon_version:%global _daemon_version 5.5.0-beta-59.118}
+%{!?_version:%global _version 1.10.0}
+%{!?_release:%global _release 1.beta}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
