@@ -1,5 +1,5 @@
 %{!?_daemon_version:%global _daemon_version 5.5.0-beta-59.118}
-%{!?_version:%global _version 1.10.0}
+%{!?_version:%global _version 1.10.1}
 %{!?_release:%global _release 1.beta}
 
 # Disable RPATH since DisplayLinkManager contains this.
@@ -59,7 +59,7 @@ Requires:   xorg-x11-server-Xorg >= 1.16
 Requires:   mutter >= 3.32
 Conflicts:  xorg-x11-server-Xorg = 1.20.1
 
-Provides:   bundled(libevdi) = 1.10.0
+Provides:   bundled(libevdi) = 1.10.1
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -256,6 +256,9 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Sun Mar 06 2022 Michael L. Young <elgueromexicano@gmail.com> 1.10.1-1.beta
+- Update evdi version to 1.10.1
+
 * Tue Mar 01 2022 Michael L. Young <elgueromexicano@gmail.com> 1.10.0-1.beta
 - Update evdi version to 1.10.0
 - Update Displaylink driver to 5.5-beta

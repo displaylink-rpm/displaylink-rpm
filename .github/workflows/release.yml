@@ -54,6 +54,10 @@ jobs:
       - name: Get release
         run: |
           echo "RELEASE=$(grep ^RELEASE Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+
+      - name: Specify Using GitHub EVDI
+        run: |
+          echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
       
       - name: Run CI
         run: ci/${{ matrix.os }}.sh
