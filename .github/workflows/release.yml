@@ -73,7 +73,7 @@ jobs:
       - run: chown `id -u`:`id -g` -R .
 
       - name: Upload RPM
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}
           path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
