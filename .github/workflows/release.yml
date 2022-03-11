@@ -55,13 +55,13 @@ jobs:
         run: |
           echo "RELEASE=$(grep ^RELEASE Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
 
-      - name: Specify Using GitHub EVDI
+      - name: Specify A Target For make
         run: |
-          echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=" >> $GITHUB_ENV
 
       - name: Environment variable for setting name of RPM when using EVDI from Github
         run: |
-          echo "EVDISOURCE=.github_evdi" >> $GITHUB_ENV
+          echo "EVDISOURCE=" >> $GITHUB_ENV
       
       - name: Run CI
         run: ci/${{ matrix.os }}.sh

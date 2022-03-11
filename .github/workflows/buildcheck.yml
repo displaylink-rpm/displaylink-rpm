@@ -59,7 +59,7 @@ jobs:
 
       - name: Specify Build Target
         run: |
-          echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=" >> $GITHUB_ENV
 
       - if: ${{ always() }}
         name: Run CI
@@ -81,4 +81,4 @@ jobs:
           echo "Get source files"
           make
           echo "Run mock build"
-          mock -r rocky+epel-8-x86_64 --spec displaylink.spec --source . --define "_github 1"
+          mock -r rocky+epel-8-x86_64 --spec displaylink.spec --source .

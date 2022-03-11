@@ -5,7 +5,7 @@ startline=$(grep -n "add_pm_script()" "$file" | cut -d: -f1 | head -1)
 endline=$(grep -n 'chmod 0755 /etc/zzz.d/resume/displaylink.sh' "$file" | cut -d: -f1 | head -1)
 
 source <(
-	tail -n +$startline $file | head -n +$(($endline - $startline + 4))
+	tail -n +$startline $file | head -n +$(($endline - $startline + 5))
 )
 COREDIR=$(mktemp -d)
 add_pm_script "systemd"

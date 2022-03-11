@@ -1,6 +1,6 @@
-%{!?_daemon_version:%global _daemon_version 5.5.0-beta-59.118}
+%{!?_daemon_version:%global _daemon_version 5.5.0-59.151}
 %{!?_version:%global _version 1.10.1}
-%{!?_release:%global _release 1.beta}
+%{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -79,9 +79,7 @@ chmod +x displaylink-driver-%{_daemon_version}.run
 mkdir -p evdi-%{version}
 
 %if 0%{!?_github:1}
-# Temporary while in BETA
-#mv displaylink-driver-%%{_daemon_version}/evdi.tar.gz evdi-%%{version}
-mv displaylink-driver-5.5.0-59.118/evdi.tar.gz evdi-%{version}
+mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
 
@@ -129,9 +127,7 @@ ln -sf %{_libexecdir}/%{name}/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%
 
 # Don't copy libevdi.so, we compiled it from source
 
-# Temporary while in BETA
-#cd displaylink-driver-%%{_daemon_version}
-cd displaylink-driver-5.5.0-59.118
+cd displaylink-driver-%{_daemon_version}
 
 cp -a LICENSE ../
 
@@ -256,6 +252,9 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Fri Mar 11 2022 Michael L. Young <elgueromexicano@gmail.com> 1.10.1-1
+- Update to use the newly released Displayink 5.5 package
+
 * Sun Mar 06 2022 Michael L. Young <elgueromexicano@gmail.com> 1.10.1-1.beta
 - Update evdi version to 1.10.1
 
