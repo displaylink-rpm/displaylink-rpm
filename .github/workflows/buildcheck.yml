@@ -81,4 +81,4 @@ jobs:
           echo "Get source files"
           make
           echo "Run mock build"
-          mock -r epel-8-x86_64 --spec displaylink.spec --source .
+          mock -r rocky+epel-8-x86_64 --spec displaylink.spec --source .

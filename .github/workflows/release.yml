@@ -54,18 +54,26 @@ jobs:
       - name: Get release
         run: |
           echo "RELEASE=$(grep ^RELEASE Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+
+      - name: Specify A Target For make
+        run: |
+          echo "SPECIFICTARGET=" >> $GITHUB_ENV
+
+      - name: Environment variable for setting name of RPM when using EVDI from Github
+        run: |
+          echo "EVDISOURCE=" >> $GITHUB_ENV
       
       - name: Run CI
         run: ci/${{ matrix.os }}.sh
 
       - name: Rename files
-        run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.src.rpm
-      - run: mv x86_64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.x86_64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.x86_64.rpm
-      - run: mv i386/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.i386.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.i386.rpm
+        run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
+      - run: mv x86_64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm
+      - run: mv i386/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.i386.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.i386.rpm
       - run: chown `id -u`:`id -g` -R .
 
       - name: Upload RPM
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}
           path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
