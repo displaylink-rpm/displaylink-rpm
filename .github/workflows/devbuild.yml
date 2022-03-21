@@ -50,5 +50,9 @@ jobs:
         run: |
           echo "SPECIFICTARGET=devel" >> $GITHUB_ENV
 
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+
       - name: Run CI
         run: ci/${{ matrix.os }}.sh

@@ -50,6 +50,9 @@ jobs:
           - os: centos-stream
             version: stream8
             dockernamespace: quay.io/centos/centos
+          - os: centos-stream
+            version: stream9
+            dockernamespace: quay.io/centos/centos
           - os: rocky
             version: 8
             dockernamespace: rockylinux
@@ -60,6 +63,10 @@ jobs:
       - name: Specify Build Target
         run: |
           echo "SPECIFICTARGET=" >> $GITHUB_ENV
+          
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
 
       - if: ${{ always() }}
         name: Run CI
