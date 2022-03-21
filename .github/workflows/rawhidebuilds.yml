@@ -18,9 +18,6 @@ jobs:
           - os: fedora
             version: rawhide
             dockernamespace: fedora
-          - os: centos-stream
-            version: stream9
-            dockernamespace: quay.io/centos/centos
 
     steps:
       - uses: actions/checkout@v2
