@@ -1,11 +1,10 @@
 Name:		displaylink
 Version:	5.5
-%global config_release 1
-%global displaylink_rpm_commit 048bc85ea2e33b23c9b0d32160b60a3fcbf954b8
-Release:	1%{?dist}
+%global displaylink_rpm_commit 004b142eb6b5c182b9f936961e94b80cdb84b016
+Release:	2%{?dist}
 Summary:	Meta-package for proprietary DisplayLinkManager application
 URL:		https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-Source0:	https://www.synaptics.com/sites/default/files/exe_files/2021-12/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu%20%28Beta%29%{version}%20Beta-EXE.zip
+Source0:	https://www.synaptics.com/sites/default/files/exe_files/2022-03/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu5.5-EXE.zip
 Source1:	https://github.com/displaylink-rpm/displaylink-rpm/archive/%{displaylink_rpm_commit}.tar.gz
 License:	MIT
 Requires:	akmod-evdi, %{name}-config, %{name}-manager
@@ -28,7 +27,7 @@ URL:		https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
 ExclusiveArch:	aarch64 armv7hl i386 x86_64
 BuildRequires:	libdrm-devel
 # The DisplayLinkManager binary is linked at run-time to a specific version of libevdi
-Requires:	libevdi == 1.10.0
+Requires:	libevdi == 1.10.1
 
 %description manager
 This contains the proprietary tools needed to communicate with and manage
@@ -57,26 +56,26 @@ DL-5xxx, DL-41xx and DL-3xxx series of chip-sets. This includes numerous
 docking stations, USB monitors, and USB adapters.
 
 %preun config
-%systemd_preun displaylink.service
+%systemd_preun displaylink-driver.service
 
 %postun config
-%systemd_postun_with_restart displaylink.service
+%systemd_postun_with_restart displaylink-driver.service
 
 %files config
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
-%{_unitdir}/displaylink.service
+%{_unitdir}/displaylink-driver.service
 %{_udevrulesdir}/99-displaylink.rules
 %{_datadir}/X11/xorg.conf.d/20-displaylink.conf
 %{_presetdir}/95-displaylink.preset
 
 %post config
-%systemd_post displaylink.service
+%systemd_post displaylink-driver.service
 
 
 
 %prep
 %setup -q -T -D -a 1 -c -n %{name}-rpm-%{displaylink_rpm_commit}
-for i in displaylink.service	\
+for i in displaylink-driver.service	\
 	displaylink.logrotate	\
 	95-displaylink.preset	\
 	99-displaylink.rules	\
@@ -86,9 +85,9 @@ do
   cp -v %{name}-rpm-%{displaylink_rpm_commit}/$i .
 done
 unzip "%{SOURCE0}"
-chmod +x displaylink-driver-%{version}.0-beta-59.118.run
-./displaylink-driver-%{version}.0-beta-59.118.run --noexec --keep
-chmod 644 displaylink-driver-%{version}.0-59.118/LICENSE
+chmod +x displaylink-driver-%{version}.0-59.151.run
+./displaylink-driver-%{version}.0-59.151.run --noexec --keep
+chmod 644 displaylink-driver-%{version}.0-59.151/LICENSE
 
 %install
 mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
@@ -101,7 +100,7 @@ mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
 	%{buildroot}%{_localstatedir}/log/%{name}/
 
 # DisplayLinkManager
-pushd displaylink-driver-%{version}.0-59.118
+pushd displaylink-driver-%{version}.0-59.151
 
 cp LICENSE ..
 
@@ -132,13 +131,15 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 popd
 
 # systemd/udev
-cp -a displaylink.service %{buildroot}%{_unitdir}
+cp -a displaylink-driver.service %{buildroot}%{_unitdir}
 cp -a displaylink.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 cp -a 95-displaylink.preset %{buildroot}%{_presetdir}
 cp -a 99-displaylink.rules %{buildroot}%{_udevrulesdir}
 cp -a 20-displaylink.conf %{buildroot}%{_datadir}/X11/xorg.conf.d
 
 %changelog
+* Tue Mar 22 2022 ffgiff <ffgiff@gmail.com> 5.5-2
+- Latest 5.5 release
 * Thu Feb 10 2022 ffgiff <ffgiff@gmail.com> 5.5-1
 - Latest 5.5 beta for kernel 5.16
 * Mon Oct 18 2021 ffgiff <ffgiff@gmail.com> 5.4.1-1

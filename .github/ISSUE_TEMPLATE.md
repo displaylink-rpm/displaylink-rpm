@@ -25,7 +25,7 @@
 
             /etc/X11/xorg.conf.d/20-displaylink.conf
             /etc/logrotate.d/displaylink
-            /usr/lib/systemd/system/displaylink.service
+            /usr/lib/systemd/system/displaylink-driver.service
             /usr/lib/systemd/system-preset/95-displaylink.preset
             /usr/lib/systemd/system-sleep/displaylink.sh
             /etc/udev/rules.d/99-displaylink.rules
@@ -40,7 +40,7 @@
 
 
 <!-- Provide the following information -->
-  * Fedora or CentOS
+  * Fedora / CentOS / Rocky Linux
   * Version
   * Kernel version `(uname -a)`
 

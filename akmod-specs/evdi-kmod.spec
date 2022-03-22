@@ -7,9 +7,9 @@
 %global debug_package %{nil}
 
 Name:		evdi-kmod
-Version:	1.10.0
+Version:	1.10.1
 # Taken over by kmodtool
-Release:	3%{?dist}
+Release:	1%{?dist}
 Summary:	Extensible Virtual Display Interface Kernel module
 License:	GPLv2
 URL:		https://github.com/DisplayLink/evdi
@@ -56,6 +56,8 @@ done
 
 
 %changelog
+* Tue Mar 22 2022 ffgiff <ffgiff@gmail.com> 1.10.1-1
+- Use latest tagged commit
 * Thu Feb 10 2022 ffgiff <ffgiff@gmail.com> 1.10.0-1
 - Use latest tagged commit
 * Wed Dec 01 2021 ffgiff <ffgiff@gmail.com> 1.9.1-3

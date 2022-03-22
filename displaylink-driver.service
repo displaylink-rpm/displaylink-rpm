@@ -1,5 +1,5 @@
 [Unit]
-Description=DisplayLink Manager Service
+Description=DisplayLink Driver Service
 After=display-manager.service
 Conflicts=getty@tty7.service
 

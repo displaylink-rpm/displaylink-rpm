@@ -1,0 +1,96 @@
+name: Create Release Assets
+
+on:
+  release:
+    types:
+      - published
+
+jobs:  
+  buildrpms:
+    runs-on: ubuntu-latest
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+    strategy:
+      matrix:
+        include:
+        - os: fedora
+          version: 29
+          dockernamespace: fedora
+        - os: fedora
+          version: 30
+          dockernamespace: fedora
+        - os: fedora
+          version: 31
+          dockernamespace: fedora
+        - os: fedora
+          version: 32
+          dockernamespace: fedora
+        - os: fedora
+          version: 33
+          dockernamespace: fedora
+        - os: fedora
+          version: 34
+          dockernamespace: fedora
+        - os: fedora
+          version: 35
+          dockernamespace: fedora
+        - os: centos
+          version: 7.9.2009
+          dockernamespace: centos
+        - os: centos-stream
+          version: stream8
+          dockernamespace: quay.io/centos/centos
+        - os: centos-stream
+          version: stream9
+          dockernamespace: quay.io/centos/centos
+        - os: rocky
+          version: 8
+          dockernamespace: rockylinux
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get version
+        run: |
+          echo "VERSION=$(grep ^VERSION Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+      
+      - name: Get release
+        run: |
+          echo "RELEASE=$(grep ^RELEASE Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+
+      - name: Specify A Target For make
+        run: |
+          echo "SPECIFICTARGET=" >> $GITHUB_ENV
+
+      - name: Environment variable for setting name of RPM when using EVDI from Github
+        run: |
+          echo "EVDISOURCE=" >> $GITHUB_ENV
+
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+      
+      - name: Run CI
+        run: ci/${{ matrix.os }}.sh
+
+      - name: Rename files
+        run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
+      - run: mv x86_64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm
+      - run: mv i386/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.i386.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.i386.rpm
+      - run: chown `id -u`:`id -g` -R .
+
+      - name: Upload RPM
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}
+          path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
+
+      - name: Upload Assets To Release
+        uses: xresloader/upload-to-github-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: '${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm'
+          draft: false
+          update_latest_release: true
+          tags: true

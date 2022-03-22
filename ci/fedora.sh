@@ -1,9 +1,7 @@
 #!/bin/bash
 
-dnf install -y rpm-build make gcc wget 'dnf-command(builddep)'
-
-cd /base-src
+dnf install -y rpm-build make gcc wget git 'dnf-command(builddep)'
 
 dnf builddep -y --spec ./displaylink.spec
 
-make
+make $SPECIFICTARGET

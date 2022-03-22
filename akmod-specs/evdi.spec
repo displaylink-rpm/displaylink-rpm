@@ -1,6 +1,6 @@
 Name:		evdi
-Version:	1.10.0
-Release:	3%{?dist}
+Version:	1.10.1
+Release:	1%{?dist}
 Summary:	User-land library for Extensible Virtual Display Interface Kernel module
 URL:		https://github.com/DisplayLink/evdi
 Source0:	%{url}/archive/v%{version}.tar.gz
@@ -34,6 +34,8 @@ LIBDIR=%{_libdir} %{make_install} -C library
 
 
 %changelog
+* Tue Mar 22 2022 ffgiff <ffgiff@gmail.com> 1.10.1-1
+- Use latest tagged commit
 * Thu Feb 10 2022 ffgiff <ffgiff@gmail.com> 1.10.0-1
 - Use latest tagged commit
 * Wed Dec 01 2021 ffgiff <ffgiff@gmail.com> 1.9.1-3

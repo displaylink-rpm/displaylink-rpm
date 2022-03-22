@@ -1,0 +1,91 @@
+name: Build Check
+
+on:
+  push:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  makeTest:
+    runs-on: ubuntu-latest
+    container: 
+      image: rockylinux:8
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Test Makefile Targets
+        run: ci/testbuilding.sh
+
+  buildTest:
+    runs-on: ubuntu-latest
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+    strategy:
+      matrix:
+        include:
+          - os: fedora
+            version: 29
+            dockernamespace: fedora
+          - os: fedora
+            version: 30
+            dockernamespace: fedora
+          - os: fedora
+            version: 31
+            dockernamespace: fedora
+          - os: fedora
+            version: 32
+            dockernamespace: fedora
+          - os: fedora
+            version: 33
+            dockernamespace: fedora
+          - os: fedora
+            version: 34
+            dockernamespace: fedora
+          - os: fedora
+            version: 35
+            dockernamespace: fedora
+          - os: centos
+            version: 7.9.2009
+            dockernamespace: centos
+          - os: centos-stream
+            version: stream8
+            dockernamespace: quay.io/centos/centos
+          - os: centos-stream
+            version: stream9
+            dockernamespace: quay.io/centos/centos
+          - os: rocky
+            version: 8
+            dockernamespace: rockylinux
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Specify Build Target
+        run: |
+          echo "SPECIFICTARGET=" >> $GITHUB_ENV
+          
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+
+      - if: ${{ always() }}
+        name: Run CI
+        run: ci/${{ matrix.os }}.sh
+
+  mockTest:
+    runs-on: ubuntu-latest
+    container: 
+      image: rockylinux:8
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Test Mock Build From Spec
+        run: |
+          echo "Install Mock"
+          dnf -y install epel-release
+          dnf -y install mock gcc gcc-c++ libdrm-devel rpm-build make wget
+          echo "Get source files"
+          make
+          echo "Run mock build"
+          mock -r rocky+epel-8-x86_64 --spec displaylink.spec --source .

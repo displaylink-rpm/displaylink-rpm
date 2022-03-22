@@ -1,0 +1,30 @@
+name: Rawhide Build
+
+on:
+  schedule:
+    - cron: '45, 5, *, *, 1'
+
+jobs:
+  rawhideBuilds:
+    runs-on: ubuntu-latest
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+    strategy:
+      matrix:
+        include:
+          - os: fedora
+            version: 36
+            dockernamespace: fedora
+          - os: fedora
+            version: rawhide
+            dockernamespace: fedora
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Specify Build Target
+        run: |
+          echo "SPECIFICTARGET=rawhide" >> $GITHUB_ENV
+
+      - name: Run CI
+        run: ci/${{ matrix.os }}.sh
