@@ -1,4 +1,4 @@
-%{!?_daemon_version:%global _daemon_version 5.6.0-59.176
+%{!?_daemon_version:%global _daemon_version 5.6.0-59.176}
 %{!?_version:%global _version 1.11.0}
 %{!?_release:%global _release 2}
 
