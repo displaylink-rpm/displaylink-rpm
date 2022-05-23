@@ -252,7 +252,7 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
-* Sat May 21 2022 Grzegorz Bialek <gp.bialek@gmail.com> 1.10.1-2
+* Sat May 21 2022 Grzegorz Bialek <gp.bialek@gmail.com> 1.11.0-1
 - Update to use the newly released Displayink 5.6 package
 
 * Fri Mar 11 2022 Michael L. Young <elgueromexicano@gmail.com> 1.10.1-1
