@@ -40,6 +40,7 @@ DisplayLink USB graphics adapters.
 %{_libexecdir}/%{name}/ella-dock-release.spkg
 %{_libexecdir}/%{name}/firefly-monitor-release.spkg
 %{_libexecdir}/%{name}/ridge-dock-release.spkg
+%{_libexecdir}/%{name}/udev.sh
 %dir /var/log/%{name}/
 %{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
@@ -80,7 +81,8 @@ for i in displaylink-driver.service	\
 	95-displaylink.preset	\
 	99-displaylink.rules	\
 	20-displaylink.conf	\
-	displaylink-sleep-extractor.sh
+	displaylink-sleep-extractor.sh \
+	displaylink-udev-extractor.sh
 do
   cp -v %{name}-rpm-%{displaylink_rpm_commit}/$i .
 done
@@ -127,6 +129,11 @@ cp -a ella-dock-release.spkg firefly-monitor-release.spkg ridge-dock-release.spk
 bash ../displaylink-sleep-extractor.sh displaylink-installer.sh > %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
 chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
+
+# udev trigger scripts
+bash ../displaylink-udev-extractor.sh udev-installer.sh > %{buildroot}%{_libexecdir}/%{name}/udev.sh
+chmod +x %{buildroot}%{_libexecdir}/%{name}/udev.sh
+
 
 popd
 

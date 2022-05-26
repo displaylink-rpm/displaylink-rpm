@@ -41,7 +41,7 @@ done
 %build
 for kernel_version in %{?kernel_versions}; do
 	pushd _kmod_build_${kernel_version%%___*}/
-	KVER=${kernel_version%%___*} %{make_build} module
+	CFLAGS="$CFLAGS -fno-pic -Wno-error=format-security" KVER=${kernel_version%%___*} %{make_build} module
 	popd
 done
 

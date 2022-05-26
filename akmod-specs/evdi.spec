@@ -13,6 +13,7 @@ Provides:	libevdi = %{version}-%{release}
 %{_libdir}/libevdi.so
 %{_libdir}/libevdi.so.0
 %{_libdir}/libevdi.so.%{version}
+%{_modprobedir}/evdi.conf
 %doc evdi-%{version}/docs/index.md
 
 %global _hardened_build 1
@@ -31,6 +32,7 @@ CFLAGS="$RPM_OPT_FLAGS" %{make_build} -C library
 # Library
 pushd evdi-%{version}
 LIBDIR=%{_libdir} %{make_install} -C library
+cat > %{_modprobedir}/evdi.conf <<< "options evdi initial_device_count=4"
 
 
 %changelog
