@@ -34,6 +34,9 @@ jobs:
         - os: fedora
           version: 35
           dockernamespace: fedora
+        - os: fedora
+          version: 36
+          dockernamespace: fedora
         - os: centos
           version: 7.9.2009
           dockernamespace: centos
