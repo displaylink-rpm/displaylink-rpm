@@ -2,7 +2,7 @@ name: Rawhide Build
 
 on:
   schedule:
-    - cron: '45, 5, *, *, 1'
+    - cron: '45 5 * * 1'
 
 jobs:
   rawhideBuilds:
