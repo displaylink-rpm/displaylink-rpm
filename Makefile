@@ -126,11 +126,11 @@ $(EVDI_DEVEL):
 	git clone --depth 1 -b $(EVDI_DEVEL_BRANCH) $(EVDI_DEVEL_REPO) $(EVDI_DEVEL)
 
 $(DAEMON_PKG):
-	wget -O $(DAEMON_PKG) \
+	wget --no-verbose -O $(DAEMON_PKG) \
 		"https://www.synaptics.com/sites/default/files/exe_files/2022-05/DisplayLink USB Graphics Software for Ubuntu5.6-EXE.zip"
 
 $(EVDI_PKG):
-	wget -O v$(VERSION).tar.gz \
+	wget --no-verbose -O v$(VERSION).tar.gz \
 		https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz
 
 BUILD_DEFINES =                                                     \
