@@ -149,6 +149,8 @@ BUILD_DEFINES =                                                     \
 BUILD_DEFINES_GITHUB_EVDI = --define "_github 1"
 
 $(i386_RPM): $(BUILD_DEPS)
+	CFLAGS='-m32 -march=i386' \
+	LDFLAGS='-m32 -march=i386' \
 	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --target=i386
 
 $(x86_64_RPM): $(BUILD_DEPS)

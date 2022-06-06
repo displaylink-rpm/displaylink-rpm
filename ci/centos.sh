@@ -1,6 +1,8 @@
 #!/bin/bash
 
-yum install -y gcc gcc-c++ libdrm-devel rpm-build make wget yum-utils git --enablerepo=extras
+set -e
+
+yum install -y gcc gcc-c++ libgcc.i686 glibc-devel.x86_64 glibc-devel.i686 libdrm-devel rpm-build make wget yum-utils git --enablerepo=extras
 
 yum-builddep -y ./displaylink.spec
 
