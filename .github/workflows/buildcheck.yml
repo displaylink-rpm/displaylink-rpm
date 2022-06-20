@@ -17,6 +17,7 @@ jobs:
         run: ci/testbuilding.sh
 
   buildTest:
+    needs: makeTest
     runs-on: ubuntu-latest
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
@@ -43,6 +44,9 @@ jobs:
             dockernamespace: fedora
           - os: fedora
             version: 35
+            dockernamespace: fedora
+          - os: fedora
+            version: 36
             dockernamespace: fedora
           - os: centos
             version: 7.9.2009
@@ -73,6 +77,7 @@ jobs:
         run: ci/${{ matrix.os }}.sh
 
   mockTest:
+    needs: makeTest
     runs-on: ubuntu-latest
     container: 
       image: rockylinux:8
@@ -84,7 +89,7 @@ jobs:
         run: |
           echo "Install Mock"
           dnf -y install epel-release
-          dnf -y install mock gcc gcc-c++ libdrm-devel rpm-build make wget
+          dnf -y install mock gcc gcc-c++ glibc-devel.x86_64 glibc-devel.i686 libdrm-devel rpm-build make wget
           echo "Get source files"
           make
           echo "Run mock build"

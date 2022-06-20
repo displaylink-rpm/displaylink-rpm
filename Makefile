@@ -2,9 +2,9 @@
 # Versions
 #
 
-DAEMON_VERSION := 5.5.0-59.151
+DAEMON_VERSION := 5.6.0-59.176
 DOWNLOAD_ID    := 4391    # This id number comes off the link on the displaylink website
-VERSION        := 1.10.1
+VERSION        := 1.11.0
 RELEASE        := 1
 
 #
@@ -126,11 +126,11 @@ $(EVDI_DEVEL):
 	git clone --depth 1 -b $(EVDI_DEVEL_BRANCH) $(EVDI_DEVEL_REPO) $(EVDI_DEVEL)
 
 $(DAEMON_PKG):
-	wget -O $(DAEMON_PKG) \
-		"https://www.synaptics.com/sites/default/files/exe_files/2022-03/DisplayLink USB Graphics Software for Ubuntu5.5-EXE.zip"
+	wget --no-verbose -O $(DAEMON_PKG) \
+		"https://www.synaptics.com/sites/default/files/exe_files/2022-05/DisplayLink USB Graphics Software for Ubuntu5.6-EXE.zip"
 
 $(EVDI_PKG):
-	wget -O v$(VERSION).tar.gz \
+	wget --no-verbose -O v$(VERSION).tar.gz \
 		https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz
 
 BUILD_DEFINES =                                                     \
@@ -149,6 +149,8 @@ BUILD_DEFINES =                                                     \
 BUILD_DEFINES_GITHUB_EVDI = --define "_github 1"
 
 $(i386_RPM): $(BUILD_DEPS)
+	CFLAGS='-m32 -march=i386' \
+	LDFLAGS='-m32 -march=i386' \
 	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --target=i386
 
 $(x86_64_RPM): $(BUILD_DEPS)

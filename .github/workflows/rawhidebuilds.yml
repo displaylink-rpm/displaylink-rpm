@@ -2,7 +2,7 @@ name: Rawhide Build
 
 on:
   schedule:
-    - cron: '45, 5, *, *, 1'
+    - cron: '45 5 * * 1'
 
 jobs:
   rawhideBuilds:
@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - os: fedora
-            version: 36
+            version: 37
             dockernamespace: fedora
           - os: fedora
             version: rawhide
