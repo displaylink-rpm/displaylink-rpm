@@ -1,10 +1,10 @@
 Name:		displaylink
-Version:	5.5
-%global displaylink_rpm_commit 004b142eb6b5c182b9f936961e94b80cdb84b016
-Release:	2%{?dist}
+Version:	5.6
+%global displaylink_rpm_commit 7ee129b8af779a036906d50f768a06c407665471
+Release:	1%{?dist}
 Summary:	Meta-package for proprietary DisplayLinkManager application
 URL:		https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-Source0:	https://www.synaptics.com/sites/default/files/exe_files/2022-03/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu5.5-EXE.zip
+Source0:	https://www.synaptics.com/sites/default/files/exe_files/2022-05/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu5.6-EXE.zip
 Source1:	https://github.com/displaylink-rpm/displaylink-rpm/archive/%{displaylink_rpm_commit}.tar.gz
 License:	MIT
 Requires:	akmod-evdi, %{name}-config, %{name}-manager
@@ -27,7 +27,7 @@ URL:		https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
 ExclusiveArch:	aarch64 armv7hl i386 x86_64
 BuildRequires:	libdrm-devel
 # The DisplayLinkManager binary is linked at run-time to a specific version of libevdi
-Requires:	libevdi == 1.10.1
+Requires:	libevdi == 1.11.0
 
 %description manager
 This contains the proprietary tools needed to communicate with and manage
@@ -87,9 +87,9 @@ do
   cp -v %{name}-rpm-%{displaylink_rpm_commit}/$i .
 done
 unzip "%{SOURCE0}"
-chmod +x displaylink-driver-%{version}.0-59.151.run
-./displaylink-driver-%{version}.0-59.151.run --noexec --keep
-chmod 644 displaylink-driver-%{version}.0-59.151/LICENSE
+chmod +x displaylink-driver-%{version}.0-59.176.run
+./displaylink-driver-%{version}.0-59.176.run --noexec --keep
+chmod 644 displaylink-driver-%{version}.0-59.176/LICENSE
 
 %install
 mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
@@ -102,7 +102,7 @@ mkdir -p %{buildroot}%{_libexecdir}/%{name}/			\
 	%{buildroot}%{_localstatedir}/log/%{name}/
 
 # DisplayLinkManager
-pushd displaylink-driver-%{version}.0-59.151
+pushd displaylink-driver-%{version}.0-59.176
 
 cp LICENSE ..
 
@@ -145,6 +145,8 @@ cp -a 99-displaylink.rules %{buildroot}%{_udevrulesdir}
 cp -a 20-displaylink.conf %{buildroot}%{_datadir}/X11/xorg.conf.d
 
 %changelog
+* Mon Jun 20 2022 ffgiff <ffgiff@gmail.com> 5.6-1
+- Latest 5.6 release
 * Tue Mar 22 2022 ffgiff <ffgiff@gmail.com> 5.5-2
 - Latest 5.5 release
 * Thu Feb 10 2022 ffgiff <ffgiff@gmail.com> 5.5-1

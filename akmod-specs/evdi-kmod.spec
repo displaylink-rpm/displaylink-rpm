@@ -7,7 +7,7 @@
 %global debug_package %{nil}
 
 Name:		evdi-kmod
-Version:	1.10.1
+Version:	1.11.0
 # Taken over by kmodtool
 Release:	1%{?dist}
 Summary:	Extensible Virtual Display Interface Kernel module
@@ -15,7 +15,7 @@ License:	GPLv2
 URL:		https://github.com/DisplayLink/evdi
 Source0:	%{url}/archive/v%{version}.tar.gz
 # libevdi CI tests from kernel 4.15 to 5.15
-Requires:	kernel >= 4.15, kernel <= 5.15
+Requires:	kernel >= 4.15, kernel <= 5.18
 # get the needed BuildRequires (in parts depending on what we build for)
 %global AkmodsBuildRequires %{_bindir}/kmodtool
 BuildRequires:	%{AkmodsBuildRequires}
@@ -56,6 +56,8 @@ done
 
 
 %changelog
+* Mon Jun 20 2022 ffgiff <ffgiff@gmail.com> 1.11.0-1
+- Use latest tagged commit
 * Tue Mar 22 2022 ffgiff <ffgiff@gmail.com> 1.10.1-1
 - Use latest tagged commit
 * Thu Feb 10 2022 ffgiff <ffgiff@gmail.com> 1.10.0-1

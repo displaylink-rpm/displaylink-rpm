@@ -1,5 +1,5 @@
 Name:		evdi
-Version:	1.10.1
+Version:	1.11.0
 Release:	1%{?dist}
 Summary:	User-land library for Extensible Virtual Display Interface Kernel module
 URL:		https://github.com/DisplayLink/evdi
@@ -32,10 +32,13 @@ CFLAGS="$RPM_OPT_FLAGS" %{make_build} -C library
 # Library
 pushd evdi-%{version}
 LIBDIR=%{_libdir} %{make_install} -C library
-cat > %{_modprobedir}/evdi.conf <<< "options evdi initial_device_count=4"
+mkdir -p %{buildroot}%{_modprobedir}
+cat > %{buildroot}%{_modprobedir}/evdi.conf <<< "options evdi initial_device_count=4"
 
 
 %changelog
+* Mon Jun 20 2022 ffgiff <ffgiff@gmail.com> 1.11.0-1
+- Use latest tagged commit
 * Tue Mar 22 2022 ffgiff <ffgiff@gmail.com> 1.10.1-1
 - Use latest tagged commit
 * Thu Feb 10 2022 ffgiff <ffgiff@gmail.com> 1.10.0-1
