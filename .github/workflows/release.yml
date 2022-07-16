@@ -49,6 +49,9 @@ jobs:
         - os: rocky
           version: 8
           dockernamespace: rockylinux
+        - os: rocky
+          version: 9
+          dockernamespace: rockylinux
 
     steps:
       - uses: actions/checkout@v2

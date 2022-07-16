@@ -36,6 +36,7 @@ Source6:  95-displaylink.preset
 Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
+Patch0: el8-fix-evdi-1.11.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -89,6 +90,7 @@ cd evdi-%{version}
 %endif
 
 sed -i 's/\r//' README.md
+%patch0 -p1
 
 %build
 
