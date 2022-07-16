@@ -30,7 +30,7 @@ Source1:  displaylink-driver.service
 Source2:  99-displaylink.rules
 Source3:  displaylink-sleep-extractor.sh
 # From https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-Source4:  DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
+Source4:  DisplayLink_USB_Graphics_Software_for_Ubuntu_%{_daemon_version}.zip
 Source5:  20-displaylink.conf
 Source6:  95-displaylink.preset
 Source7:  %{name}.logrotate
