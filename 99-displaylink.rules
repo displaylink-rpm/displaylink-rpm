@@ -1,14 +1,8 @@
-# Copyright (c) 2016 - 2020 DisplayLink (UK) Ltd.
+# Copyright (c) 2016 - 2022 DisplayLink (UK) Ltd.
 # File extracted from udev-installer.sh script and path to trigger script changed
 
 ACTION=="add|change", SUBSYSTEM=="usb", DRIVERS=="usb", ATTR{idVendor}=="17e9", IMPORT{builtin}="usb_id", ENV{DISPLAYLINK_DEVNAME}="$env{DEVNAME}", ENV{DISPLAYLINK_DEVICE_ID}="$env{ID_BUS}-$env{BUSNUM}-$env{DEVNUM}-$env{ID_SERIAL}"
 
-ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="usb", ATTRS{idVendor}=="17e9", ATTR{bInterfaceClass}=="ff", ATTR{bInterfaceProtocol}=="03", IMPORT{parent}="DISPLAYLINK*", RUN+="/usr/libexec/displaylink/udev.sh $root $env{DISPLAYLINK_DEVICE_ID} $env{DISPLAYLINK_DEVNAME}"
+ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="usb", ATTRS{idVendor}=="17e9", ATTR{bInterfaceClass}=="ff", ATTR{bInterfaceProtocol}=="03", IMPORT{parent}="DISPLAYLINK*", RUN+="/usr/libexec/displaylink/udev.sh $root $env{DISPLAYLINK_DEVICE_ID} $env{DISPLAYLINK_DEVNAME}", RUN+="/bin/sh -c 'echo 0 > /sys%p/../port/usb3_lpm_permit'"
 
 ACTION=="remove", ENV{PRODUCT}=="17e9/*", RUN+="/usr/libexec/displaylink/udev.sh $root $env{DEVNAME}"
-
-IMPORT{builtin}="usb_id"
-ACTION=="add", ENV{ID_USB_DRIVER}=="cdc_ncm", ATTRS{idVendor}=="17e9", RUN+="/bin/sh -c 'echo 65536 > /sys/module/cdc_ncm/parameters/ntb_max_tx'"
-ACTION=="add", ENV{ID_USB_DRIVER}=="cdc_ncm", ATTRS{idVendor}=="17e9", RUN+="/bin/sh -c 'echo 65536 > /sys/module/cdc_ncm/parameters/ntb_max_rx'"
-ACTION=="add|move|bind", ENV{ID_USB_DRIVER}=="cdc_ncm", ATTRS{idVendor}=="17e9", ATTR{cdc_ncm/rx_max}=="?*", ATTR{cdc_ncm/dwNtbInMaxSize}=="?*", ATTR{cdc_ncm/rx_max}="$attr{cdc_ncm/dwNtbInMaxSize}"
-ACTION=="add|move|bind", ENV{ID_USB_DRIVER}=="cdc_ncm", ATTRS{idVendor}=="17e9", ATTR{cdc_ncm/tx_max}=="?*", ATTR{cdc_ncm/dwNtbOutMaxSize}=="?*", ATTR{cdc_ncm/tx_max}="$attr{cdc_ncm/dwNtbOutMaxSize}"

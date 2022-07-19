@@ -11,7 +11,7 @@ RELEASE        := 1
 # Dependencies
 #
 
-DAEMON_PKG := DisplayLink\ USB\ Graphics\ Software\ for\ Ubuntu\ $(DAEMON_VERSION).zip
+DAEMON_PKG := DisplayLink_USB_Graphics_Software_for_Ubuntu_$(DAEMON_VERSION).zip
 EVDI_PKG   := v$(VERSION).tar.gz
 SPEC_FILE  := displaylink.spec
 

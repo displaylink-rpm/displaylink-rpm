@@ -1,0 +1,158 @@
+diff --git a/module/Makefile b/module/Makefile
+index 03a3958..48d13a4 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -11,6 +11,11 @@ ifneq (,$(findstring 1, $(EL8)))
+ EL8FLAG := -DEL8
+ endif
+ 
++EL9 := $(shell cat /etc/redhat-release 2>/dev/null | grep -c " 9." )
++ifneq (,$(findstring 1, $(EL9)))
++EL9FLAG := -DEL9
++endif
++
+ Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
+ ifeq (,$(findstring 0, $(Raspbian)))
+ RPIFLAG := -DRPI
+@@ -22,7 +27,7 @@ ifneq ($(DKMS_BUILD),)
+ 
+ KERN_DIR := /lib/modules/$(KERNELRELEASE)/build
+ 
+-ccflags-y := -Iinclude/drm $(EL8FLAG) $(RPIFLAG)
++ccflags-y := -Iinclude/drm $(EL8FLAG) $(EL9FLAG) $(RPIFLAG)
+ evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
+ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
+ obj-m := evdi.o
+@@ -45,7 +50,7 @@ ifneq ($(KERNELRELEASE),)
+ # inside kbuild
+ # Note: this can be removed once it is in kernel tree and Kconfig is properly used
+ CONFIG_DRM_EVDI := m
+-ccflags-y := -isystem include/drm $(CFLAGS) $(EL8FLAG) $(RPIFLAG)
++ccflags-y := -isystem include/drm $(CFLAGS) $(EL8FLAG) $(EL9FLAG) $(RPIFLAG)
+ evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
+ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
+ obj-$(CONFIG_DRM_EVDI) := evdi.o
+diff --git a/module/evdi_drm_drv.c b/module/evdi_drm_drv.c
+index f03825c..0374161 100644
+--- a/module/evdi_drm_drv.c
++++ b/module/evdi_drm_drv.c
+@@ -12,7 +12,7 @@
+  */
+ 
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ #include <drm/drm_ioctl.h>
+ #include <drm/drm_file.h>
+ #include <drm/drm_drv.h>
+diff --git a/module/evdi_drm_drv.h b/module/evdi_drm_drv.h
+index a05cd4f..9edc5ca 100644
+--- a/module/evdi_drm_drv.h
++++ b/module/evdi_drm_drv.h
+@@ -25,7 +25,7 @@
+ #else
+ #include <drm/drmP.h>
+ #endif
+-#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ #include <drm/drm_legacy.h>
+ #else
+ #include <drm/drm_irq.h>
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index 4b3449e..2e1f24b 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -14,7 +14,7 @@
+ #elif KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE
+ #include <linux/dma-buf-map.h>
+ #endif
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ #include <drm/drm_prime.h>
+ #include <drm/drm_file.h>
+ #elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+@@ -27,7 +27,7 @@
+ #include <linux/dma-buf.h>
+ #include <drm/drm_cache.h>
+ 
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+ #endif
+ 
+diff --git a/module/evdi_ioc32.c b/module/evdi_ioc32.c
+index 69dbd31..333adec 100644
+--- a/module/evdi_ioc32.c
++++ b/module/evdi_ioc32.c
+@@ -22,7 +22,7 @@
+ #include <linux/compat.h>
+ 
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ #include <drm/drm_ioctl.h>
+ #elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+ #else
+@@ -61,10 +61,10 @@ static int compat_evdi_connect(struct file *file,
+ 	if (copy_from_user(&req32, (void __user *)arg, sizeof(req32)))
+ 		return -EFAULT;
+ 
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE && KERNEL_VERSION(5, 14, 0) >= LINUX_VERSION_CODE || defined(EL8)
+-	request = compat_alloc_user_space(sizeof(*request));
+-#else
++#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ 	request = kmalloc(sizeof(*request), GFP_USER);
++#elif KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
++	request = compat_alloc_user_space(sizeof(*request));
+ #endif
+ #if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
+ 	if (!access_ok(request, sizeof(*request))
+@@ -93,10 +93,10 @@ static int compat_evdi_grabpix(struct file *file,
+ 	if (copy_from_user(&req32, (void __user *)arg, sizeof(req32)))
+ 		return -EFAULT;
+ 
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE && KERNEL_VERSION(5, 14, 0) >= LINUX_VERSION_CODE || defined(EL8)
+-	request = compat_alloc_user_space(sizeof(*request));
+-#else
++#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ 	request = kmalloc(sizeof(*request), GFP_USER);
++#elif KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
++	request = compat_alloc_user_space(sizeof(*request));
+ #endif
+ #if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
+ 	if (!access_ok(request, sizeof(*request))
+diff --git a/module/evdi_modeset.c b/module/evdi_modeset.c
+index 308691d..23f22cb 100644
+--- a/module/evdi_modeset.c
++++ b/module/evdi_modeset.c
+@@ -12,7 +12,7 @@
+  */
+ 
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ #include <drm/drm_vblank.h>
+ #include <drm/drm_damage_helper.h>
+ #elif KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index bfeaed5..97360de 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -10,7 +10,7 @@
+ #include "linux/thread_info.h"
+ #include "linux/mm.h"
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ #include <drm/drm_file.h>
+ #include <drm/drm_vblank.h>
+ #include <drm/drm_ioctl.h>
+@@ -31,7 +31,7 @@
+ 
+ #include <linux/dma-buf.h>
+ 
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+ #endif
+ 
