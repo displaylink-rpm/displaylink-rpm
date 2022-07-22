@@ -256,6 +256,10 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Tue Jul 19 2022 Michael L. Young <elgueromexicano@gmail> 1.11.0-1
+- Add patches to support latest EL8 and EL9 systems
+- Update evdi version on Provides line
+
 * Sat May 21 2022 Grzegorz Bialek <gp.bialek@gmail.com> 1.11.0-1
 - Update to use the newly released Displayink 5.6 package
 
