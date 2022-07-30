@@ -27,4 +27,4 @@ jobs:
           echo "SPECIFICTARGET=rawhide" >> $GITHUB_ENV
 
       - name: Run CI
-        run: ci/${{ matrix.os }}.sh
+        run: ci/${{ matrix.os }}37plus.sh

@@ -30,12 +30,14 @@ Source1:  displaylink-driver.service
 Source2:  99-displaylink.rules
 Source3:  displaylink-sleep-extractor.sh
 # From https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-Source4:  DisplayLink USB Graphics Software for Ubuntu %{_daemon_version}.zip
+Source4:  DisplayLink_USB_Graphics_Software_for_Ubuntu_%{_daemon_version}.zip
 Source5:  20-displaylink.conf
 Source6:  95-displaylink.preset
 Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
+Patch0:   el8-fix-evdi-1.11.patch
+Patch1:   add-el9-support.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -56,10 +58,10 @@ Requires:   %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
 Requires:   make
 Requires:   libusbx
 Requires:   xorg-x11-server-Xorg >= 1.16
-Requires:   mutter >= 3.32
+Conflicts:  mutter < 3.32
 Conflicts:  xorg-x11-server-Xorg = 1.20.1
 
-Provides:   bundled(libevdi) = 1.10.1
+Provides:   bundled(libevdi) = 1.11.0
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -89,6 +91,8 @@ cd evdi-%{version}
 %endif
 
 sed -i 's/\r//' README.md
+%patch0 -p1
+%patch1 -p1
 
 %build
 
@@ -252,6 +256,10 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Tue Jul 19 2022 Michael L. Young <elgueromexicano@gmail> 1.11.0-1
+- Add patches to support latest EL8 and EL9 systems
+- Update evdi version on Provides line
+
 * Sat May 21 2022 Grzegorz Bialek <gp.bialek@gmail.com> 1.11.0-1
 - Update to use the newly released Displayink 5.6 package
 

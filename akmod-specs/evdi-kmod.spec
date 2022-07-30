@@ -26,7 +26,8 @@ BuildRequires:	libdrm-devel
 %{expand:%(kmodtool --target %{_target_cpu} --repo rpmfusion --kmodname %{name} %{?buildforkernels:--%{buildforkernels}} %{?kernels:--for-kernels "%{?kernels}"} 2>/dev/null) }
 
 %description
-The evdi %{version} display driver kernel module for kernel %{kversion}.
+The evdi %{version} display driver kernel module.
+This is primarily used by DisplayLink graphics devices.
 
 %prep
 # error out if there was something wrong with kmodtool
