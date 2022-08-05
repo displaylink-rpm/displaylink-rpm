@@ -63,7 +63,7 @@ Then reboot your Fedora host and follow the instructions to enroll the key.
 Now you can sign the evdi module. This must be done for every kernel upgrade:
 
 ``` bash
-sudo modinfo -n evdi /lib/modules/5.10.19-200.fc33.x86_64/extra/evdi.ko.xz
+sudo modinfo -n evdi /lib/modules/$(uname -r)/extra/evdi.ko.xz
 
 sudo unxz $(modinfo -n evdi)
 
