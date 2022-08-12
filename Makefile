@@ -160,6 +160,8 @@ $(SRPM): $(BUILD_DEPS)
 	rpmbuild -bs $(BUILD_DEFINES) displaylink.spec
 
 $(i386_RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
+	CFLAGS='-m32 -march=i386' \
+	LDFLAGS='-m32 -march=i386' \
 	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec --target=i386
 
 $(x86_64_RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
