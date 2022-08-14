@@ -100,3 +100,4 @@ jobs:
           draft: false
           update_latest_release: true
           tags: true
+          overwrite: true
