@@ -8,7 +8,7 @@ Version:	5.6.1
 Release:	1%{?dist}
 Summary:	Meta-package for proprietary DisplayLinkManager application
 URL:		https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
-Source0:	https://www.synaptics.com/sites/default/files/exe_files/2022-08/DisplayLink USB Graphics Software for Ubuntu5.6.1-EXE.zip
+Source0:	https://www.synaptics.com/sites/default/files/exe_files/2022-08/DisplayLink%20USB%20Graphics%20Software%20for%20Ubuntu5.6.1-EXE.zip
 Source1:	https://github.com/displaylink-rpm/displaylink-rpm/archive/%{displaylink_rpm_commit}.tar.gz
 License:	MIT
 Requires:	akmod-evdi, %{name}-config, %{name}-manager
