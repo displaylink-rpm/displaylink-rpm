@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 ffgiff <ffgiff@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
 Name:		evdi
 Version:	1.11.0
 Release:	1%{?dist}

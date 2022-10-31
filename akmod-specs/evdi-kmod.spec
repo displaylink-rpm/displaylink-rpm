@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 ffgiff <ffgiff@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
 # buildforkernels macro hint: when you build a new version or a new release
 # that contains bugfixes or other improvements then you must disable the
 # "buildforkernels newest" macro for just that build; immediately after

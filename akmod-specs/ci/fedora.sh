@@ -1,4 +1,8 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2022 ffgiff <ffgiff@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
 
 dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
 dnf install -y fakeroot rpm-build rpmdevtools kmodtool buildsys-build-rpmfusion-kerneldevpkgs-current akmods libdrm-devel

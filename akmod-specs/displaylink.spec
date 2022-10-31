@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 ffgiff <ffgiff@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
 Name:		displaylink
 Version:	5.6
 %global displaylink_rpm_commit 7ee129b8af779a036906d50f768a06c407665471
