@@ -21,6 +21,7 @@ COREDIR=$(mktemp -d)
 create_bootstrap_file "systemd" "$COREDIR/udev.sh"
 
 sed -i -e '1 s/^.*$/\#!\/usr\/bin\/bash/' "$COREDIR/udev.sh"
+sed -i -e 's/systemctl start displaylink-driver/systemctl start displaylink-driver --no-block/g' "$COREDIR/udev.sh"
 
 cat "$COREDIR/udev.sh"
 
