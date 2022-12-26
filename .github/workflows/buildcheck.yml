@@ -78,7 +78,7 @@ jobs:
         run: |
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
 
-      - if: always() && matrix.version < 37
+      - if: always() && matrix.version < 37 || matrix.version == 'centos'
         name: Run CI
         run: ci/${{ matrix.os }}.sh
 
