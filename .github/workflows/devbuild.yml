@@ -67,7 +67,7 @@ jobs:
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
 
       - name: Run CI
-        if: matrix.version < 37 || matrix.version == 'centos'
+        if: matrix.version < 37 || startsWith(matrix.os, 'centos')
         run: ci/${{ matrix.os }}.sh
       
       - name: Run CI (Fedora 37+)
