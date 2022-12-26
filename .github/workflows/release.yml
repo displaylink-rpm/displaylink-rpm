@@ -66,11 +66,11 @@ jobs:
 
       - name: Specify A Target For make
         run: |
-          echo "SPECIFICTARGET=" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=devel" >> $GITHUB_ENV
 
       - name: Environment variable for setting name of RPM when using EVDI from Github
         run: |
-          echo "EVDISOURCE=" >> $GITHUB_ENV
+          echo "EVDISOURCE=devel" >> $GITHUB_ENV
 
       - name: Environment variable for OS version
         run: |
