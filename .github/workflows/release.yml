@@ -73,7 +73,7 @@ jobs:
 
       - name: Environment variable for setting name of RPM when using EVDI from Github
         run: |
-          echo "EVDISOURCE=devel" >> $GITHUB_ENV
+          echo "EVDISOURCE=-evdi-devel-branch" >> $GITHUB_ENV
 
       - name: Environment variable for OS version
         run: |
@@ -88,7 +88,8 @@ jobs:
         run: ci/${{ matrix.os }}37plus.sh
 
       - name: Rename files
-        run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
+      - run : ls -la
+      - run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
       - run: mv x86_64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm
       - run: mv i386/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.i386.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.i386.rpm
       - run: chown `id -u`:`id -g` -R .
