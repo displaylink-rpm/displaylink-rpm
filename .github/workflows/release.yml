@@ -69,7 +69,7 @@ jobs:
 
       - name: Specify A Target For make
         run: |
-          echo "SPECIFICTARGET=devel" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=" >> $GITHUB_ENV
 
       - name: Environment variable for setting name of RPM when using EVDI from Github
         run: |
@@ -78,6 +78,9 @@ jobs:
       - name: Environment variable for OS version
         run: |
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+
+      - name: Get Devel Branch Code
+        run: make devel
       
       - name: Run CI
         if: matrix.version < 37 || startsWith(matrix.os, 'centos')
