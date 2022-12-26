@@ -78,11 +78,11 @@ jobs:
         run: |
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
 
-      - if: ${{ always() }} && ${{ matrix.version }} < 37
+      - if: always() && matrix.version < 37
         name: Run CI
         run: ci/${{ matrix.os }}.sh
 
-      - if: ${{ always() }} && ${{ matrix.os }} == 'fedora' && ${{ matrix.version }} > 36
+      - if: always() && matrix.os == 'fedora' && matrix.version > 36
         name: Run CI
         run: ci/${{ matrix.os }}37plus.sh
 

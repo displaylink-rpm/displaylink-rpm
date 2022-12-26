@@ -77,11 +77,11 @@ jobs:
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
       
       - name: Run CI
-        if: ${{ matrix.version }} < 37
+        if: matrix.version < 37
         run: ci/${{ matrix.os }}.sh
 
       - name: Run CI (Fedora 37+)
-        if: ${{ matrix.os }} == 'fedora' && ${{ matrix.version }} > 36
+        if: matrix.os == 'fedora' && matrix.version > 36
         run: ci/${{ matrix.os }}37plus.sh
 
       - name: Rename files
