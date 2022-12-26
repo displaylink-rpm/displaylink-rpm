@@ -13,9 +13,6 @@ jobs:
       matrix:
         include:
           - os: fedora
-            version: 37
-            dockernamespace: fedora
-          - os: fedora
             version: rawhide
             dockernamespace: fedora
 

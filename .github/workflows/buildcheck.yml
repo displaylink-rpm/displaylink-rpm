@@ -48,6 +48,9 @@ jobs:
           - os: fedora
             version: 36
             dockernamespace: fedora
+          - os: fedora
+            version: 37
+            dockernamespace: fedora
           - os: centos
             version: 7.9.2009
             dockernamespace: centos
@@ -75,9 +78,13 @@ jobs:
         run: |
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
 
-      - if: ${{ always() }}
+      - if: ${{ always() }} && ${{ matrix.os }} == 'fedora' && ${{ matrix.version }} < 37
         name: Run CI
         run: ci/${{ matrix.os }}.sh
+
+      - if: ${{ always() }} && ${{ matrix.os }} == 'fedora' && ${{ matrix.version }} > 36
+        name: Run CI
+        run: ci/${{ matrix.os }}37plus.sh
 
   mockTest:
     needs: makeTest

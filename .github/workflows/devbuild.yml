@@ -36,6 +36,9 @@ jobs:
           - os: fedora
             version: 36
             dockernamespace: fedora
+          - os: fedora
+            version: 37
+            dockernamespace: fedora
           - os: centos
             version: 7.9.2009
             dockernamespace: centos
@@ -64,4 +67,9 @@ jobs:
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
 
       - name: Run CI
+        if: ${{ matrix.os }} == 'fedora' && ${{ matrix.version }} < 37
         run: ci/${{ matrix.os }}.sh
+      
+      - name: Run CI (Fedora 37+)
+        if: ${{ matrix.os }} == 'fedora' && ${{ matrix.version }} > 36
+        run: ci/${{ matrix.os }}37plus.sh

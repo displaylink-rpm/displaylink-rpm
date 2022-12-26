@@ -77,7 +77,12 @@ jobs:
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
       
       - name: Run CI
+        if: ${{ matrix.os }} == 'fedora' && ${{ matrix.version }} < 37
         run: ci/${{ matrix.os }}.sh
+
+      - name: Run CI (Fedora 37+)
+        if: ${{ matrix.os }} == 'fedora' && ${{ matrix.version }} > 36
+        run: ci/${{ matrix.os }}37plus.sh
 
       - name: Rename files
         run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
