@@ -48,6 +48,9 @@ jobs:
           - os: fedora
             version: 36
             dockernamespace: fedora
+          - os: fedora
+            version: 37
+            dockernamespace: fedora
           - os: centos
             version: 7.9.2009
             dockernamespace: centos
@@ -69,15 +72,19 @@ jobs:
 
       - name: Specify Build Target
         run: |
-          echo "SPECIFICTARGET=" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=devel" >> $GITHUB_ENV
           
       - name: Environment variable for OS version
         run: |
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
 
-      - if: ${{ always() }}
+      - if: always() && matrix.version < 37 || startsWith(matrix.os, 'centos')
         name: Run CI
         run: ci/${{ matrix.os }}.sh
+
+      - if: always() && matrix.os == 'fedora' && matrix.version > 36
+        name: Run CI (Fedora 37+)
+        run: ci/${{ matrix.os }}37plus.sh
 
   mockTest:
     needs: makeTest

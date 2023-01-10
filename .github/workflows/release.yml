@@ -37,6 +37,9 @@ jobs:
         - os: fedora
           version: 36
           dockernamespace: fedora
+        - os: fedora
+          version: 37
+          dockernamespace: fedora
         - os: centos
           version: 7.9.2009
           dockernamespace: centos
@@ -66,7 +69,7 @@ jobs:
 
       - name: Specify A Target For make
         run: |
-          echo "SPECIFICTARGET=" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=devel" >> $GITHUB_ENV
 
       - name: Environment variable for setting name of RPM when using EVDI from Github
         run: |
@@ -75,12 +78,21 @@ jobs:
       - name: Environment variable for OS version
         run: |
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
-      
+     
       - name: Run CI
+        if: matrix.version < 37 || startsWith(matrix.os, 'centos')
         run: ci/${{ matrix.os }}.sh
 
+      - name: Run CI (Fedora 37+)
+        if: matrix.os == 'fedora' && matrix.version > 36
+        run: ci/${{ matrix.os }}37plus.sh
+
+      - name: Run build
+        run: make
+
       - name: Rename files
-        run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
+        run : ls -la
+      - run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
       - run: mv x86_64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm
       - run: mv i386/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.i386.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.i386.rpm
       - run: chown `id -u`:`id -g` -R .

@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 5.6.1-59.184}
 %{!?_version:%global _version 1.12.0}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -36,6 +36,9 @@ Source6:  95-displaylink.preset
 Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
+
+Patch0:   evdi-el-fixes.diff
+Patch1:   evdi-bundled-devel-patches.diff
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -82,10 +85,12 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
+%patch1 -p1
 
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
+%patch0 -p1
 %endif
 
 sed -i 's/\r//' README.md
@@ -252,6 +257,15 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Mon Nov 28 2022 Michael L. Young <elgueromexicano@gmail.com> 1.12.0-2
+- Add patch for evdi to compile with newer EL 8.7 and EL 9.1 releases
+  with the github release
+- Add patch for evdi to compile with newer kernels, EL 8.7 and EL 9.1
+  releases using the bundled evdi driver
+
+* Fri Oct 14 2022 Michael L. Young <elgueromexicano@gmail.com> 1.12.0-2
+- Remove EL8 and EL9 evdi patches that were merged upstream
+
 * Sat Aug 13 2022 Michael L. Young <elgueromexicano@gmail> 1.12.0-1
 - Update to use the new DisplayLink 5.6.1 package
 - Update to use evdi module 1.12.0
