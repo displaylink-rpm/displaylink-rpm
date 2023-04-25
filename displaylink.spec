@@ -1,6 +1,6 @@
-%{!?_daemon_version:%global _daemon_version 5.6.1-59.184}
-%{!?_version:%global _version 1.12.0}
-%{!?_release:%global _release 2}
+%{!?_daemon_version:%global _daemon_version 5.7.0-61.129}
+%{!?_version:%global _version 1.13.1}
+%{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -37,8 +37,7 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   evdi-el-fixes.diff
-Patch1:   evdi-bundled-devel-patches.diff
+Patch0:   evdi-el-fixes-1.13.1.diff
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -62,7 +61,7 @@ Requires:   xorg-x11-server-Xorg >= 1.16
 Conflicts:  mutter < 3.32
 Conflicts:  xorg-x11-server-Xorg = 1.20.1
 
-Provides:   bundled(libevdi) = 1.12.0
+Provides:   bundled(libevdi) = 1.13.1
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -85,12 +84,12 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch1 -p1
+%patch -P0 -p1
 
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
-%patch0 -p1
+%patch -P0 -p1
 %endif
 
 sed -i 's/\r//' README.md
@@ -172,7 +171,7 @@ cp -a %{SOURCE7} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
 cp -a %{SOURCE9} %{buildroot}%{_sysconfdir}/modprobe.d/
 
 # pm-util
-bash %{SOURCE3} displaylink-installer.sh > %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
+bash %{SOURCE3} service-installer.sh > %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
 # udev trigger scripts
@@ -257,6 +256,12 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Thu Apr 20 2023 Michael L. Young <elgueromexicano@gmail.com> 1.13.1-1
+- Update to new DisplayLink 5.7.0 package
+- Update to use new evdi 1.13.1 module
+- Change file name where power management scripts are located within Displaylink
+  installer for extraction
+
 * Mon Nov 28 2022 Michael L. Young <elgueromexicano@gmail.com> 1.12.0-2
 - Add patch for evdi to compile with newer EL 8.7 and EL 9.1 releases
   with the github release

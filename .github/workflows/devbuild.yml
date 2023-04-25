@@ -13,9 +13,6 @@ jobs:
       matrix:
         include:
           - os: fedora
-            version: 29
-            dockernamespace: fedora
-          - os: fedora
             version: 30
             dockernamespace: fedora
           - os: fedora
@@ -38,6 +35,9 @@ jobs:
             dockernamespace: fedora
           - os: fedora
             version: 37
+            dockernamespace: fedora
+          - os: fedora
+            version: 38
             dockernamespace: fedora
           - os: centos
             version: 7.9.2009
