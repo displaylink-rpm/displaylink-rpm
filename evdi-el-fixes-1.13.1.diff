@@ -1,6 +1,7 @@
-diff -ruN evdi-a/module/evdi_drm_drv.h evdi-b/module/evdi_drm_drv.h
---- evdi-a/module/evdi_drm_drv.h	2023-03-24 11:38:59.000000000 +0000
-+++ evdi-b/module/evdi_drm_drv.h	2023-04-22 01:06:34.232856183 +0000
+diff --git a/module/evdi_drm_drv.h b/module/evdi_drm_drv.h
+index 747218b..0387118 100644
+--- a/module/evdi_drm_drv.h
++++ b/module/evdi_drm_drv.h
 @@ -18,7 +18,7 @@
  #include <linux/mutex.h>
  #include <linux/device.h>
@@ -10,9 +11,19 @@ diff -ruN evdi-a/module/evdi_drm_drv.h evdi-b/module/evdi_drm_drv.h
  #include <drm/drm_drv.h>
  #include <drm/drm_fourcc.h>
  #include <drm/drm_ioctl.h>
-diff -ruN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
---- evdi-a/module/evdi_gem.c	2023-03-24 11:38:59.000000000 +0000
-+++ evdi-b/module/evdi_gem.c	2023-04-22 01:08:05.406542978 +0000
+@@ -26,7 +26,7 @@
+ #else
+ #include <drm/drmP.h>
+ #endif
+-#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE || defined(EL9)
++#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+ #include <drm/drm_framebuffer.h>
+ #else
+ #include <drm/drm_irq.h>
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index d009b0e..491f030 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
 @@ -10,7 +10,7 @@
  
  #include <linux/sched.h>
@@ -22,7 +33,7 @@ diff -ruN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  #elif KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE
  #include <linux/dma-buf-map.h>
  #endif
-@@ -295,7 +295,7 @@
+@@ -295,7 +295,7 @@ int evdi_gem_vmap(struct evdi_gem_object *obj)
  	int ret;
  
  	if (evdi_drm_gem_object_use_import_attach(&obj->base)) {
@@ -31,7 +42,7 @@ diff -ruN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  		struct iosys_map map = IOSYS_MAP_INIT_VADDR(NULL);
  #elif KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
  		struct dma_buf_map map = DMA_BUF_MAP_INIT_VADDR(NULL);
-@@ -328,7 +328,7 @@
+@@ -328,7 +328,7 @@ int evdi_gem_vmap(struct evdi_gem_object *obj)
  void evdi_gem_vunmap(struct evdi_gem_object *obj)
  {
  	if (evdi_drm_gem_object_use_import_attach(&obj->base)) {
