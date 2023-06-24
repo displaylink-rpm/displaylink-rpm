@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 5.7.0-61.129}
 %{!?_version:%global _version 1.13.1}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -256,6 +256,9 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Sat Jun 24 2023 Michael L. Young <elgueromexicano@gmail.com> 1.13.1-2
+- Minor update to a patch for EL8 builds
+
 * Thu Apr 20 2023 Michael L. Young <elgueromexicano@gmail.com> 1.13.1-1
 - Update to new DisplayLink 5.7.0 package
 - Update to use new evdi 1.13.1 module
