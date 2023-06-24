@@ -57,7 +57,7 @@ jobs:
           dockernamespace: rockylinux
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Get version
         run: |

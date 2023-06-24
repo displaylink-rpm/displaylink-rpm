@@ -11,7 +11,7 @@ jobs:
     container: 
       image: rockylinux:8
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Test Makefile Targets
         run: ci/testbuilding.sh
@@ -68,7 +68,7 @@ jobs:
             dockernamespace: rockylinux
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Specify Build Target
         run: |
@@ -93,7 +93,7 @@ jobs:
       image: rockylinux:8
       options: --privileged
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Test Mock Build From Spec
         run: |
