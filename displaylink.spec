@@ -1,6 +1,6 @@
-%{!?_daemon_version:%global _daemon_version 5.7.0-61.129}
-%{!?_version:%global _version 1.13.1}
-%{!?_release:%global _release 2}
+%{!?_daemon_version:%global _daemon_version 5.8.0-63.33}
+%{!?_version:%global _version 1.14.1}
+%{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -37,8 +37,6 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   evdi-el-fixes-1.13.1.diff
-
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
 BuildRequires:  make
@@ -61,7 +59,7 @@ Requires:   xorg-x11-server-Xorg >= 1.16
 Conflicts:  mutter < 3.32
 Conflicts:  xorg-x11-server-Xorg = 1.20.1
 
-Provides:   bundled(libevdi) = 1.13.1
+Provides:   bundled(libevdi) = %{version}
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
@@ -84,12 +82,10 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch -P0 -p1
 
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
-%patch -P0 -p1
 %endif
 
 sed -i 's/\r//' README.md
@@ -158,7 +154,7 @@ cp -a x86-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
 %endif
 
 # Firmwares
-cp -a ella-dock-release.spkg firefly-monitor-release.spkg ridge-dock-release.spkg %{buildroot}%{_libexecdir}/%{name}/
+cp -a ella-dock-release.spkg firefly-monitor-release.spkg navarro-dock-release.spkg ridge-dock-release.spkg %{buildroot}%{_libexecdir}/%{name}/
 
 # systemd/udev
 cp -a %{SOURCE1} %{buildroot}%{_unitdir}/
@@ -237,6 +233,7 @@ done
 %{_libexecdir}/%{name}/firefly-monitor-release.spkg
 %{_libexecdir}/%{name}/libevdi.so
 %{_libexecdir}/%{name}/libevdi.so.%{version}
+%{_libexecdir}/%{name}/navarro-dock-release.spkg
 %{_libexecdir}/%{name}/ridge-dock-release.spkg
 %{_libexecdir}/%{name}/udev.sh
 
@@ -256,6 +253,11 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Sat Aug 12 2023 Michael L. Young <elgueromexicano@gmail.com> 1.14.1-1
+- Update to new DisplayLink 5.8.0 package
+- Update to use new evdi 1.14.1
+- Remove patches that were merged upstream into evdi 1.14.1
+
 * Sat Jun 24 2023 Michael L. Young <elgueromexicano@gmail.com> 1.13.1-2
 - Minor update to a patch for EL8 builds
 
