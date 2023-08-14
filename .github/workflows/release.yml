@@ -15,22 +15,22 @@ jobs:
         include:
         - os: fedora
           version: 30
-          dockernamespace: quay.io/fedora/fedora
+          dockernamespace: fedora
         - os: fedora
           version: 31
-          dockernamespace: quay.io/fedora/fedora
+          dockernamespace: fedora
         - os: fedora
           version: 32
-          dockernamespace: quay.io/fedora/fedora
+          dockernamespace: fedora
         - os: fedora
           version: 33
-          dockernamespace: quay.io/fedora/fedora
+          dockernamespace: fedora
         - os: fedora
           version: 34
-          dockernamespace: quay.io/fedora/fedora
+          dockernamespace: fedora
         - os: fedora
           version: 35
-          dockernamespace: quay.io/fedora/fedora
+          dockernamespace: fedora
         - os: fedora
           version: 36
           dockernamespace: quay.io/fedora/fedora
