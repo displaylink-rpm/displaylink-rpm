@@ -18,22 +18,22 @@ make rpm
 
 make clean-all
 
-# echo "Testing 'make srpm-github'"
-# make srpm-github
+echo "Testing 'make srpm-github'"
+make srpm-github
 
-# make clean-all
+make clean-all
 
-# echo "Testing 'make rpm-github'"
-# make rpm-github
+echo "Testing 'make rpm-github'"
+make rpm-github
 
-# make clean-all
+make clean-all
 
-# echo "Testing 'make all'"
-# make all
+echo "Testing 'make all'"
+make all
 
-# make clean-all
+make clean-all
 
-# echo "Testing 'make github-release'"
-# make github-release
+echo "Testing 'make github-release'"
+make github-release
 
-# make clean-all
+make clean-all
