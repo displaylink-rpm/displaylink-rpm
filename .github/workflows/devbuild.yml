@@ -57,6 +57,12 @@ jobs:
           - os: rocky
             version: 9
             dockernamespace: quay.io/rockylinux/rockylinux
+          - os: almalinux
+            version: 8
+            dockernamespace: quay.io/almalinux/almalinux
+          - os: almalinux
+            version: 9
+            dockernamespace: quay.io/almalinux/almalinux
 
     steps:
       - uses: actions/checkout@v3

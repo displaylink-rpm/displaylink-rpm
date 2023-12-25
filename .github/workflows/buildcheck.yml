@@ -9,7 +9,7 @@ jobs:
   makeTest:
     runs-on: ubuntu-latest
     container: 
-      image: quay.io/rockylinux/rockylinux:8
+      image: quay.io/rockylinux/rockylinux:9
     steps:
       - uses: actions/checkout@v3
 
@@ -69,6 +69,12 @@ jobs:
           - os: rocky
             version: 9
             dockernamespace: quay.io/rockylinux/rockylinux
+          - os: almalinux
+            version: 8
+            dockernamespace: quay.io/almalinux/almalinux
+          - os: almalinux
+            version: 9
+            dockernamespace: quay.io/almalinux/almalinux
 
     steps:
       - uses: actions/checkout@v3
@@ -93,7 +99,7 @@ jobs:
     needs: makeTest
     runs-on: ubuntu-latest
     container: 
-      image: quay.io/rockylinux/rockylinux:8
+      image: quay.io/rockylinux/rockylinux:9
       options: --privileged
     steps:
       - uses: actions/checkout@v3
@@ -106,4 +112,4 @@ jobs:
           echo "Get source files"
           make
           echo "Run mock build"
-          mock -r rocky+epel-8-x86_64 --spec displaylink.spec --source .
+          mock -r rocky+epel-9-x86_64 --spec displaylink.spec --source .
