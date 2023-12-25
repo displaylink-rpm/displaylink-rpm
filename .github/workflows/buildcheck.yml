@@ -25,30 +25,6 @@ jobs:
       matrix:
         include:
           - os: fedora
-            version: 30
-            dockernamespace: fedora
-          - os: fedora
-            version: 31
-            dockernamespace: fedora
-          - os: fedora
-            version: 32
-            dockernamespace: fedora
-          - os: fedora
-            version: 33
-            dockernamespace: fedora
-          - os: fedora
-            version: 34
-            dockernamespace: fedora
-          - os: fedora
-            version: 35
-            dockernamespace: fedora
-          - os: fedora
-            version: 36
-            dockernamespace: quay.io/fedora/fedora
-          - os: fedora
-            version: 37
-            dockernamespace: quay.io/fedora/fedora
-          - os: fedora
             version: 38
             dockernamespace: quay.io/fedora/fedora
           - os: fedora
@@ -87,13 +63,8 @@ jobs:
         run: |
           echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
 
-      - if: always() && matrix.version < 37 || startsWith(matrix.os, 'centos')
-        name: Run CI
+      - name: Run CI
         run: ci/${{ matrix.os }}.sh
-
-      - if: always() && matrix.os == 'fedora' && matrix.version > 36
-        name: Run CI (Fedora 37+)
-        run: ci/${{ matrix.os }}37plus.sh
 
   mockTest:
     needs: makeTest
