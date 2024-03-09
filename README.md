@@ -110,9 +110,9 @@ build. This can leave you in a situation where you cannot upgrade your kernel
 without sacrificing your displaylink devices. This is not great if the new
 kernel has important security or performance fixes.
 
-The evdi developers use the `devel` branch as their main branch for all changes.
+The evdi developers use the `main` branch as their main branch for all changes.
 
-To pull the latest code from the `devel` branch and use it to build, do the
+To pull the latest code from the `main` branch and use it to build, do the
 following:
 
 ``` bash
@@ -121,19 +121,19 @@ make devel
 make github-release
 ```
 
-Of course this `devel` branch will also include some experimental and less
+Of course this `main` branch will also include some experimental and less
 tested changes that may break things in other unexpected ways. So you should
 prefer the mainline build if it works, but if it breaks, you have the option of
-making a `devel` build.
+making a `main` build.
 
 If you are using Fedora Rawhide, you can create a build which will automatically
-download from the `devel` branch and build by running:
+download from the `main` branch and build by running:
 
 ``` bash
 make rawhide
 ```
 
-> In the past, code in the `devel` branch would be tagged and that version is what
+> In the past, code in the `main` branch would be tagged and that version is what
 > would be included in the Displaylink driver package.
 >
 > Recently, we are seeing newer changes appear in the Displaylink driver package
