@@ -1,11 +1,11 @@
-name: Devel Branch Build
+name: Main Branch Build
 
 on:
   schedule:
     - cron: '30 5 * * 1'
 
 jobs:
-  develBuild:
+  mainBuild:
     runs-on: ubuntu-latest
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
@@ -45,7 +45,7 @@ jobs:
 
       - name: Specify Build Target
         run: |
-          echo "SPECIFICTARGET=devel" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=main" >> $GITHUB_ENV
 
       - name: Environment variable for OS version
         run: |
