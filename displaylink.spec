@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 5.8.0-63.33}
-%{!?_version:%global _version 1.14.1}
-%{!?_release:%global _release 2}
+%{!?_version:%global _version 1.14.2}
+%{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -91,8 +91,6 @@ gzip -dc evdi.tar.gz | tar -xvvf -
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
-%patch0 -p1
-%patch1 -p1
 %endif
 
 sed -i 's/\r//' README.md
@@ -209,6 +207,7 @@ done
 %{_prefix}/src/evdi-%{version}/LICENSE
 %{_prefix}/src/evdi-%{version}/Makefile
 %{_prefix}/src/evdi-%{version}/dkms.conf
+%{_prefix}/src/evdi-%{version}/dkms_install.sh
 %{_prefix}/src/evdi-%{version}/evdi_connector.c
 %{_prefix}/src/evdi-%{version}/evdi_cursor.c
 %{_prefix}/src/evdi-%{version}/evdi_cursor.h
@@ -260,6 +259,10 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Sat Mar 09 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.2-1
+- Update evdi driver to 1.14.2 that has been released on Github
+- Do not patch when using the Github released version of evdi
+
 * Sat Dec 23 2023 Michael L. Young <elgueromexicano@gmail.com> 1.14.1-2
 - Add patch from upstream for newer kernels
 - Add patch from upstream for newer EL8 and EL9 kernels.

@@ -57,7 +57,7 @@ jobs:
 
       - name: Specify Build Target
         run: |
-          echo "SPECIFICTARGET=devel" >> $GITHUB_ENV
+          echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
           
       - name: Environment variable for OS version
         run: |

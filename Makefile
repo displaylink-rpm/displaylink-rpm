@@ -4,8 +4,8 @@
 
 DAEMON_VERSION := 5.8.0-63.33
 DOWNLOAD_ID    := 5591    # This id number comes off the link on the displaylink website
-VERSION        := 1.14.1
-RELEASE        := 2
+VERSION        := 1.14.2
+RELEASE        := 1
 
 #
 # Dependencies
