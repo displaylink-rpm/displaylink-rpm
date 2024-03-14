@@ -1,5 +1,3 @@
-**Please note:** The only working combination is *DisplayLink 5.3.1* and *evdi v1.7.2* OR *DisplayLink 5.4* and *evdi v1.9.1*
-
 <!-- Please look through existing issues (open and closed) and make sure you are not creating a duplicate issue: -->
   * Are you using the latest DisplayLink driver?
     <!-- (https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu) -->
