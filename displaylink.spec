@@ -1,5 +1,5 @@
 %{!?_daemon_version:%global _daemon_version 5.8.0-63.33}
-%{!?_version:%global _version 1.14.2}
+%{!?_version:%global _version 1.14.3}
 %{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
@@ -259,6 +259,9 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Wed Apr 10 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.3-1
+- Update evdi driver to 1.14.3 that has been released on Github
+
 * Sat Mar 09 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.2-1
 - Update evdi driver to 1.14.2 that has been released on Github
 - Do not patch when using the Github released version of evdi
