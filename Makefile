@@ -29,19 +29,17 @@ BUILD_DEPS_GITHUB_EVDI := $(DAEMON_PKG) $(EVDI_PKG) $(SPEC_FILE)
 # Targets
 #
 
-i386_RPM   := i386/displaylink-$(VERSION)-$(RELEASE).i386.rpm
 x86_64_RPM := x86_64/displaylink-$(VERSION)-$(RELEASE).x86_64.rpm
 SRPM       := displaylink-$(VERSION)-$(RELEASE).src.rpm
 
-TARGETS    := $(i386_RPM) $(x86_64_RPM) $(SRPM)
+TARGETS    := $(x86_64_RPM) $(SRPM)
 
 # Use release found on GitHub instead of what comes in the
 # Displaylink download
-i386_RPM_GITHUB_EVDI   := i386/displaylink-$(VERSION)-$(RELEASE)-github_evdi.i386.rpm
 x86_64_RPM_GITHUB_EVDI := x86_64/displaylink-$(VERSION)-$(RELEASE)-github_evdi.x86_64.rpm
 SRPM_GITHUB_EVDI       := displaylink-$(VERSION)-$(RELEASE)-github_evdi.src.rpm
 
-TARGETS_GITHUB_EVDI := $(i386_RPM_GITHUB_EVDI) $(x86_64_RPM_GITHUB_EVDI) $(SRPM_GITHUB_EVDI)
+TARGETS_GITHUB_EVDI := $(x86_64_RPM_GITHUB_EVDI) $(SRPM_GITHUB_EVDI)
 
 #
 # Upstream checks
@@ -77,11 +75,11 @@ all: $(TARGETS)
 # Use evdi tagged release on Github instead of using what is bundled in Displaylink download
 github-release: $(TARGETS_GITHUB_EVDI)
 
-rpm: $(i386_RPM) $(x86_64_RPM)
+rpm: $(x86_64_RPM)
 
-srpm: $(i386_RPM) $(x86_64_RPM)
+srpm: $(x86_64_RPM)
 
-rpm-github: $(i386_RPM_GITHUB_EVDI) $(x86_64_RPM_GITHUB_EVDI)
+rpm-github: $(x86_64_RPM_GITHUB_EVDI)
 
 srpm-github: $(SRPM_GITHUB_EVDI)
 
@@ -106,7 +104,7 @@ clean-mainline:
 clean: clean-mainline clean-rawhide
 
 clean-all:
-	rm -rf i386/*.rpm x86_64/*.rpm displaylink*.src.rpm $(EVDI_PKG) $(EVDI_MAIN)
+	rm -rf x86_64/*.rpm displaylink*.src.rpm $(EVDI_PKG) $(EVDI_MAIN)
 
 # for testing our version construction
 versions:
@@ -149,21 +147,11 @@ BUILD_DEFINES =                                                     \
 
 BUILD_DEFINES_GITHUB_EVDI = --define "_github 1"
 
-$(i386_RPM): $(BUILD_DEPS)
-	CFLAGS='-m32 -march=i386' \
-	LDFLAGS='-m32 -march=i386' \
-	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --target=i386
-
 $(x86_64_RPM): $(BUILD_DEPS)
 	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --target=x86_64
 
 $(SRPM): $(BUILD_DEPS)
 	rpmbuild -bs $(BUILD_DEFINES) displaylink.spec
-
-$(i386_RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
-	CFLAGS='-m32 -march=i386' \
-	LDFLAGS='-m32 -march=i386' \
-	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec --target=i386
 
 $(x86_64_RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
 	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec --target=x86_64
