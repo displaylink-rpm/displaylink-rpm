@@ -19,6 +19,9 @@ jobs:
         - os: fedora
           version: 39
           dockernamespace: quay.io/fedora/fedora
+        - os: fedora
+            version: 40
+            dockernamespace: quay.io/fedora/fedora
         - os: centos
           version: 7.9.2009
           dockernamespace: quay.io/centos/centos
@@ -42,7 +45,7 @@ jobs:
           dockernamespace: quay.io/almalinux/almalinux
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get version
         run: |
@@ -78,7 +81,7 @@ jobs:
       - run: chown `id -u`:`id -g` -R .
 
       - name: Upload RPM
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}
           path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm

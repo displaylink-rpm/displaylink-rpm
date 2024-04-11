@@ -11,7 +11,7 @@ jobs:
     container: 
       image: quay.io/rockylinux/rockylinux:9
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Specify Build Target
         run: |
           echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
@@ -31,6 +31,9 @@ jobs:
             dockernamespace: quay.io/fedora/fedora
           - os: fedora
             version: 39
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 40
             dockernamespace: quay.io/fedora/fedora
           - os: centos
             version: 7.9.2009
@@ -55,7 +58,7 @@ jobs:
             dockernamespace: quay.io/almalinux/almalinux
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Specify Build Target
         run: |
@@ -75,7 +78,7 @@ jobs:
       image: quay.io/rockylinux/rockylinux:9
       options: --privileged
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Test Mock Build From Spec
         run: |
           echo "Install Mock"

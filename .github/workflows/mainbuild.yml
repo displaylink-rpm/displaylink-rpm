@@ -18,6 +18,9 @@ jobs:
           - os: fedora
             version: 39
             dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 40
+            dockernamespace: quay.io/fedora/fedora
           - os: centos
             version: 7.9.2009
             dockernamespace: quay.io/centos/centos
@@ -41,7 +44,7 @@ jobs:
             dockernamespace: quay.io/almalinux/almalinux
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Specify Build Target
         run: |
