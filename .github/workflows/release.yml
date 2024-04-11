@@ -61,7 +61,7 @@ jobs:
 
       - name: Environment variable for setting name of RPM when using EVDI from Github
         run: |
-          echo "EVDISOURCE=github_evdi" >> $GITHUB_ENV
+          echo "EVDISOURCE=.github_evdi" >> $GITHUB_ENV
 
       - name: Environment variable for OS version
         run: |
