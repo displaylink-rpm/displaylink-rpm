@@ -82,6 +82,6 @@ jobs:
           dnf -y install epel-release
           dnf -y install mock gcc gcc-c++ glibc-devel.x86_64 libdrm-devel rpm-build make wget
           echo "Get source files"
-          make
+          make srpm-github
           echo "Run mock build"
           mock -r rocky+epel-9-x86_64 --define="_github 1" --spec="displaylink.spec" --sources="."
