@@ -72,7 +72,7 @@ jobs:
     needs: makeTest
     runs-on: ubuntu-latest
     container: 
-      image: quay.io/rockylinux/rockylinux:9
+      image: quay.io/fedora/fedora:39
       options: --privileged
     steps:
       - uses: actions/checkout@v3
@@ -84,4 +84,4 @@ jobs:
           echo "Get source files"
           make
           echo "Run mock build"
-          mock -r rocky+epel-9-x86_64 -D "_github 1" --spec displaylink.spec --sources .
+          mock -r rocky+epel-9-x86_64 --define="_github 1" --spec="displaylink.spec" --sources="."
