@@ -11,7 +11,7 @@ jobs:
     container: 
       image: quay.io/rockylinux/rockylinux:9
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Specify Build Target
         run: |
           echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
@@ -58,7 +58,7 @@ jobs:
             dockernamespace: quay.io/almalinux/almalinux
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Specify Build Target
         run: |
@@ -78,7 +78,7 @@ jobs:
       image: quay.io/rockylinux/rockylinux:9
       options: --privileged
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Test Mock Build From Spec
         run: |
           echo "Install Mock"
