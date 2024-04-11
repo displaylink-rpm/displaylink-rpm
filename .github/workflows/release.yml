@@ -20,8 +20,8 @@ jobs:
           version: 39
           dockernamespace: quay.io/fedora/fedora
         - os: fedora
-            version: 40
-            dockernamespace: quay.io/fedora/fedora
+          version: 40
+          dockernamespace: quay.io/fedora/fedora
         - os: centos
           version: 7.9.2009
           dockernamespace: quay.io/centos/centos
