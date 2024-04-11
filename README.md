@@ -1,7 +1,7 @@
 # DisplayLink RPM
 
 [![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/buildcheck.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/buildcheck.yml)
-[![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/devbuild.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/devbuild.yml)
+[![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/mainbuild.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/mainbuild.yml)
 [![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/rawhidebuilds.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/rawhidebuilds.yml)
 
 This is the recipe for building the [DisplayLink driver][displaylink]
@@ -116,7 +116,7 @@ To pull the latest code from the `main` branch and use it to build, do the
 following:
 
 ``` bash
-make devel
+make main
 
 make github-release
 ```
