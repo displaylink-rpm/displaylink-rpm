@@ -1,6 +1,6 @@
-%{!?_daemon_version:%global _daemon_version 5.8.0-63.33}
+%{!?_daemon_version:%global _daemon_version 6.0.0-24}
 %{!?_version:%global _version 1.14.4}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -76,7 +76,7 @@ docking stations, USB monitors, and USB adapters.
 
 %setup -q -T -D -a 4
 chmod +x displaylink-driver-%{_daemon_version}.run
-./displaylink-driver-%{_daemon_version}.run --noexec --keep
+./displaylink-driver-%{_daemon_version}.run --noexec --keep --target displaylink-driver-%{_daemon_version}
 # This creates a displaylink-driver-$version subdirectory
 
 mkdir -p evdi-%{version}
@@ -85,8 +85,6 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch0 -p1
-%patch1 -p1
 
 %else
 %setup -q -T -D -a 0
@@ -259,6 +257,11 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Mon May 06 2024 Grzegorz Bialek <gp.bialek@gmail.com> 1.14.4-2
+- Update to new DisplayLink 6.0.0 package
+- Remove unneeded patches for newer kernels
+- Add "target" option to displaylink-driver*.run file to avoid problem with folder name that differs from daemon_version
+
 * Thu Apr 11 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.4-1
 - Update evdi driver to 1.14.4 that has been released on Github to address
   unsafe use of strlen
