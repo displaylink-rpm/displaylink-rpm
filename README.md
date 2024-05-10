@@ -8,7 +8,7 @@ This is the recipe for building the [DisplayLink driver][displaylink]
 in a RPM package for Fedora, CentOS 7 and Rocky Linux. This driver supports the following
 device families:
 
-- Alpha support for DL-74xx
+- DL-7xxx
 - DL-6xxx
 - DL-5xxx
 - DL-41xx

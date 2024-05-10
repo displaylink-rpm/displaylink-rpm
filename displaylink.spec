@@ -37,9 +37,6 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0: 0001-Resolve-compiler-errors-when-compiling-against-Linux.patch
-Patch1: 0002-Adjusting-compile-to-account-for-newer-EL-8-and-EL-9.patch
-
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
 BuildRequires:  make
@@ -65,9 +62,9 @@ Conflicts:  xorg-x11-server-Xorg = 1.20.1
 Provides:   bundled(libevdi) = %{version}
 
 %description
-This adds support for HDMI/VGA adapters built upon the DisplayLink DL-6xxx,
-DL-5xxx, DL-41xx and DL-3xxx series of chipsets. This includes numerous
-docking stations, USB monitors, and USB adapters.
+This adds support for HDMI/VGA adapters built upon the DisplayLink DL-7xxx,
+DL-6xxx, DL-5xxx, DL-41xx and DL-3xxx series of chipsets. This includes
+numerous docking stations, USB monitors, and USB adapters.
 
 %define logfile %{_localstatedir}/log/%{name}/%{name}.log
 
