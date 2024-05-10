@@ -2,10 +2,10 @@
 # Versions
 #
 
-DAEMON_VERSION := 5.8.0-63.33
+DAEMON_VERSION := 6.0.0-24
 DOWNLOAD_ID    := 5591    # This id number comes off the link on the displaylink website
 VERSION        := 1.14.4
-RELEASE        := 1
+RELEASE        := 2
 
 #
 # Dependencies
@@ -126,7 +126,7 @@ $(EVDI_MAIN):
 
 $(DAEMON_PKG):
 	wget --no-verbose -O $(DAEMON_PKG) \
-		"https://www.synaptics.com/sites/default/files/exe_files/2023-08/DisplayLink USB Graphics Software for Ubuntu5.8-EXE.zip"
+		"https://www.synaptics.com/sites/default/files/exe_files/2024-05/DisplayLink USB Graphics Software for Ubuntu6.0-EXE.zip"
 
 $(EVDI_PKG):
 	wget --no-verbose -O v$(VERSION).tar.gz \
