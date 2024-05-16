@@ -2,8 +2,16 @@
 
 set -e
 
-dnf install -y rpm-build make gcc gcc-c++ libdrm-devel systemd-rpm-macros glibc-devel.x86_64 wget git 'dnf-command(builddep)'
+DNFCMD="dnf5"
+SPECFLAG=""
 
-dnf builddep -y --spec ./displaylink.spec
+if [ "$OSVERSION" = "39" ]; then
+    DNFCMD="dnf"
+    SPECFLAG="--spec "
+fi
+
+$DNFCMD install -y rpm-build make gcc gcc-c++ libdrm-devel systemd-rpm-macros glibc-devel.x86_64 wget git $DNFCMD-command\(builddep\)
+
+$DNFCMD builddep -y $SPECFLAG./displaylink.spec
 
 make $SPECIFICTARGET
