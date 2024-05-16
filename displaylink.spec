@@ -121,37 +121,14 @@ cp -a evdi-%{version}/library/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%
 ln -sf %{_libexecdir}/%{name}/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/libevdi.so
 
 # Copy over binaries in package
-
 # Don't copy libusb-1.0.so.0.2.0 it's already shipped by newer versions of libusbx
-# CentOS 7 still has older libusbx. Copy over for this distro.
-
 # Don't copy libevdi.so, we compiled it from source
 
 cd displaylink-driver-%{_daemon_version}
 
 cp -a LICENSE ../
 
-%ifarch x86_64
 cp -a x64-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
-
-  %if 0%{?rhel} && 0%{?rhel} <= 7
-  cp -a x64-ubuntu-1604/libusb-1.0.so.0.2.0 %{buildroot}%{_libexecdir}/%{name}/
-  ln -sf %{_libexecdir}/%{name}/libusb-1.0.so.0.2.0 %{buildroot}/%{_libexecdir}/%{name}/libusb-1.0.so.0
-  ln -sf %{_libexecdir}/%{name}/libusb-1.0.so.0.2.0 %{buildroot}/%{_libexecdir}/%{name}/libusb-1.0.so
-  %endif
-
-%endif
-
-%ifarch %ix86
-cp -a x86-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
-
-  %if 0%{?rhel} && 0%{?rhel} <= 7
-  cp -a x86-ubuntu-1604/libusb-1.0.so.0.2.0 %{buildroot}%{_libexecdir}/%{name}/
-  ln -sf %{_libexecdir}/%{name}/libusb-1.0.so.0.2.0 %{buildroot}/%{_libexecdir}/%{name}/libusb-1.0.so.0
-  ln -sf %{_libexecdir}/%{name}/libusb-1.0.so.0.2.0 %{buildroot}/%{_libexecdir}/%{name}/libusb-1.0.so
-  %endif
-
-%endif
 
 # Firmwares
 cp -a ella-dock-release.spkg firefly-monitor-release.spkg navarro-dock-release.spkg ridge-dock-release.spkg %{buildroot}%{_libexecdir}/%{name}/
@@ -238,12 +215,6 @@ done
 %{_libexecdir}/%{name}/ridge-dock-release.spkg
 %{_libexecdir}/%{name}/udev.sh
 
-%if 0%{?rhel} && 0%{?rhel} <= 7
-%{_libexecdir}/%{name}/libusb-1.0.so.0.2.0
-%{_libexecdir}/%{name}/libusb-1.0.so.0
-%{_libexecdir}/%{name}/libusb-1.0.so
-%endif
-
 %dir %{_localstatedir}/log/%{name}/
 
 %preun
@@ -254,6 +225,10 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Thu May 16 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.4-2
+- Remove support for CentOS 7 which never really worked and it is EOL at end of June
+- Remove checks for i386 since we are only building x86_64
+
 * Mon May 06 2024 Grzegorz Bialek <gp.bialek@gmail.com> 1.14.4-2
 - Update to new DisplayLink 6.0.0 package
 - Remove unneeded patches for newer kernels

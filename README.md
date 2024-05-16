@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/rawhidebuilds.yml/badge.svg)](https://github.com/displaylink-rpm/displaylink-rpm/actions/workflows/rawhidebuilds.yml)
 
 This is the recipe for building the [DisplayLink driver][displaylink]
-in a RPM package for Fedora, CentOS 7 and Rocky Linux. This driver supports the following
+in a RPM package for Fedora, CentOS Stream, Rocky Linux and AlmaLinux OS. This driver supports the following
 device families:
 
 - DL-7xxx

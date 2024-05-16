@@ -38,7 +38,7 @@
 
 
 <!-- Provide the following information -->
-  * Fedora / CentOS / Rocky Linux
+  * Fedora / CentOS Stream / Rocky Linux / AlmaLinux OS
   * Version
   * Kernel version `(uname -a)`
 
