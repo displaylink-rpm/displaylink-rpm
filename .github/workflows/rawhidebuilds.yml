@@ -1,6 +1,7 @@
 name: Rawhide Build
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '45 5 * * 1'
 
