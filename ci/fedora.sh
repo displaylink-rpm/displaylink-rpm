@@ -10,9 +10,7 @@ if [ "$OSVERSION" = "rawhide" ] || [ "$((OSVERSION+0))" -gt 40 ]; then
     SPECFLAG=""
 fi
 
-$DNFCMD install -y "$DNFCMD-command(builddep)"
-
-$DNFCMD install -y rpm-build make gcc gcc-c++ libdrm-devel systemd-rpm-macros glibc-devel.x86_64 wget git
+$DNFCMD install -y rpm-build make gcc gcc-c++ libdrm-devel systemd-rpm-macros glibc-devel.x86_64 wget git "$DNFCMD-command(builddep)"
 
 $DNFCMD builddep -y $SPECFLAG./displaylink.spec
 

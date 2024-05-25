@@ -23,6 +23,10 @@ jobs:
       - name: Specify Build Target
         run: |
           echo "SPECIFICTARGET=rawhide" >> $GITHUB_ENV
-
+      
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+      
       - name: Run CI
         run: ci/${{ matrix.os }}.sh
