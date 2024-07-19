@@ -52,13 +52,13 @@ Before continue please verify if Secure boot is enabled on your system:
 If the answer is yes, please continue with the below guide, 
 otherwise enrolled of MOK is not required and you can ignore this instruction.
 
-From DKMS version 3.0.4 there is no need to create MOK manually,
+From DKMS version [3.0.4](https://github.com/dell/dkms/releases/tag/v3.0.4) there is no need to create MOK manually,
 DKMS during installation generates its own key that needs to be enrolled only once by the user. 
 
 To enroll the key please follow this instruction:
 
 1. Install mokutil and dkms tool from repository `sudo dnf install mokutil dkms`.
-2. Import the key by executing `mokutil --import /var/lib/dkms/mok.pub` and follow the instruction enrollment instruction available on [DKMS github page](https://github.com/dell/dkms?tab=readme-ov-file#secure-boot)(system reboot will be required).
+2. Import the key by executing `mokutil --import /var/lib/dkms/mok.pub` and follow the instruction enrollment instruction available on [DKMS github page](https://github.com/dell/dkms?tab=readme-ov-file#secure-boot) (system reboot will be required).
 3. After system reboot execute `sudo dkms autoinstall` command in order to build and sign evdi module by MOK.
 4. Now evdi modul should be signed and ready to use (hdmi and/or dvi ports on your docking station should work). You can verify that by executing `sudo dkms status` or `sudo systemctl status displaylink-driver.service`.
 
