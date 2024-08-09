@@ -217,6 +217,8 @@ done
 
 %dir %{_localstatedir}/log/%{name}/
 
+%exclude %{_prefix}/src/evdi-%{version}/tests
+
 %preun
 %systemd_preun displaylink-driver.service
 %{_sbindir}/dkms remove evdi/%{version} --all --rpm_safe_upgrade >> %{logfile}
