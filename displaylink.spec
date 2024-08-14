@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.0.0-24}
-%{!?_version:%global _version 1.14.4}
-%{!?_release:%global _release 2}
+%{!?_version:%global _version 1.14.6}
+%{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -204,6 +204,9 @@ done
 %{_prefix}/src/evdi-%{version}/evdi_platform_drv.h
 %{_prefix}/src/evdi-%{version}/evdi_sysfs.c
 %{_prefix}/src/evdi-%{version}/evdi_sysfs.h
+%{_prefix}/src/evdi-%{version}/tests/.kunitconfig
+%{_prefix}/src/evdi-%{version}/tests/evdi_test.c
+%{_prefix}/src/evdi-%{version}/tests/Makefile
 
 %dir %{_libexecdir}/%{name}
 %{_libexecdir}/%{name}/DisplayLinkManager
@@ -225,6 +228,9 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Wed Aug 14 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.6-1
+- Update to use the latest evdi release which fixes build issues on newer kernels
+
 * Thu May 16 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.4-2
 - Remove support for CentOS 7 which never really worked and it is EOL at end of June
 - Remove checks for i386 since we are only building x86_64
