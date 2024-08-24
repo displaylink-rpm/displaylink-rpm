@@ -11,6 +11,7 @@ RELEASE        := 1
 # Dependencies
 #
 
+ARCH := $(shell uname -m)
 DAEMON_PKG := DisplayLink_USB_Graphics_Software_for_Ubuntu_$(DAEMON_VERSION).zip
 EVDI_PKG   := v$(VERSION).tar.gz
 SPEC_FILE  := displaylink.spec
@@ -29,17 +30,17 @@ BUILD_DEPS_GITHUB_EVDI := $(DAEMON_PKG) $(EVDI_PKG) $(SPEC_FILE)
 # Targets
 #
 
-x86_64_RPM := x86_64/displaylink-$(VERSION)-$(RELEASE).x86_64.rpm
+RPM := $(ARCH)/displaylink-$(VERSION)-$(RELEASE).$(ARCH).rpm
 SRPM       := displaylink-$(VERSION)-$(RELEASE).src.rpm
 
-TARGETS    := $(x86_64_RPM) $(SRPM)
+TARGETS    := $(RPM) $(SRPM)
 
 # Use release found on GitHub instead of what comes in the
 # Displaylink download
-x86_64_RPM_GITHUB_EVDI := x86_64/displaylink-$(VERSION)-$(RELEASE)-github_evdi.x86_64.rpm
+RPM_GITHUB_EVDI := $(ARCH)/displaylink-$(VERSION)-$(RELEASE)-github_evdi.$(ARCH).rpm
 SRPM_GITHUB_EVDI       := displaylink-$(VERSION)-$(RELEASE)-github_evdi.src.rpm
 
-TARGETS_GITHUB_EVDI := $(x86_64_RPM_GITHUB_EVDI) $(SRPM_GITHUB_EVDI)
+TARGETS_GITHUB_EVDI := $(RPM_GITHUB_EVDI) $(SRPM_GITHUB_EVDI)
 
 #
 # Upstream checks
@@ -75,11 +76,11 @@ all: $(TARGETS)
 # Use evdi tagged release on Github instead of using what is bundled in Displaylink download
 github-release: $(TARGETS_GITHUB_EVDI)
 
-rpm: $(x86_64_RPM)
+rpm: $(RPM)
 
-srpm: $(x86_64_RPM)
+srpm: $(RPM)
 
-rpm-github: $(x86_64_RPM_GITHUB_EVDI)
+rpm-github: $(RPM_GITHUB_EVDI)
 
 srpm-github: $(SRPM_GITHUB_EVDI)
 
@@ -104,7 +105,7 @@ clean-mainline:
 clean: clean-mainline clean-rawhide
 
 clean-all:
-	rm -rf x86_64/*.rpm displaylink*.src.rpm $(EVDI_PKG) $(EVDI_MAIN)
+	rm -rf $(ARCH)/*.rpm displaylink*.src.rpm $(EVDI_PKG) $(EVDI_MAIN)
 
 # for testing our version construction
 versions:
@@ -147,14 +148,14 @@ BUILD_DEFINES =                                                     \
 
 BUILD_DEFINES_GITHUB_EVDI = --define "_github 1"
 
-$(x86_64_RPM): $(BUILD_DEPS)
-	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --target=x86_64
+$(RPM): $(BUILD_DEPS)
+	rpmbuild -bb $(BUILD_DEFINES) displaylink.spec --target=$(ARCH)
 
 $(SRPM): $(BUILD_DEPS)
 	rpmbuild -bs $(BUILD_DEFINES) displaylink.spec
 
-$(x86_64_RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
-	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec --target=x86_64
+$(RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
+	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec --target=$(ARCH)
 
 $(SRPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
 	rpmbuild -bs $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec
