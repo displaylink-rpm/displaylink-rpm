@@ -8,8 +8,14 @@
 %global __brp_check_rpaths %{nil}
 
 %global debug_package %{nil}
+
+# asahi-linux is kernel-16k
+%global _kernel_pagesize %(getconf PAGE_SIZE | awk '{print $1/1024}')
+
 %if 0%{?rhel} && 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
+%elif 0%{?_kernel_pagesize} > 4
+%global kernel_pkg_name kernel-%{_kernel_pagesize}k
 %else
 %global kernel_pkg_name kernel
 %endif
@@ -128,7 +134,13 @@ cd displaylink-driver-%{_daemon_version}
 
 cp -a LICENSE ../
 
-cp -a x64-ubuntu-1604/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
+%ifarch aarch64
+%global source_dir aarch64-linux-gnu
+%else
+%global source_dir x64-ubuntu-1604
+%endif
+
+cp -a %{source_dir}/DisplayLinkManager %{buildroot}%{_libexecdir}/%{name}/
 
 # Firmwares
 cp -a ella-dock-release.spkg firefly-monitor-release.spkg navarro-dock-release.spkg ridge-dock-release.spkg %{buildroot}%{_libexecdir}/%{name}/
