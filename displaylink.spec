@@ -217,8 +217,15 @@ done
 %{_prefix}/src/evdi-%{version}/evdi_sysfs.c
 %{_prefix}/src/evdi-%{version}/evdi_sysfs.h
 %{_prefix}/src/evdi-%{version}/tests/.kunitconfig
-%{_prefix}/src/evdi-%{version}/tests/evdi_test.c
 %{_prefix}/src/evdi-%{version}/tests/Makefile
+%{_prefix}/src/evdi-%{version}/tests/evdi_fake_compositor.c
+%{_prefix}/src/evdi-%{version}/tests/evdi_fake_compositor.h
+%{_prefix}/src/evdi-%{version}/tests/evdi_fake_user_client.c
+%{_prefix}/src/evdi-%{version}/tests/evdi_fake_user_client.h
+%{_prefix}/src/evdi-%{version}/tests/evdi_test.c
+%{_prefix}/src/evdi-%{version}/tests/evdi_test.h
+%{_prefix}/src/evdi-%{version}/tests/test_evdi_vt_switch.c
+
 
 %dir %{_libexecdir}/%{name}
 %{_libexecdir}/%{name}/DisplayLinkManager
@@ -240,7 +247,7 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
-* Fri Nov 11 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-1
+* Fri Nov 08 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-1
 - Update to use the latest evdi release from upstream
 
 * Fri Aug 30 2024 Mrinal Dhillon <mrinaldhillon@gmail.com> 1.14.6-2
