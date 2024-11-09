@@ -2,7 +2,7 @@
 
 set -e
 
-dnf install -y rpm-build make gcc glibc-devel.x86_64 wget git 'dnf-command(builddep)'
+dnf install -y rpm-build make gcc glibc-devel wget git 'dnf-command(builddep)'
 
 dnf builddep -y ./displaylink.spec
 

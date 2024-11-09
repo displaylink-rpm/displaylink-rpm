@@ -18,6 +18,9 @@ jobs:
           - os: fedora
             version: 40
             dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 41
+            dockernamespace: quay.io/fedora/fedora
           - os: centos-stream
             version: stream9
             dockernamespace: quay.io/centos/centos

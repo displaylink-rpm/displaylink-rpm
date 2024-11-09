@@ -19,6 +19,9 @@ jobs:
         - os: fedora
           version: 40
           dockernamespace: quay.io/fedora/fedora
+        - os: fedora
+          version: 41
+          dockernamespace: quay.io/fedora/fedora
         - os: centos-stream
           version: stream9
           dockernamespace: quay.io/centos/centos
@@ -62,7 +65,7 @@ jobs:
       - run: chown `id -u`:`id -g` -R .
 
       - name: Upload RPM
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}
           path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
