@@ -46,36 +46,21 @@ make github-release
 To use displaylink-rpm and the evdi kernel module with secure boot enabled on
 Fedora you need to sign the module with an enrolled Machine Owner Key (MOK).
 
-First create a self signed MOK:
+Before continue please verify if Secure boot is enabled on your system:
+`mokutil --sb-state`
 
-``` bash
-openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out \
-MOK.der -nodes -days 36500 -subj "/CN=Displaylink/"
-```
+If the answer is yes, please continue with the below guide, 
+otherwise enrolled of MOK is not required and you can ignore this instruction.
 
-Then register the MOK with secure boot:
+From DKMS version [3.0.4](https://github.com/dell/dkms/releases/tag/v3.0.4) there is no need to create MOK manually,
+DKMS during installation generates its own key that needs to be enrolled only once by the user. 
 
-``` bash
-sudo mokutil --import MOK.der
-```
+To enroll the key please follow this instruction:
 
-Then reboot your Fedora host and follow the instructions to enroll the key.
-
-Now you can sign the evdi module. This must be done for every kernel upgrade:
-
-``` bash
-sudo modinfo -n evdi /lib/modules/5.10.19-200.fc33.x86_64/extra/evdi.ko.xz
-
-sudo unxz $(modinfo -n evdi)
-
-sudo /usr/src/kernels/$(uname -r)/scripts/sign-file sha256 ./MOK.priv \
-  ./MOK.der /lib/modules/$(uname -r)/extra/evdi.ko
-
-sudo xz -f /lib/modules/$(uname -r)/extra/evdi.ko
-```
-
-Now any display, hdmi and/or dvi ports on your docking station should work,
-and the displaylink-driver.service should run.
+1. Install mokutil and dkms tool from repository `sudo dnf install mokutil dkms`.
+2. Import the key by executing `mokutil --import /var/lib/dkms/mok.pub` and follow the instruction enrollment instruction available on [DKMS github page](https://github.com/dell/dkms?tab=readme-ov-file#secure-boot) (system reboot will be required).
+3. After system reboot execute `sudo dkms autoinstall` command in order to build and sign evdi module by MOK.
+4. Now evdi modul should be signed and ready to use (hdmi and/or dvi ports on your docking station should work). You can verify that by executing `sudo dkms status` or `sudo systemctl status displaylink-driver.service`.
 
 ## Hardware-specific behavior
 
