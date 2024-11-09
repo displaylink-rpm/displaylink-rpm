@@ -1,5 +1,5 @@
 %{!?_daemon_version:%global _daemon_version 6.0.0-24}
-%{!?_version:%global _version 1.14.6}
+%{!?_version:%global _version 1.14.7}
 %{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
@@ -240,6 +240,12 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Fri Nov 11 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-1
+- Update to use the latest evdi release from upstream
+
+* Fri Aug 30 2024 Mrinal Dhillon <mrinaldhillon@gmail.com> 1.14.6-2
+- Add aarch64 support
+
 * Wed Aug 14 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.6-1
 - Update to use the latest evdi release which fixes build issues on newer kernels
 
