@@ -32,7 +32,7 @@ jobs:
             dockernamespace: quay.io/almalinux/almalinux
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Specify Build Target
         run: |
