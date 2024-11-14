@@ -71,7 +71,7 @@ jobs:
           path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
 
       - name: Upload Assets To Release
-        uses: xresloader/upload-to-github-release@master
+        uses: xresloader/upload-to-github-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
