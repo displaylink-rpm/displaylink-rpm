@@ -45,6 +45,8 @@ Source9:  evdi.conf
 
 Patch0:   align-with-linux-v6.11-plus.patch
 Patch1:   el9_5-build-fixes-and-el-audit-updates.patch
+Patch100: 0001-Patch-for-kernel-6.12.patch
+Patch101: 0001-Fix-build-for-6.14-rc3.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -91,12 +93,16 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
+%patch -P100 -p1
+%patch -P101 -p1
 %patch -P1 -p1
 
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
 %patch -P0 -p1
+%patch -P100 -p1
+%patch -P101 -p1
 %patch -P1 -p1
 
 %endif

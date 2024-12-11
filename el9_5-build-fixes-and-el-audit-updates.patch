@@ -102,7 +102,7 @@ index b748484..5276d22 100644
  
 +/* Import of DMA_BUF namespace was reverted in EL8 */
  #if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
- MODULE_IMPORT_NS(DMA_BUF);
+ MODULE_IMPORT_NS("DMA_BUF");
  #endif
 @@ -718,7 +719,7 @@ void evdi_painter_dpms_notify(struct evdi_painter *painter, int mode)
  	switch (mode) {
