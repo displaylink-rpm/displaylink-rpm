@@ -12,9 +12,9 @@ ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="usb", \
 ACTION=="remove", RUN+="/usr/libexec/displaylink/udev.sh $root $env{DEVNAME}"
 
 # udev rules configuring DisplayLink usb ethernet device
-ACTION=="add|move|bind", ATTRS(idProduct)=="[3456]*", IMPORT{builtin}="usb_id", ENV{ID_USB_DRIVER}=="cdc_ncm", \
+ACTION=="add|move|bind", ATTRS{idProduct}=="[3456]*", IMPORT{builtin}="usb_id", ENV{ID_USB_DRIVER}=="cdc_ncm", \
    ATTR{cdc_ncm/rx_max}=="?*", ATTR{cdc_ncm/dwNtbInMaxSize}=="?*", ATTR{cdc_ncm/rx_max}="$attr{cdc_ncm/dwNtbInMaxSize}"
-ACTION=="add|move|bind", ATTRS(idProduct)=="[3456]*", IMPORT{builtin}="usb_id", ENV{ID_USB_DRIVER}=="cdc_ncm", \
+ACTION=="add|move|bind", ATTRS{idProduct}=="[3456]*", IMPORT{builtin}="usb_id", ENV{ID_USB_DRIVER}=="cdc_ncm", \
    ATTR{cdc_ncm/tx_max}=="?*", ATTR{cdc_ncm/dwNtbOutMaxSize}=="?*", ATTR{cdc_ncm/tx_max}="$attr{cdc_ncm/dwNtbOutMaxSize}"
 
 LABEL="not_dl"
