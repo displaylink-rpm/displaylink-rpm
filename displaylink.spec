@@ -260,6 +260,9 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Wed Dec 11 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-4
+- Add patches for evdi builds on kernels 6.12 and 6.13-rc4 from upstream
+
 * Thu Nov 28 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-3
 - Add a patch to fix building evdi on EL 9.5 kernels
 
