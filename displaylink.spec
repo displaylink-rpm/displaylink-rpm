@@ -45,6 +45,7 @@ Source9:  evdi.conf
 
 Patch0:   align-with-linux-v6.11-plus.patch
 Patch1:   el9_5-build-fixes-and-el-audit-updates.patch
+Patch2:   kernel-6.13-string-literal-fix.patch
 Patch100: 0001-Patch-for-kernel-6.12.patch
 Patch101: 0001-Fix-build-for-6.14-rc3.patch
 
@@ -96,6 +97,7 @@ gzip -dc evdi.tar.gz | tar -xvvf -
 %patch -P100 -p1
 %patch -P101 -p1
 %patch -P1 -p1
+%patch -P2 -p1
 
 %else
 %setup -q -T -D -a 0
@@ -104,6 +106,7 @@ cd evdi-%{version}
 %patch -P100 -p1
 %patch -P101 -p1
 %patch -P1 -p1
+%patch -P2 -p1
 
 %endif
 
