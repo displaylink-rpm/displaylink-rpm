@@ -3,8 +3,8 @@
 #
 
 DAEMON_VERSION := 6.1.0-17
-VERSION        := 1.14.7
-RELEASE        := 4
+VERSION        := 1.14.8
+RELEASE        := 1
 
 #
 # Dependencies

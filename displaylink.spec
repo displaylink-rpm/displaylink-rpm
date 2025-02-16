@@ -43,12 +43,6 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   align-with-linux-v6.11-plus.patch
-Patch1:   el9_5-build-fixes-and-el-audit-updates.patch
-Patch2:   kernel-6.13-string-literal-fix.patch
-Patch100: 0001-Patch-for-kernel-6.12.patch
-Patch101: 0001-Fix-build-for-6.14-rc3.patch
-
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
 BuildRequires:  make
@@ -94,19 +88,10 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch -P100 -p1
-%patch -P101 -p1
-%patch -P1 -p1
-%patch -P2 -p1
 
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
-%patch -P0 -p1
-%patch -P100 -p1
-%patch -P101 -p1
-%patch -P1 -p1
-%patch -P2 -p1
 
 %endif
 
@@ -206,6 +191,7 @@ done
 %{_prefix}/src/evdi-%{version}/Kconfig
 %{_prefix}/src/evdi-%{version}/LICENSE
 %{_prefix}/src/evdi-%{version}/Makefile
+%{_prefix}/src/evdi-%{version}/README.md
 %{_prefix}/src/evdi-%{version}/dkms.conf
 %{_prefix}/src/evdi-%{version}/dkms_install.sh
 %{_prefix}/src/evdi-%{version}/evdi_connector.c
@@ -263,6 +249,9 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Sun Feb 16 2025 Grzegorz Bialek <gp.bialek@gmail.com> 1.14.8-1
+- Update to use the latest evdi release which fixes build issues on newer kernels
+
 * Wed Dec 11 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-4
 - Add patches for evdi builds on kernels 6.12 and 6.13-rc4 from upstream
 
