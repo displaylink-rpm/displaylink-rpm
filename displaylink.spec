@@ -88,19 +88,10 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch -P100 -p1
-%patch -P101 -p1
-%patch -P1 -p1
-%patch -P2 -p1
 
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
-%patch -P0 -p1
-%patch -P100 -p1
-%patch -P101 -p1
-%patch -P1 -p1
-%patch -P2 -p1
 
 %endif
 
