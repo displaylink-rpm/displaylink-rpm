@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.1.0-17}
-%{!?_version:%global _version 1.14.7}
-%{!?_release:%global _release 4}
+%{!?_version:%global _version 1.14.8}
+%{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -21,6 +21,8 @@
 %endif
 
 %{?_github:%global _github_release .github_evdi}
+
+%define libevdi_abi %(echo %{_version} | cut -d. -f1)
 
 Name:     displaylink
 Version:  %{_version}
@@ -43,11 +45,7 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   align-with-linux-v6.11-plus.patch
-Patch1:   el9_5-build-fixes-and-el-audit-updates.patch
-Patch2:   kernel-6.13-string-literal-fix.patch
-Patch100: 0001-Patch-for-kernel-6.12.patch
-Patch101: 0001-Fix-build-for-6.14-rc3.patch
+Patch0:   evdi-update-to-1-14-8.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -70,6 +68,7 @@ Requires:   libusbx
 Requires:   xorg-x11-server-Xorg >= 1.16
 Conflicts:  mutter < 3.32
 Conflicts:  xorg-x11-server-Xorg = 1.20.1
+Conflicts:  libevdi%{libevdi_abi}
 
 Provides:   bundled(libevdi) = %{version}
 
@@ -94,20 +93,10 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch -P100 -p1
-%patch -P101 -p1
-%patch -P1 -p1
-%patch -P2 -p1
-
+%patch -P0 -p1
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
-%patch -P0 -p1
-%patch -P100 -p1
-%patch -P101 -p1
-%patch -P1 -p1
-%patch -P2 -p1
-
 %endif
 
 sed -i 's/\r//' README.md
@@ -190,6 +179,13 @@ chmod +x %{buildroot}%{_libexecdir}/%{name}/udev.sh
   %{_bindir}/udevadm trigger --action=add "$(dirname "$device")"
 done
 
+# Gnome/Mutter - wait for primary GPU
+drm_deps=$(sed -n '/^drm_[[:alpha:]]*_helper/p' /proc/modules | awk '{print $4}' | tr ',' '\n' | sort -u | tr '\n' ' ')
+drm_deps=${drm_deps/evdi/}
+if [[ -n $drm_deps ]]; then
+  echo -e "\nsoftdep evdi pre: $drm_deps" >> %{_sysconfdir}/modprobe.d/evdi.conf
+fi
+
 %{_bindir}/systemctl start displaylink-driver.service
 
 %files
@@ -206,6 +202,7 @@ done
 %{_prefix}/src/evdi-%{version}/Kconfig
 %{_prefix}/src/evdi-%{version}/LICENSE
 %{_prefix}/src/evdi-%{version}/Makefile
+%{_prefix}/src/evdi-%{version}/README.md
 %{_prefix}/src/evdi-%{version}/dkms.conf
 %{_prefix}/src/evdi-%{version}/dkms_install.sh
 %{_prefix}/src/evdi-%{version}/evdi_connector.c
@@ -263,6 +260,12 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Wed Feb 26 2025 Michael L. young <elgueromexicano@gmail.com> 1.14.8-1
+- Update to the latest evdi release v1.14.8
+- Add a conflicts for older libevdi installs
+- Add workaround for Gnome/Mutter in postinstall
+- Update patch for evdi tarball included in Displaylink driver download
+
 * Wed Dec 11 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-4
 - Add patches for evdi builds on kernels 6.12 and 6.13-rc4 from upstream
 
