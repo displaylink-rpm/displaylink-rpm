@@ -9,13 +9,8 @@
 
 %global debug_package %{nil}
 
-# asahi-linux is kernel-16k
-%global _kernel_pagesize %(getconf PAGE_SIZE | awk '{print $1/1024}')
-
 %if 0%{?rhel} && 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
-%elif 0%{?_kernel_pagesize} > 4
-%global kernel_pkg_name kernel-%{_kernel_pagesize}k
 %else
 %global kernel_pkg_name kernel
 %endif
