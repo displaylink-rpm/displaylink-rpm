@@ -57,7 +57,8 @@ Requires: epel-release
 %endif
 
 Requires:   dkms
-Requires:   %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
+# Asahi Fedora requires kernel-16k, kernel-16k-devel.
+Requires:   ((%{kernel_pkg_name} >= 4.15 and %{kernel_pkg_name}-devel >= 4.15) or (kernel-16k >= 6.4 and kernel-16k-devel >= 6.4))
 Requires:   make
 Requires:   libusbx
 Requires:   xorg-x11-server-Xorg >= 1.16
