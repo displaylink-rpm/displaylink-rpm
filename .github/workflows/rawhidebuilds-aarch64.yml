@@ -1,4 +1,4 @@
-name: Rawhide Build
+name: Rawhide Build - aarch64
 
 on:
   workflow_dispatch:
