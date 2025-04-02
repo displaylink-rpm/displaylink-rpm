@@ -7,15 +7,16 @@ on:
 
 jobs:
   rawhideBuilds:
-    runs-on: ubuntu-latest
-    container: 
-      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     strategy:
       matrix:
-        include:
-          - os: fedora
-            version: rawhide
-            dockernamespace: quay.io/fedora/fedora
+        runs-on-arch: [ubuntu-latest, ubuntu-24.04-arm]
+        arch: [x86_64, aarch64]
+        os: [fedora]
+        version: [rawhide]
+        dockernamespace: [quay.io/fedora/fedora]
+    runs-on: ${{ matrix.runs-on-arch }}
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
 
     steps:
       - uses: actions/checkout@v4
