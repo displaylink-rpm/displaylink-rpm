@@ -1,4 +1,4 @@
-name: Create arch64 Release Assets
+name: Create Release Assets - aarch64
 
 on:
   release:
