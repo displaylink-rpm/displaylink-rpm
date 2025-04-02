@@ -9,13 +9,8 @@
 
 %global debug_package %{nil}
 
-# asahi-linux is kernel-16k
-%global _kernel_pagesize %(getconf PAGE_SIZE | awk '{print $1/1024}')
-
 %if 0%{?rhel} && 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
-%elif 0%{?_kernel_pagesize} > 4
-%global kernel_pkg_name kernel-%{_kernel_pagesize}k
 %else
 %global kernel_pkg_name kernel
 %endif
@@ -62,7 +57,8 @@ Requires: epel-release
 %endif
 
 Requires:   dkms
-Requires:   %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
+# Asahi Fedora requires kernel-16k, kernel-16k-devel.
+Requires:   ((%{kernel_pkg_name} >= 4.15 and %{kernel_pkg_name}-devel >= 4.15) or (kernel-16k >= 6.4 and kernel-16k-devel >= 6.4))
 Requires:   make
 Requires:   libusbx
 Requires:   xorg-x11-server-Xorg >= 1.16
