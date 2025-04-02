@@ -10,7 +10,6 @@ jobs:
     strategy:
       matrix:
         runs-on-arch: [ubuntu-latest, ubuntu-24.04-arm]
-        arch: [x86_64, aarch64]
         os: [fedora]
         version: [rawhide]
         dockernamespace: [quay.io/fedora/fedora]

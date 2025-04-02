@@ -9,8 +9,8 @@ jobs:
   makeTest:
     strategy:
       matrix:
-        runs-on-arch: [ubuntu-latest, ubuntu-24.04-arm]
-    runs-on: ${{ matrix.runs-on-arch }}
+        runs-on-os: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runs-on-os }}
     container: 
       image: quay.io/rockylinux/rockylinux:9
     steps:
@@ -25,7 +25,7 @@ jobs:
     needs: makeTest
     strategy:
       matrix:
-        runs-on-arch: [ubuntu-latest, ubuntu-24.04-arm]
+        runs-on-os: [ubuntu-latest, ubuntu-24.04-arm]
         os: [fedora]
         version: [39, 40, 41]
         dockernamespace: [quay.io/fedora/fedora]
@@ -39,7 +39,7 @@ jobs:
           - os: almalinux
             version: 9
             dockernamespace: quay.io/almalinux/almalinux
-    runs-on: ${{ matrix.runs-on-arch }}
+    runs-on: ${{ matrix.runs-on-os }}
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
 
@@ -61,8 +61,12 @@ jobs:
     needs: makeTest
     strategy:
       matrix:
-        runs-on-arch: [ubuntu-latest, ubuntu-24.04-arm]
-    runs-on: ${{ matrix.runs-on-arch }}
+        runs-on-os:
+          - runner: ubuntu-latest
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.runs-on-os.runner }}
     container: 
       image: quay.io/rockylinux/rockylinux:9
       options: --privileged
@@ -72,8 +76,8 @@ jobs:
         run: |
           echo "Install Mock"
           dnf -y install epel-release
-          dnf -y install mock gcc gcc-c++ glibc-devel.x86_64 libdrm-devel rpm-build make wget
+          dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
           echo "Get source files"
           make srpm-github
           echo "Run mock build"
-          mock -r rocky+epel-9-x86_64 --define="_github 1" --spec="displaylink.spec" --sources="."
+          mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."

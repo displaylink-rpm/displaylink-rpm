@@ -9,8 +9,11 @@ jobs:
   buildrpms:
     strategy:
       matrix:
-        runs-on-arch: [ubuntu-latest, ubuntu-24.04-arm]
-        arch: [x86_64, aarch64]
+        runs-on-os:
+          - runner: ubuntu-latest
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
         os: [fedora]
         version: [39, 40, 41]
         dockernamespace: [quay.io/fedora/fedora]
@@ -24,7 +27,7 @@ jobs:
         - os: almalinux
           version: 9
           dockernamespace: quay.io/almalinux/almalinux
-    runs-on: ${{ matrix.runs-on-arch }}
+    runs-on: ${{ matrix.runs-on-os.runner }}
     container: 
         image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     steps:
@@ -56,7 +59,7 @@ jobs:
       - name: Rename files
         run : ls -la
       - run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
-      - run: mv ${{ matrix.arch }}/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.${{ matrix.arch }}.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.${{ matrix.arch }}.rpm
+      - run: mv ${{ matrix.runs-on-os.arch }}/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.${{ matrix.runs-on-os.arch }}.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.${{ matrix.runs-on-os.arch }}.rpm
       - run: chown `id -u`:`id -g` -R .
 
       - name: Upload RPM

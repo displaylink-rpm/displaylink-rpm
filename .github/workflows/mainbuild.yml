@@ -8,8 +8,7 @@ jobs:
   mainBuild:
     strategy:
       matrix:
-        runs-on-arch: [ubuntu-latest, ubuntu-24.04-arm]
-        arch: [x86_64, aarch64]
+        runs-on-os: [ubuntu-latest, ubuntu-24.04-arm]
         os: [fedora]
         version: [39, 40, 41]
         dockernamespace: [quay.io/fedora/fedora]
@@ -23,7 +22,7 @@ jobs:
           - os: almalinux
             version: 9
             dockernamespace: quay.io/almalinux/almalinux
-    runs-on: ${{ matrix.runs-on-arch }}
+    runs-on: ${{ matrix.runs-on-os }}
     container: 
         image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
 
