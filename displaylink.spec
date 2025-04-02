@@ -1,5 +1,5 @@
 %{!?_daemon_version:%global _daemon_version 6.1.0-17}
-%{!?_version:%global _version 1.14.8}
+%{!?_version:%global _version 1.14.9}
 %{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
@@ -40,7 +40,7 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   evdi-update-to-1-14-8.patch
+Patch0:   evdi-update-to-1-14-9.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -256,7 +256,14 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
-* Wed Feb 26 2025 Michael L. young <elgueromexicano@gmail.com> 1.14.8-1
+* Tue Apr 01 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.9-1
+- Update to the latest evdi release v1.14.9
+
+* Tue Mar 11 2025 Mrinal Dhillon <mrinaldhillon@gmail.com> 1.14.9-1
+- Remove using pagesize to determine kernel package name
+- Add support to use Asahi kernel packages
+
+* Wed Feb 26 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.8-1
 - Update to the latest evdi release v1.14.8
 - Add a conflicts for older libevdi installs
 - Add workaround for Gnome/Mutter in postinstall
