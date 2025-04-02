@@ -25,7 +25,9 @@ jobs:
     needs: makeTest
     strategy:
       matrix:
-        runs-on-os: [ubuntu-latest, ubuntu-24.04-arm]
+        runs-on-os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
         os: [fedora]
         version: [39, 40, 41]
         dockernamespace: [quay.io/fedora/fedora]
