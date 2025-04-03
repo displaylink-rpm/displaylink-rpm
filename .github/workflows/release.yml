@@ -81,6 +81,7 @@ jobs:
           overwrite: true
 
   buildrpms-arm:
+    needs: buildrpms-x86-64
     strategy:
       matrix:
         include:
@@ -133,7 +134,6 @@ jobs:
 
       - name: Rename files
         run : ls -la
-      - run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
       - run: mv aarch64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.aarch64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.aarch64.rpm
       - run: chown `id -u`:`id -g` -R .
 
