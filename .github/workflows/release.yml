@@ -6,14 +6,9 @@ on:
       - published
 
 jobs:  
-  buildrpms:
+  buildrpms-x86-64:
     strategy:
       matrix:
-        runs-on-os:
-          - runner: ubuntu-latest
-            arch: x86_64
-          - runner: ubuntu-24.04-arm
-            arch: aarch64
         include:
           - os: fedora
             version: 39
@@ -33,7 +28,7 @@ jobs:
           - os: almalinux
             version: 9
             dockernamespace: quay.io/almalinux/almalinux
-    runs-on: ${{ matrix.runs-on-os.runner }}
+    runs-on: ubuntu-latest
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     steps:
@@ -65,7 +60,81 @@ jobs:
       - name: Rename files
         run : ls -la
       - run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
-      - run: mv ${{ matrix.runs-on-os.arch }}/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.${{ matrix.runs-on-os.arch }}.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.${{ matrix.runs-on-os.arch }}.rpm
+      - run: mv x86_64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.x86_64.rpm
+      - run: chown `id -u`:`id -g` -R .
+
+      - name: Upload RPM
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}
+          path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
+
+      - name: Upload Assets To Release
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: '${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm'
+          draft: false
+          update_latest_release: true
+          tags: true
+          overwrite: true
+
+  buildrpms-arm:
+    strategy:
+      matrix:
+        include:
+          - os: fedora
+            version: 39
+            dockernamespace: [quay.io/fedora/fedora]
+          - os: fedora
+            version: 40
+            dockernamespace: [quay.io/fedora/fedora]
+          - os: fedora
+            version: 41
+            dockernamespace: [quay.io/fedora/fedora]
+          - os: centos-stream
+            version: stream9
+            dockernamespace: quay.io/centos/centos
+          - os: rocky
+            version: 9
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: almalinux
+            version: 9
+            dockernamespace: quay.io/almalinux/almalinux
+    runs-on: ubuntu-24.04-arm
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        run: |
+          echo "VERSION=$(grep ^VERSION Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+      
+      - name: Get release
+        run: |
+          echo "RELEASE=$(grep ^RELEASE Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+
+      - name: Specify A Target For make
+        run: |
+          echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
+
+      - name: Environment variable for setting name of RPM when using EVDI from Github
+        run: |
+          echo "EVDISOURCE=.github_evdi" >> $GITHUB_ENV
+
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+      
+      - name: Run CI
+        run: ci/${{ matrix.os }}.sh
+
+      - name: Rename files
+        run : ls -la
+      - run: mv displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.src.rpm
+      - run: mv aarch64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.aarch64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.aarch64.rpm
       - run: chown `id -u`:`id -g` -R .
 
       - name: Upload RPM
