@@ -26,16 +26,10 @@ jobs:
     strategy:
       matrix:
         os: [fedora, centos-stream, rocky, almalinux]
+        version: [39, 40, 41]
         runs-on-os: [ubuntu-latest, ubuntu-24.04-arm]
         include:
           - os: fedora
-            version: 39
-            dockernamespace: quay.io/fedora/fedora
-          - os: fedora
-            version: 40
-            dockernamespace: quay.io/fedora/fedora
-          - os: fedora
-            version: 41
             dockernamespace: quay.io/fedora/fedora
           - os: centos-stream
             version: stream9
