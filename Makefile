@@ -2,9 +2,9 @@
 # Versions
 #
 
-DAEMON_VERSION := 6.1.0-17
+DAEMON_VERSION := 6.1.1-17
 VERSION        := 1.14.9
-RELEASE        := 1
+RELEASE        := 2
 
 #
 # Dependencies
@@ -126,8 +126,7 @@ $(EVDI_MAIN):
 
 $(DAEMON_PKG):
 	wget --no-verbose -O $(DAEMON_PKG) \
-		"https://www.synaptics.com/sites/default/files/exe_files/2024-10/DisplayLink USB Graphics Software for Ubuntu6.1-EXE.zip"
-
+		"https://www.synaptics.com/sites/default/files/exe_files/2025-04/DisplayLink USB Graphics Software for Ubuntu6.1.1-EXE.zip"
 $(EVDI_PKG):
 	wget --no-verbose -O v$(VERSION).tar.gz \
 		https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz

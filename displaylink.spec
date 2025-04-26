@@ -1,6 +1,6 @@
-%{!?_daemon_version:%global _daemon_version 6.1.0-17}
+%{!?_daemon_version:%global _daemon_version 6.1.1-17}
 %{!?_version:%global _version 1.14.9}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -40,7 +40,7 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   evdi-update-to-1-14-9.patch
+Patch0:   update-to-evdi-1.14.9-2.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -89,10 +89,10 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch -P0 -p1
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
+%patch -P0 -p1
 %endif
 
 sed -i 's/\r//' README.md
@@ -256,6 +256,14 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Sat Apr 26 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.9-2
+- Update to new DisplayLink 6.1.1 package
+- Remove old patch since DisplayLink package includes the latest
+  evdi 1.14.9 package
+- Add patch when using the release on Github. Official release has
+  newer updates to evdi which adds support for kernel 6.15. These updates
+  have not made their way back into the repo as of this release.
+
 * Tue Apr 01 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.9-1
 - Update to the latest evdi release v1.14.9
 
