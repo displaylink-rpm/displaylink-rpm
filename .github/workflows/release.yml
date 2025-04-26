@@ -36,7 +36,7 @@ jobs:
 
       - name: Make sure awk is present
         run: |
-          if [ ${{ matrix.version }} -eq 42 ]; then dnf5 install awk -y; else dnf install awk -y; fi
+          if [ ${{ matrix.version }} -gt 40 ]; then dnf5 install gawk -y; else dnf install gawk -y; fi
 
       - name: Get version
         run: |
