@@ -1,0 +1,133 @@
+name: Bug Report
+description: File a bug report.
+title: "[Bug]: "
+labels: ["Bug"]
+assignees:
+  - elguero
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: dropdown
+    attributes:
+      label: Are you using the latest DisplayLink driver from Synaptics?
+      description: "https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu"
+      options:
+        - No
+        - Yes
+      validations:
+        required: true
+  - type: dropdown
+    attributes:
+      label: Are you using the latest EVDI module?
+      description: "https://github.com/DisplayLink/evdi/releases"
+      options:
+        - No
+        - Yes
+      validations:
+        required: true
+  - type: dropdown
+    attributes:
+      label: If you are using a DisplayLink device, have you checked 'troubleshooting' on Synaptics website?
+      description: "https://support.displaylink.com/knowledgebase/topics/103927-troubleshooting-ubuntu"
+      options:
+        - No
+        - Yes
+      validations:
+        required: true
+  - type: dropdown
+    attributes:
+      label: Is this a kernel space issue? Which kernel space issue?
+      description: "Please go to the EVDI repository for support: https://github.com/DisplayLink/evdi"
+      options:
+        - No
+        - Yes
+      validations:
+        required: true
+  - type: dropdown
+    attributes:
+      label: Is this a user space issue? DisplayLink Manager
+      description: "If so, please take a look at DisplayLink's support forum https://support.displaylink.com or forum https://www.displaylink.org/forum/"
+      options:
+        - No
+        - Yes
+      validations:
+        required: true
+  - type: dropdown
+    attributes:
+      label: If you are having an issue upgrading, have you tried to do a clean install of the driver?
+      description: "See outline below of a clean install"
+      options:
+        - Yes
+        - No
+      validations:
+        required: true
+   - type: markdown
+     attributes:
+       value: |
+         "Do the following for a clean driver install:
+           Find the current package installed - `sudo rpm -qa | grep displaylink`
+           Remove what is returned: `sudo rpm -evh [package]`
+
+           Clear out anything left over:
+            /var/lib/dkms/evdi
+            /usr/libexec/displaylink
+            /usr/src/evdi-*
+
+            /etc/X11/xorg.conf.d/20-displaylink.conf
+            /etc/logrotate.d/displaylink
+            /usr/lib/systemd/system/displaylink-driver.service
+            /usr/lib/systemd/system-preset/95-displaylink.preset
+            /usr/lib/systemd/system-sleep/displaylink.sh
+            /etc/udev/rules.d/99-displaylink.rules
+            /usr/share/doc/displaylink
+            /usr/share/doc/displaylink/LICENSE
+
+            /usr/lib/modules/`uname -r`/weak-updates/evdi.ko.xz
+            /usr/lib/modules/`uname -r`/extra/evdi.ko.xz
+
+          Reboot
+          Reinstall the RPM package"
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        **OS**: Fedora
+        **Version**: 42
+        **Kernel**: uname -a
+      values: | 
+        - OS:
+        - Version:
+        - Kernel:
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: DisplayLink Log
+      description: |
+        Found at /var/log/displaylink/displaylink.log
+
+        Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: DKMS Build Log
+      description: |
+        Found at /var/lib/dkms/evdi/kernel-[version]/log/make.log
+
+        Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps To Reproduce
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Detailed Description
+    validations:
+      required: true
