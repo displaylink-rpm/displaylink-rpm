@@ -16,18 +16,18 @@ body:
       description: |
         https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu
       options:
-        - No
-        - Yes
-      validations:
-        required: true
+        - "No"
+        - "Yes"
+    validations:
+      required: true
   - type: dropdown
     attributes:
       label: Are you using the latest EVDI module?
       description: |
         https://github.com/DisplayLink/evdi/releases
       options:
-        - No
-        - Yes
+        - "No"
+        - "Yes"
     validations:
       required: true
   - type: dropdown
@@ -38,8 +38,8 @@ body:
       description: |
         https://support.displaylink.com/knowledgebase/topics/103927-troubleshooting-ubuntu
       options:
-        - No
-        - Yes
+        - "No"
+        - "Yes"
     validations:
       required: true
   - type: dropdown
@@ -49,8 +49,8 @@ body:
         Please go to the EVDI repository for support:
           https://github.com/DisplayLink/evdi
       options:
-        - No
-        - Yes
+        - "No"
+        - "Yes"
     validations:
       required: true
   - type: dropdown
@@ -65,8 +65,8 @@ body:
 
         https://www.displaylink.org/forum/
       options:
-        - No
-        - Yes
+        - "No"
+        - "Yes"
     validations:
       required: true
   - type: dropdown
@@ -76,36 +76,36 @@ body:
         do a clean install of the driver?
       description: See outline below of a clean install
       options:
-        - Yes
-        - No
+        - "Yes"
+        - "No"
     validations:
       required: true
   - type: markdown
     attributes:
-    value: |
-      Do the following for a clean driver install:
-       Find the current package installed - `sudo rpm -qa | grep displaylink`
-       Remove what is returned: `sudo rpm -evh [package]`
+      value: |
+        Do the following for a clean driver install:
+         Find the current package installed - `sudo rpm -qa | grep displaylink`
+         Remove what is returned: `sudo rpm -evh [package]`
 
-       Clear out anything left over:
-        /var/lib/dkms/evdi
-        /usr/libexec/displaylink
-        /usr/src/evdi-*
+         Clear out anything left over:
+          /var/lib/dkms/evdi
+          /usr/libexec/displaylink
+          /usr/src/evdi-*
 
-        /etc/X11/xorg.conf.d/20-displaylink.conf
-        /etc/logrotate.d/displaylink
-        /usr/lib/systemd/system/displaylink-driver.service
-        /usr/lib/systemd/system-preset/95-displaylink.preset
-        /usr/lib/systemd/system-sleep/displaylink.sh
-        /etc/udev/rules.d/99-displaylink.rules
-        /usr/share/doc/displaylink
-        /usr/share/doc/displaylink/LICENSE
+          /etc/X11/xorg.conf.d/20-displaylink.conf
+          /etc/logrotate.d/displaylink
+          /usr/lib/systemd/system/displaylink-driver.service
+          /usr/lib/systemd/system-preset/95-displaylink.preset
+          /usr/lib/systemd/system-sleep/displaylink.sh
+          /etc/udev/rules.d/99-displaylink.rules
+          /usr/share/doc/displaylink
+          /usr/share/doc/displaylink/LICENSE
 
-        /usr/lib/modules/`uname -r`/weak-updates/evdi.ko.xz
-        /usr/lib/modules/`uname -r`/extra/evdi.ko.xz
+          /usr/lib/modules/`uname -r`/weak-updates/evdi.ko.xz
+          /usr/lib/modules/`uname -r`/extra/evdi.ko.xz
 
-      Reboot
-      Reinstall the RPM package
+        Reboot
+        Reinstall the RPM package
   - type: textarea
     attributes:
       label: Environment
@@ -139,7 +139,7 @@ body:
         Tip: You can attach images or log files by clicking this area
         to highlight it and then dragging files in.
     validations:
-    required: true
+      required: true
   - type: textarea
     attributes:
       label: Steps To Reproduce
