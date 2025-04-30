@@ -113,7 +113,7 @@ body:
         **OS**: Fedora
         **Version**: 42
         **Kernel**: uname -a
-      values: |
+      value: |
         - OS:
         - Version:
         - Kernel:
