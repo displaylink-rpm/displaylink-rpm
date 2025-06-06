@@ -61,7 +61,10 @@ Requires:   dkms
 Requires:   ((%{kernel_pkg_name} >= 4.15 and %{kernel_pkg_name}-devel >= 4.15) or (kernel-16k >= 6.4 and kernel-16k-devel >= 6.4))
 Requires:   make
 Requires:   libusbx
-Requires:   xorg-x11-server-Xorg >= 1.16
+Requires:   xorg-x11-server-Xwayland >= 23
+# Xorg is removed in CentOS Stream 10 and Fedora 43+.
+# Recommend xorg-x11-server-Xorg but do not require it to avoid install failures on Wayland-only systems.
+Recommends:   xorg-x11-server-Xorg >= 1.16
 Conflicts:  mutter < 3.32
 Conflicts:  xorg-x11-server-Xorg = 1.20.1
 Conflicts:  libevdi%{libevdi_abi}
