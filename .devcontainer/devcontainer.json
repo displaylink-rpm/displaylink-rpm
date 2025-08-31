@@ -1,0 +1,23 @@
+{
+  "name": "DisplayLink RPM Builder",
+  "image": "fedora:42",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.makefile-tools"
+      ]
+    }
+  },
+
+  "postCreateCommand": ".devcontainer/setup-complete.sh",
+  "remoteUser": "vscode",
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils": {
+      "username": "vscode",
+      "userUid": "1000",
+      "userGid": "1000"
+    }
+  }
+}
