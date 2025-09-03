@@ -255,6 +255,16 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Wed Sep 03 2025 cmprinho <cmprinho@icloud.com> - 1.14.11-1
+- Update to evdi 1.14.11 that was released on Github
+- Fix for black screens on Intel Xe graphics
+- Fix for corruptions on Intel Xe graphics  
+- Preliminary support for linux kernel 6.17
+- EL10 support
+- Evdi debian package is now interchangeable with community packages
+
+- Added support for devcontainers to run on any platform. 
+
 * Wed May 14 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.10-1
 - Update to evdi 1.14.10 that was released on Github
 
