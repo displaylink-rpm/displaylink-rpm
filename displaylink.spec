@@ -255,6 +255,9 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Sun Sep 7 2025 cmprinho <cmprinho@icloud.com> 1.14.11
+- Update to evdi 1.14.11 that was released on Github
+
 * Wed May 14 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.10-1
 - Update to evdi 1.14.10 that was released on Github
 
