@@ -118,17 +118,15 @@ jobs:
     strategy:
       matrix:
         runs-on-os:
-          - runner: ubuntu-latest
+          - runner: ubuntu-22.04
             arch: x86_64
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-22.04-arm
             arch: aarch64
     runs-on: ${{ matrix.runs-on-os.runner }}
     container: 
-      image: quay.io/rockylinux/rockylinux:9
+      image: quay.io/rockylinux/rockylinux:9.5
       options: --privileged
     steps:
-      - name: Disable AppArmor on the GitHub runner
-        uses: cisagov/action-disable-apparmor@437d94f26a2e4bf8c03acfb500a6afc688b497db # v1.0.0
       - uses: actions/checkout@v4
       - name: Test Mock Build From Spec
         run: |
