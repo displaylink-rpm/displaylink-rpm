@@ -25,8 +25,14 @@ jobs:
           - os: rocky
             version: 9
             dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
           - os: almalinux
             version: 9
+            dockernamespace: quay.io/almalinux/almalinux
+          - os: almalinux
+            version: 10
             dockernamespace: quay.io/almalinux/almalinux
     runs-on: ubuntu-latest
     container: 
@@ -104,8 +110,14 @@ jobs:
           - os: rocky
             version: 9
             dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
           - os: almalinux
             version: 9
+            dockernamespace: quay.io/almalinux/almalinux
+          - os: almalinux
+            version: 10
             dockernamespace: quay.io/almalinux/almalinux
     runs-on: ubuntu-24.04-arm
     container: 

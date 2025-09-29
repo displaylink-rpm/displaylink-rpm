@@ -1,5 +1,5 @@
-%{!?_daemon_version:%global _daemon_version 6.1.1-17}
-%{!?_version:%global _version 1.14.10}
+%{!?_daemon_version:%global _daemon_version 6.2.0-30}
+%{!?_version:%global _version 1.14.11}
 %{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
@@ -40,7 +40,7 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   update-to-evdi-1.14.9-2.patch
+Patch0:   revert_el10_dma_import_change.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -69,7 +69,8 @@ Conflicts:  mutter < 3.32
 Conflicts:  xorg-x11-server-Xorg = 1.20.1
 Conflicts:  libevdi%{libevdi_abi}
 
-Provides:   bundled(libevdi) = %{version}
+Provides:   bundled(libevdi1) = %{version}
+Provides:   bundled(dkms-evdi) = %{version}
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-7xxx,
@@ -96,6 +97,8 @@ gzip -dc evdi.tar.gz | tar -xvvf -
 %setup -q -T -D -a 0
 cd evdi-%{version}
 %endif
+
+%patch 0 -p1
 
 sed -i 's/\r//' README.md
 
@@ -258,6 +261,18 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Mon Sep 29 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-1
+- Add patch reverting change in evdi that breaks EL10 builds. String literals
+  were added in kernel 6.13. EL10 kernels are 6.12.
+
+* Sun Sep 28 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-1
+- Update to evdi 1.14.11
+- Update to latest DisplayLink package 6.2.0
+
+* Fri Jun 6 2025 Mrinal Dhillon <mrinaldhillon@gmail.com>     1.14.11-1
+- Change requires for xorg-x11-server-Xorg to recommends
+- Start requiring xorg-x11-server-XWayland
+
 * Wed May 14 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.10-1
 - Update to evdi 1.14.10 that was released on Github
 
