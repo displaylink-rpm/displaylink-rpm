@@ -136,4 +136,4 @@ jobs:
           echo "Get source files"
           make srpm-github
           echo "Run mock build"
-          sudo mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."
+          mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --isolation=simple --define="_github 1" --spec="displaylink.spec" --sources="."
