@@ -124,7 +124,7 @@ jobs:
             arch: aarch64
     runs-on: ${{ matrix.runs-on-os.runner }}
     container: 
-      image: quay.io/rockylinux/rockylinux
+      image: quay.io/rockylinux/rockylinux:9
       options: --privileged
     steps:
       - uses: actions/checkout@v4
