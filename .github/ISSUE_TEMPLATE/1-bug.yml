@@ -2,7 +2,8 @@
 name: Bug Report
 description: File a bug report.
 title: "[Bug]: "
-labels: ["Bug"]
+labels: ["Triage"]
+type: ["Bug"]
 assignees:
   - elguero
 body:
