@@ -1,0 +1,664 @@
+diff -ur evdi-1.14.9/ci/deb_config evdi-1.14.11-a/ci/deb_config
+--- evdi-1.14.9/ci/deb_config	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/ci/deb_config	2025-08-26 04:31:36.000000000 -0400
+@@ -8,7 +8,7 @@
+ evdi_maintainer='Synaptics Technical Support <technical-enquiries@synaptics.com>'
+ 
+ # shellcheck disable=SC2034
+-evdi_version='1.14.9'
++evdi_version='1.14.11'
+ 
+ # shellcheck disable=SC2034
+ evdi_description="Extensible Virtual Display Interface (EVDI) is a Linux® kernel module that enables management of multiple screens.
+diff -ur evdi-1.14.9/ci/prepare_deb_package evdi-1.14.11-a/ci/prepare_deb_package
+--- evdi-1.14.9/ci/prepare_deb_package	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/ci/prepare_deb_package	2025-08-26 04:31:36.000000000 -0400
+@@ -95,6 +95,7 @@
+ 
+   cat > "$control_dir/control" << EOF
+ Package: evdi
++Provides: evdi-dkms (=$evdi_version), libevdi1 (=$evdi_version)
+ Version: $evdi_version-$debian_revision
+ Maintainer: $evdi_maintainer
+ Source: evdi
+Only in evdi-1.14.11-a: .clang-format
+Only in evdi-1.14.11-a: .github
+Only in evdi-1.14.11-a: .gitignore
+Only in evdi-1.14.11-a: .gitlab
+diff -ur evdi-1.14.9/Jenkinsfile evdi-1.14.11-a/Jenkinsfile
+--- evdi-1.14.9/Jenkinsfile	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/Jenkinsfile	2025-08-26 04:31:36.000000000 -0400
+@@ -83,7 +83,8 @@
+                     sh '''
+                         sonar-scanner \
+                           -D sonar.cfamily.compile-commands=compile_commands.json \
+-                          -D sonar.projectVersion="${BUILD_NUMBER}"
++                          -D sonar.projectVersion="${BUILD_NUMBER}" \
++                          -D sonar.exclusions=bd_evdi/**
+                     '''
+                 }
+             }
+diff -ur evdi-1.14.9/library/evdi_lib.c evdi-1.14.11-a/library/evdi_lib.c
+--- evdi-1.14.9/library/evdi_lib.c	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/library/evdi_lib.c	2025-08-26 04:31:36.000000000 -0400
+@@ -243,6 +243,7 @@
+ 	r = readlink(link, real_path, sizeof(real_path));
+ 	if (r < 0)
+ 		return 0;
++	r = MIN(r, PATH_MAX-1);
+ 	real_path[r] = '\0';
+ 
+ 	return (strstr(real_path, substr) != NULL);
+@@ -474,7 +475,7 @@
+ 	char link_resolution[PATH_MAX];
+ 	const ssize_t link_resolution_len = readlink(link_path, link_resolution, PATH_MAX);
+ 
+-	if (link_resolution_len == -1 || link_resolution_len == PATH_MAX)
++	if (link_resolution_len < 0 || link_resolution_len >= PATH_MAX)
+ 		return false;
+ 
+ 	link_resolution[link_resolution_len] = '\0';
+diff -ur evdi-1.14.9/library/evdi_lib.h evdi-1.14.11-a/library/evdi_lib.h
+--- evdi-1.14.9/library/evdi_lib.h	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/library/evdi_lib.h	2025-08-26 04:31:36.000000000 -0400
+@@ -15,7 +15,7 @@
+ 
+ #define LIBEVDI_VERSION_MAJOR 1
+ #define LIBEVDI_VERSION_MINOR 14
+-#define LIBEVDI_VERSION_PATCH 9
++#define LIBEVDI_VERSION_PATCH 11
+ 
+ struct evdi_lib_version {
+ 	int version_major;
+diff -ur evdi-1.14.9/library/evdi_procfs.c evdi-1.14.11-a/library/evdi_procfs.c
+--- evdi-1.14.9/library/evdi_procfs.c	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/library/evdi_procfs.c	2025-08-26 04:31:36.000000000 -0400
+@@ -38,7 +38,7 @@
+ 
+ static char *process_name(FILE *pf)
+ {
+-	int Xorg_name_len = 6;
++	int Xorg_name_len = 7;	// 6 + 1 for null terminator
+ 	char *name = (char *)malloc(Xorg_name_len * sizeof(char));
+ 
+ 	fscanf(pf, "%*s");
+diff -ur evdi-1.14.9/library/Makefile evdi-1.14.11-a/library/Makefile
+--- evdi-1.14.9/library/Makefile	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/library/Makefile	2025-08-26 04:31:36.000000000 -0400
+@@ -11,7 +11,7 @@
+ DEPS = evdi_ioctl.h
+ CFLAGS := -I../module -std=gnu99 -fPIC -D_FILE_OFFSET_BITS=64 $(CFLAGS) $$($(PKG_CONFIG) --cflags-only-I libdrm)
+ 
+-LIBVER := 1.14.9
++LIBVER := 1.14.11
+ LIBABI := 1
+ 
+ PREFIX ?= /usr/local
+diff -ur evdi-1.14.9/module/dkms.conf evdi-1.14.11-a/module/dkms.conf
+--- evdi-1.14.9/module/dkms.conf	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/dkms.conf	2025-08-26 04:31:36.000000000 -0400
+@@ -7,7 +7,7 @@
+ #
+ 
+ PACKAGE_NAME="evdi"
+-PACKAGE_VERSION=1.14.9
++PACKAGE_VERSION=1.14.11
+ AUTOINSTALL=yes
+ 
+ MAKE[0]="make all INCLUDEDIR=/lib/modules/$kernelver/build/include KVERSION=$kernelver DKMS_BUILD=1"
+diff -ur evdi-1.14.9/module/dkms_install.sh evdi-1.14.11-a/module/dkms_install.sh
+--- evdi-1.14.9/module/dkms_install.sh	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/dkms_install.sh	2025-08-26 04:31:36.000000000 -0400
+@@ -2,7 +2,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ # Copyright (c) 2023 DisplayLink (UK) Ltd.
+ 
+-evdi_version='1.14.9'
++evdi_version='1.14.11'
+ 
+ EVDI_DIR=$(dirname "${BASH_SOURCE[0]}")
+ EVDI_REBOOT_RATIONALE=
+diff -ur evdi-1.14.9/module/evdi_connector.c evdi-1.14.11-a/module/evdi_connector.c
+--- evdi-1.14.9/module/evdi_connector.c	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/evdi_connector.c	2025-08-26 04:31:36.000000000 -0400
+@@ -51,12 +51,12 @@
+ #endif
+ 
+ 	if (ret) {
+-		EVDI_ERROR("Failed to set edid property! error: %d", ret);
++		EVDI_ERROR("Failed to set edid property! error: %d\n", ret);
+ 		goto err;
+ 	}
+ 
+ 	ret = drm_add_edid_modes(connector, edid);
+-	EVDI_INFO("(card%d) Edid property set", evdi->dev_index);
++	EVDI_INFO("(card%d) Edid property set\n", evdi->dev_index);
+ err:
+ 	kfree(edid);
+ 	return ret;
+diff -ur evdi-1.14.9/module/evdi_drm_drv.h evdi-1.14.11-a/module/evdi_drm_drv.h
+--- evdi-1.14.9/module/evdi_drm_drv.h	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/evdi_drm_drv.h	2025-08-26 04:31:36.000000000 -0400
+@@ -109,6 +109,9 @@
+ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 				struct drm_device *dev,
+ 				struct drm_file *file,
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++				const struct drm_format_info *info,
++#endif
+ 				const struct drm_mode_fb_cmd2 *mode_cmd);
+ 
+ int evdi_dumb_create(struct drm_file *file_priv,
+diff -ur evdi-1.14.9/module/evdi_fb.c evdi-1.14.11-a/module/evdi_fb.c
+--- evdi-1.14.9/module/evdi_fb.c	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/evdi_fb.c	2025-08-26 04:31:36.000000000 -0400
+@@ -340,11 +340,23 @@
+ static int
+ evdi_framebuffer_init(struct drm_device *dev,
+ 		      struct evdi_framebuffer *efb,
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++		      const struct drm_format_info *info,
++#endif
+ 		      const struct drm_mode_fb_cmd2 *mode_cmd,
+ 		      struct evdi_gem_object *obj)
+ {
+ 	efb->obj = obj;
+-	drm_helper_mode_fill_fb_struct(dev, &efb->base, mode_cmd);
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++	if (info == NULL)
++		info = drm_get_format_info(dev, mode_cmd->pixel_format,
++					   mode_cmd->modifier[0]);
++#endif
++	drm_helper_mode_fill_fb_struct(dev, &efb->base,
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++				       info,
++#endif
++				       mode_cmd);
+ 	return drm_framebuffer_init(dev, &efb->base, &evdifb_funcs);
+ }
+ 
+@@ -397,7 +409,11 @@
+ 	}
+ 	info->par = efbdev;
+ 
+-	ret = evdi_framebuffer_init(dev, &efbdev->efb, &mode_cmd, obj);
++	ret = evdi_framebuffer_init(dev, &efbdev->efb,
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++				    NULL,
++#endif
++				    &mode_cmd, obj);
+ 	if (ret)
+ 		goto out_gfree;
+ 
+@@ -593,6 +609,9 @@
+ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 					struct drm_device *dev,
+ 					struct drm_file *file,
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++					const struct drm_format_info *info,
++#endif
+ 					const struct drm_mode_fb_cmd2 *mode_cmd)
+ {
+ 	struct drm_gem_object *obj;
+@@ -625,7 +644,11 @@
+ 		goto err_no_mem;
+ 	efb->base.obj[0] = obj;
+ 
+-	ret = evdi_framebuffer_init(dev, efb, mode_cmd, to_evdi_bo(obj));
++	ret = evdi_framebuffer_init(dev, efb,
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++				    info,
++#endif
++				    mode_cmd, to_evdi_bo(obj));
+ 	if (ret)
+ 		goto err_inval;
+ 	return &efb->base;
+diff -ur evdi-1.14.9/module/evdi_gem.c evdi-1.14.11-a/module/evdi_gem.c
+--- evdi-1.14.9/module/evdi_gem.c	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/evdi_gem.c	2025-08-26 04:31:36.000000000 -0400
+@@ -29,7 +29,7 @@
+ #include <linux/vmalloc.h>
+ 
+ 
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+@@ -303,7 +303,11 @@
+ #endif
+ 
+ #if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++# if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++		ret = dma_buf_vmap_unlocked(obj->base.import_attach->dmabuf, &map);
++# else
+ 		ret = dma_buf_vmap(obj->base.import_attach->dmabuf, &map);
++# endif
+ 		if (ret)
+ 			return -ENOMEM;
+ 		obj->vmapping = map.vaddr;
+@@ -337,7 +341,11 @@
+ 		else
+ 			iosys_map_set_vaddr(&map, obj->vmapping);
+ 
++# if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++		dma_buf_vunmap_unlocked(obj->base.import_attach->dmabuf, &map);
++# else
+ 		dma_buf_vunmap(obj->base.import_attach->dmabuf, &map);
++# endif
+ 
+ #elif KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE
+ 		struct dma_buf_map map;
+@@ -408,7 +416,7 @@
+ 
+ 	/* Don't allow imported objects to be mapped */
+ 	if (obj->import_attach) {
+-		EVDI_WARN("Don't allow imported objects to be mapped: owner: %s",  obj->import_attach->dmabuf->owner->name);
++		EVDI_WARN("Don't allow imported objects to be mapped: owner: %s\n",  obj->import_attach->dmabuf->owner->name);
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+diff -ur evdi-1.14.9/module/evdi_painter.c evdi-1.14.11-a/module/evdi_painter.c
+--- evdi-1.14.9/module/evdi_painter.c	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/evdi_painter.c	2025-08-26 04:31:36.000000000 -0400
+@@ -36,7 +36,7 @@
+ #endif
+ 
+ /* Import of DMA_BUF namespace was reverted in EL8 */
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+@@ -329,7 +329,7 @@
+ 				    struct drm_pending_event *event)
+ {
+ 	if (!event) {
+-		EVDI_ERROR("Null drm event!");
++		EVDI_ERROR("Null drm event!\n");
+ 		return;
+ 	}
+ 
+@@ -340,13 +340,13 @@
+ 	}
+ 
+ 	if (!painter->drm_device) {
+-		EVDI_WARN("Painter is not connected to drm device!");
++		EVDI_WARN("Painter is not connected to drm device!\n");
+ 		drm_event_cancel_free(painter->drm_device, event);
+ 		return;
+ 	}
+ 
+ 	if (!painter->is_connected) {
+-		EVDI_WARN("Painter is not connected!");
++		EVDI_WARN("Painter is not connected!\n");
+ 		drm_event_cancel_free(painter->drm_device, event);
+ 		return;
+ 	}
+@@ -367,7 +367,7 @@
+ 
+ 	event = kzalloc(sizeof(*event), GFP_KERNEL);
+ 	if (!event) {
+-		EVDI_ERROR("Failed to create update ready event");
++		EVDI_ERROR("Failed to create update ready event\n");
+ 		return NULL;
+ 	}
+ 
+@@ -415,7 +415,7 @@
+ 
+ 	event = kzalloc(sizeof(*event), GFP_KERNEL);
+ 	if (!event) {
+-		EVDI_ERROR("Failed to create cursor set event");
++		EVDI_ERROR("Failed to create cursor set event\n");
+ 		return NULL;
+ 	}
+ 
+@@ -462,7 +462,7 @@
+ 
+ 	event = kzalloc(sizeof(*event), GFP_KERNEL);
+ 	if (!event) {
+-		EVDI_ERROR("Failed to create cursor move event");
++		EVDI_ERROR("Failed to create cursor move event\n");
+ 		return NULL;
+ 	}
+ 
+@@ -494,7 +494,7 @@
+ 
+ 	event = kzalloc(sizeof(*event), GFP_KERNEL);
+ 	if (!event) {
+-		EVDI_ERROR("Failed to create dpms event");
++		EVDI_ERROR("Failed to create dpms event\n");
+ 		return NULL;
+ 	}
+ 
+@@ -522,7 +522,7 @@
+ 
+ 	event = kzalloc(sizeof(*event), GFP_KERNEL);
+ 	if (!event) {
+-		EVDI_ERROR("Failed to create mode changed event");
++		EVDI_ERROR("Failed to create mode changed event\n");
+ 		return NULL;
+ 	}
+ 
+@@ -556,7 +556,7 @@
+ 	int num_dirts;
+ 
+ 	if (painter == NULL) {
+-		EVDI_WARN("Painter is not connected!");
++		EVDI_WARN("Painter is not connected!\n");
+ 		return 0;
+ 	}
+ 
+@@ -576,7 +576,7 @@
+ 	struct evdi_framebuffer *efb = NULL;
+ 
+ 	if (painter == NULL) {
+-		EVDI_WARN("Painter is not connected!");
++		EVDI_WARN("Painter is not connected!\n");
+ 		return rect;
+ 	}
+ 
+@@ -584,7 +584,7 @@
+ 	efb = painter->scanout_fb;
+ 	if (!efb) {
+ 		if (painter->is_connected)
+-			EVDI_WARN("Scanout buffer not set.");
++			EVDI_WARN("Scanout buffer not set.\n");
+ 		goto unlock;
+ 	}
+ 	rect.x1 = 0;
+@@ -604,7 +604,7 @@
+ 	struct evdi_painter *painter = evdi->painter;
+ 
+ 	if (painter == NULL) {
+-		EVDI_WARN("Painter is not connected!");
++		EVDI_WARN("Painter is not connected!\n");
+ 		return;
+ 	}
+ 
+@@ -700,7 +700,7 @@
+ 
+ 		painter_unlock(painter);
+ 	} else {
+-		EVDI_WARN("Painter does not exist!");
++		EVDI_WARN("Painter does not exist!\n");
+ 	}
+ }
+ 
+@@ -711,7 +711,7 @@
+ 	const char *mode_str;
+ 
+ 	if (!painter) {
+-		EVDI_WARN("Painter does not exist!");
++		EVDI_WARN("Painter does not exist!\n");
+ 		return;
+ 	}
+ 
+@@ -775,7 +775,7 @@
+ 	painter_unlock(painter);
+ 
+ 	evdi_log_pixel_format(pixel_format, buf, sizeof(buf));
+-	EVDI_INFO("(card%d) Notifying mode changed: %dx%d@%d; bpp %d; %s",
++	EVDI_INFO("(card%d) Notifying mode changed: %dx%d@%d; bpp %d; %s\n",
+ 		   evdi->dev_index, new_mode->hdisplay, new_mode->vdisplay,
+ 		   drm_mode_vrefresh(new_mode), bits_per_pixel, buf);
+ 
+@@ -810,7 +810,7 @@
+ 	evdi->i2c_adapter = kzalloc(sizeof(*evdi->i2c_adapter), GFP_KERNEL);
+ 
+ 	if (!evdi->i2c_adapter) {
+-		EVDI_ERROR("(card%d) Failed to allocate for i2c adapter",
++		EVDI_ERROR("(card%d) Failed to allocate for i2c adapter\n",
+ 			evdi->dev_index);
+ 		return;
+ 	}
+@@ -820,19 +820,19 @@
+ 	if (result) {
+ 		kfree(evdi->i2c_adapter);
+ 		evdi->i2c_adapter = NULL;
+-		EVDI_ERROR("(card%d) Failed to add i2c adapter, error %d",
++		EVDI_ERROR("(card%d) Failed to add i2c adapter, error %d\n",
+ 			evdi->dev_index, result);
+ 		return;
+ 	}
+ 
+-	EVDI_INFO("(card%d) Added i2c adapter bus number %d",
++	EVDI_INFO("(card%d) Added i2c adapter bus number %d\n",
+ 		evdi->dev_index, evdi->i2c_adapter->nr);
+ 
+ 	result = sysfs_create_link(&evdi->conn->kdev->kobj,
+ 			&evdi->i2c_adapter->dev.kobj, "ddc");
+ 
+ 	if (result) {
+-		EVDI_ERROR("(card%d) Failed to create sysfs link, error %d",
++		EVDI_ERROR("(card%d) Failed to create sysfs link, error %d\n",
+ 			evdi->dev_index, result);
+ 		return;
+ 	}
+@@ -841,7 +841,7 @@
+ static void evdi_remove_i2c_adapter(struct evdi_device *evdi)
+ {
+ 	if (evdi->i2c_adapter) {
+-		EVDI_INFO("(card%d) Removing i2c adapter bus number %d",
++		EVDI_INFO("(card%d) Removing i2c adapter bus number %d\n",
+ 			evdi->dev_index, evdi->i2c_adapter->nr);
+ 
+ 		sysfs_remove_link(&evdi->conn->kdev->kobj, "ddc");
+@@ -1008,7 +1008,7 @@
+ 		}
+ 		return ret;
+ 	}
+-	EVDI_WARN("(card%d) Painter does not exist!", evdi->dev_index);
++	EVDI_WARN("(card%d) Painter does not exist!\n", evdi->dev_index);
+ 	return -ENODEV;
+ }
+ 
+@@ -1309,7 +1309,7 @@
+ 
+ 	event = kzalloc(sizeof(*event), GFP_KERNEL);
+ 	if (!event || !msg) {
+-		EVDI_ERROR("Failed to create ddcci data event");
++		EVDI_ERROR("Failed to create ddcci data event\n");
+ 		return NULL;
+ 	}
+ 
+@@ -1345,28 +1345,28 @@
+ 		painter_lock(painter);
+ 
+ 		if (expected_response_length != painter->ddcci_buffer_length)
+-			EVDI_WARN("DDCCI buffer length mismatch");
++			EVDI_WARN("DDCCI buffer length mismatch\n");
+ 		else if (painter->ddcci_buffer)
+ 			memcpy(msg->buf, painter->ddcci_buffer,
+ 			       painter->ddcci_buffer_length);
+ 		else
+-			EVDI_WARN("Ignoring NULL DDCCI buffer");
++			EVDI_WARN("Ignoring NULL DDCCI buffer\n");
+ 
+ 		painter_unlock(painter);
+ 	} else {
+-		EVDI_WARN("DDCCI response timeout");
++		EVDI_WARN("DDCCI response timeout\n");
+ 	}
+ }
+ 
+ bool evdi_painter_i2c_data_notify(struct evdi_painter *painter, struct i2c_msg *msg)
+ {
+ 	if (!evdi_painter_is_connected(painter)) {
+-		EVDI_WARN("Painter not connected");
++		EVDI_WARN("Painter not connected\n");
+ 		return false;
+ 	}
+ 
+ 	if (!msg) {
+-		EVDI_WARN("Ignored NULL ddc/ci message");
++		EVDI_WARN("Ignored NULL ddc/ci message\n");
+ 		return false;
+ 	}
+ 
+diff -ur evdi-1.14.9/module/evdi_platform_drv.c evdi-1.14.11-a/module/evdi_platform_drv.c
+--- evdi-1.14.9/module/evdi_platform_drv.c	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/evdi_platform_drv.c	2025-08-26 04:31:36.000000000 -0400
+@@ -215,7 +215,7 @@
+ 	int ret;
+ 
+ 	EVDI_INFO("Initialising logging on level %u\n", evdi_loglevel);
+-	EVDI_INFO("Atomic driver: yes");
++	EVDI_INFO("Atomic driver: yes\n");
+ 
+ 	memset(&g_ctx, 0, sizeof(g_ctx));
+ 	g_ctx.root_dev = root_device_register(DRIVER_NAME);
+diff -ur evdi-1.14.9/module/evdi_platform_drv.h evdi-1.14.11-a/module/evdi_platform_drv.h
+--- evdi-1.14.9/module/evdi_platform_drv.h	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/evdi_platform_drv.h	2025-08-26 04:31:36.000000000 -0400
+@@ -29,12 +29,12 @@
+ #define DRIVER_DESC   "Extensible Virtual Display Interface"
+ #if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
+ #else
+-#define DRIVER_DATE   "20250325"
++#define DRIVER_DATE   "20250630"
+ #endif
+ 
+ #define DRIVER_MAJOR 1
+ #define DRIVER_MINOR 14
+-#define DRIVER_PATCH 9
++#define DRIVER_PATCH 11
+ 
+ void evdi_platform_remove_all_devices(struct device *device);
+ unsigned int evdi_platform_device_count(struct device *device);
+diff -ur evdi-1.14.9/module/Makefile evdi-1.14.11-a/module/Makefile
+--- evdi-1.14.9/module/Makefile	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/Makefile	2025-08-26 04:31:36.000000000 -0400
+@@ -6,14 +6,10 @@
+ # more details.
+ #
+ 
+-EL8 := $(shell cat /etc/redhat-release 2>/dev/null | grep -c " 8." )
+-ifneq (,$(findstring 1, $(EL8)))
+-EL8FLAG := -DEL8
+-endif
++include /etc/os-release
+ 
+-EL9 := $(shell cat /etc/redhat-release 2>/dev/null | grep -c " 9." )
+-ifneq (,$(findstring 1, $(EL9)))
+-EL9FLAG := -DEL9
++ifneq (,$(findstring rhel,$(ID_LIKE)))
++ELFLAG := -DEL$(VERSION_ID)
+ endif
+ 
+ Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
+@@ -27,7 +23,7 @@
+ 
+ KERN_DIR := /lib/modules/$(KERNELRELEASE)/build
+ 
+-ccflags-y := -Iinclude/uapi/drm -Iinclude/drm $(EL8FLAG) $(EL9FLAG) $(RPIFLAG)
++ccflags-y := -Iinclude/uapi/drm -Iinclude/drm $(ELFLAG) $(RPIFLAG)
+ evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
+ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
+ obj-m := evdi.o
+@@ -49,7 +45,7 @@
+ 
+ # inside kbuild
+ # Note: this can be removed once it is in kernel tree and Kconfig is properly used
+-ccflags-y := -isystem include/uapi/drm $(CFLAGS) $(EL8FLAG) $(EL9FLAG) $(RPIFLAG)
++ccflags-y := -isystem include/uapi/drm $(CFLAGS) $(ELFLAG) $(RPIFLAG)
+ evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
+ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
+ CONFIG_DRM_EVDI ?= m
+@@ -63,7 +59,7 @@
+ DKMS ?= dkms
+ RM ?= rm
+ 
+-MODVER=1.14.9
++MODVER=1.14.11
+ 
+ ifeq ($(KVER),)
+ 	KVER := $(shell uname -r)
+diff -ur evdi-1.14.9/module/README.md evdi-1.14.11-a/module/README.md
+--- evdi-1.14.9/module/README.md	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/module/README.md	2025-08-26 04:31:36.000000000 -0400
+@@ -24,9 +24,9 @@
+ Adding `evdi` to `/etc/modules` enables system to load the driver on boot time.
+ 
+ ## Usage
+-Evdi driver is just kernel space driver that adds virtual displays to the Linux. DisplayLink device enumeration and control is done in binary driver that can be downloaded from https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu.
++Evdi driver is a kernel space driver that adds virtual displays to Linux. It is primarily used by proprietary user-space DisplayLink [driver](https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu) which provides DisplayLink [device](https://www.synaptics.com/products/displaylink-graphics/displaylink-products) enumeration and control.
+ 
+-Alternatively one can manually add outputs with:
++Alternatively `pyevdi` bindings are provided for other applications or one can manually add outputs with:
+ ```
+ # echo 1 > /sys/devices/evdi/add
+ ```
+diff -ur evdi-1.14.9/README.md evdi-1.14.11-a/README.md
+--- evdi-1.14.9/README.md	2025-04-01 07:24:12.000000000 -0400
++++ evdi-1.14.11-a/README.md	2025-08-26 04:31:36.000000000 -0400
+@@ -1,32 +1,44 @@
+ # Extensible Virtual Display Interface
+ 
+-[![Build Status](https://travis-ci.org/DisplayLink/evdi.svg?branch=devel)](https://travis-ci.org/DisplayLink/evdi)
+ 
+ The Extensible Virtual Display Interface (EVDI) is a Linux&reg; kernel module that enables management of multiple screens, allowing user-space programs to take control over what happens with the image. It is essentially a virtual display you can add, remove and receive screen updates for, in an application that uses the `libevdi` library.
+ 
+-The project is part of the DisplayLink Ubuntu development which enables support for DisplayLink USB 3.0 devices on Ubuntu. Please note that **this is NOT a complete driver for DisplayLink devices**. For more information and the full driver package, see [DisplayLink Ubuntu driver](http://www.displaylink.com/downloads/ubuntu.php).
+-
+ This open-source project includes source code for both the `evdi` kernel module and a wrapper `libevdi` library that can be used by applications like DisplayLink's user mode driver to send and receive information from and to the kernel module.
+ 
++The `pyevdi` library is a python wrapper for `libevdi`.
++
+ ## How to use
+ 
+ See [libevdi API documentation](https://displaylink.github.io/evdi) for details.
+ 
+ EVDI is a driver compatible with a standard Linux DRM subsystem. Due to this, displays can be controlled by standard tools, eg. `xrandr` or display settings applets in graphical environments eg. Unity, Gnome or KDE.
++Virtual displays can also be created with the help of `pyevdi`.
+ 
+-Minimum supported kernel version required is 4.15. DisplayLink have checked the module compiles and works with Ubuntu variants of kernels up to 5.5. Although other vanilla Linux kernel sources are used for Travis CI job, newer kernels, or kernel variants used by other distributions may require extra development. Please see below to see how you can help.
++### Installation and packages
+ 
+-## Future Development
++For detailed installation instructions refer to [module/README.md](module/README.md). Minimum supported kernel version required is 4.15. DisplayLink has verified the module compiles and works with Ubuntu variants of kernels up to 6.15. Although other vanilla Linux kernel sources are used for the CI jobs, newer kernels, or kernel variants used by other distributions may require extra development. Please see below to see how you can help.
+ 
+-This is a first release. DisplayLink are open to suggestions and feedback on improving the proposed architecture and will gladly review patches or proposals from the developer community. Please find a current list of areas we identify as requiring attention below.
++EVDI is usually combined with the DisplayLink driver, we release it as a deb package or in a form of standalone installer paired with the driver, visit the [DisplayLink page](https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu) for the latest release. **EVDI is not a complete driver for DisplayLink devices** and will require the driver for the full functionality  .
+ 
+-- Compatibility with distributions other than Ubuntu 18.04/20.04 LTS is not verified. Please let us know if you make it work on other distros - pull requests are welcome!
+-- The communication between the EVDI kernel module and the wrapper libevdi library is not access-controlled or authenticated. This could be improved in future releases, making it harder to compromise the data EVDI is sending and receiving.
+-- EVDI kernel module driver is currently a platform_driver, for multiple reasons; most importantly because virtual displays are not discoverable, i.e. cannot be enumerated at the hardware level. EVDI is also a generic device, not tied to any particular kind of device, transport layer or a bus.
++There is an community driven GitHub project at [DisplayLink RPM](https://github.com/displaylink-rpm/displaylink-rpm) which is generating RPM package for Fedora, CentOS Stream, Rocky Linux and AlmaLinux OS. It uses our code as the basis to create the RPM packages.
++
++There is also an [AUR package](https://aur.archlinux.org/packages/evdi) maintained by the community.
++
++## Contributing
+ 
+-## Packages for other distributions
++We welcome all contributions. There are many ways you can contribute to the project.
+ 
+-There is an unoffical github project at [DisplayLink RPM](https://github.com/displaylink-rpm/displaylink-rpm) which is generating RPM package for Fedora, CentOS Stream, Rocky Linux and AlmaLinux OS. It is not in our control but it uses our code as the basis to create the RPM packages.
++- Submit bugs or feature requests.
++- Help us ensure that EVDI works on other distributions than Ubuntu.
++- Report issues.
++- Help with future development.
++
++### Future development
++
++There are several topics we plan to cover in the future, including:
++
++- The communication between the EVDI kernel module and the wrapper libevdi library is not access-controlled or authenticated. This could be enhanced in future releases, making it more difficult to compromise the data that EVDI sends and receives.
++- EVDI kernel module driver is currently a platform_driver, for multiple reasons; most importantly because virtual displays are not discoverable, i.e. cannot be enumerated at the hardware level. EVDI is also a generic device, not tied to any particular kind of device, transport layer or a bus.
+ 
+ ## Licensing
+ 
+@@ -34,10 +46,7 @@
+ under GPL v2 and LGPL v2.1 respectively - consult separate `LICENSE` files in subfolders. Remaining files and subfolders (unless
+ a separate `LICENSE` file states otherwise) are licensed under MIT license.
+ 
+-### More information
+-
+-For more information, see our [support page](http://support.displaylink.com). Visit [displaylink.com](http://displaylink.com) to learn more about DisplayLink technology.
+ 
+-&copy; Copyright 2015-2020 DisplayLink (UK) Ltd.
++&copy; Copyright 2015-2025 DisplayLink (UK) Ltd.
+ 
+ Linux is a registered trademark of Linus Torvalds in the U.S. and other countries.
+Only in evdi-1.14.11-a: .travis.yml
+Only in evdi-1.14.11-a: .vscode

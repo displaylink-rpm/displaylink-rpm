@@ -1,4 +1,4 @@
-%{!?_daemon_version:%global _daemon_version 6.2.0-30}
+%{!?_daemon_version:%global _daemon_version 6.1.1-17}
 %{!?_version:%global _version 1.14.11}
 %{!?_release:%global _release 1}
 
@@ -41,6 +41,7 @@ Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
 Patch0:   revert_el10_dma_import_change.patch
+Patch1:   update_older_bundled_evdi_to_1-14-11.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -93,6 +94,7 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
+%patch 1 -p1
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
@@ -261,6 +263,10 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Sat Nov 15 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-1
+- Revert back to 6.1.1-17 version of the DisplayLink Manager driver
+- Add patch for bundled version of DLM to update evdi to 1.14.11
+
 * Mon Sep 29 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-1
 - Add patch reverting change in evdi that breaks EL10 builds. String literals
   were added in kernel 6.13. EL10 kernels are 6.12.
