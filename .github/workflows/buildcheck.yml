@@ -133,7 +133,10 @@ jobs:
           echo "Install Mock"
           dnf -y install epel-release
           dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
+          useradd mockbuilder
+          usermod -a -G mock mockbuilder
           echo "Get source files"
           make srpm-github
           echo "Run mock build"
+          su - mockbuilder
           mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."
