@@ -118,9 +118,9 @@ jobs:
     strategy:
       matrix:
         runs-on-os:
-          - runner: ubuntu-22.04
+          - runner: ubuntu-latest
             arch: x86_64
-          - runner: ubuntu-22.04-arm
+          - runner: ubuntu-24.04-arm
             arch: aarch64
     runs-on: ${{ matrix.runs-on-os.runner }}
     container: 
