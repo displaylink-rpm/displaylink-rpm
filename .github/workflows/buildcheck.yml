@@ -125,7 +125,7 @@ jobs:
     runs-on: ${{ matrix.runs-on-os.runner }}
     container: 
       image: quay.io/rockylinux/rockylinux:9
-      options: --privileged
+      options: --cap-add=SYS_ADMIN
     steps:
       - uses: actions/checkout@v4
       - name: Test Mock Build From Spec
