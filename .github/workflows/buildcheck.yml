@@ -136,4 +136,7 @@ jobs:
           echo "Get source files"
           make srpm-github
           echo "Run mock build"
+          useradd mockbuilder
+          usermod -a -G mock mockbuilder
+          su - mockbuilder
           mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."
