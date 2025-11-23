@@ -5,18 +5,18 @@ on:
     - cron: '30 5 * * 1'
 
 jobs:
-  mainBuild:
-    runs-on: ubuntu-latest
-    container: 
-      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+  mainBuild-x86-64:
     strategy:
       matrix:
         include:
           - os: fedora
-            version: 39
+            version: 41
             dockernamespace: quay.io/fedora/fedora
           - os: fedora
-            version: 40
+            version: 42
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 43
             dockernamespace: quay.io/fedora/fedora
           - os: centos-stream
             version: stream9
@@ -24,12 +24,67 @@ jobs:
           - os: rocky
             version: 9
             dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
           - os: almalinux
             version: 9
-            dockernamespace: quay.io/almalinux/almalinux
+            dockernamespace: quay.io/almalinuxorg/almalinux
+          - os: almalinux
+            version: 10
+            dockernamespace: quay.io/almalinuxorg/almalinux
+    runs-on: ubuntu-latest
+    container: 
+        image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Specify Build Target
+        run: |
+          echo "SPECIFICTARGET=main" >> $GITHUB_ENV
+
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+
+      - name: Run CI
+        run: ci/${{ matrix.os }}.sh
+  
+  mainBuild-arm:
+    strategy:
+      matrix:
+        include:
+          - os: fedora
+            version: 41
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 42
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 43
+            dockernamespace: quay.io/fedora/fedora
+          - os: centos-stream
+            version: stream9
+            dockernamespace: quay.io/centos/centos
+          - os: rocky
+            version: 9
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: almalinux
+            version: 9
+            dockernamespace: quay.io/almalinuxorg/almalinux
+          - os: almalinux
+            version: 10
+            dockernamespace: quay.io/almalinuxorg/almalinux
+    runs-on: ubuntu-24.04-arm
+    container: 
+        image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Specify Build Target
         run: |

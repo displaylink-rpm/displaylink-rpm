@@ -6,8 +6,8 @@ DNFCMD="dnf"
 SPECFLAG="--spec "
 
 if [ "$OSVERSION" = "rawhide" ] || [ "$((OSVERSION + 0))" -gt 40 ]; then
-	DNFCMD="dnf5"
-	SPECFLAG=""
+    DNFCMD="dnf5"
+    SPECFLAG=""
 fi
 
 # Note: Removed .x86_64 suffix from glibc-devel for aarch64 compatibility.

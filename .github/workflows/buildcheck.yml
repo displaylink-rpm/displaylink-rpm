@@ -7,30 +7,33 @@ on:
 
 jobs:
   makeTest:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runs-on-os: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runs-on-os }}
     container: 
       image: quay.io/rockylinux/rockylinux:9
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Specify Build Target
         run: |
           echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
       - name: Test Makefile Targets
         run: ci/testbuilding.sh
 
-  buildTest:
+  buildTest-x86-64:
     needs: makeTest
-    runs-on: ubuntu-latest
-    container: 
-      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     strategy:
       matrix:
         include:
           - os: fedora
-            version: 39
+            version: 41
             dockernamespace: quay.io/fedora/fedora
           - os: fedora
-            version: 40
+            version: 42
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 43
             dockernamespace: quay.io/fedora/fedora
           - os: centos-stream
             version: stream9
@@ -38,12 +41,66 @@ jobs:
           - os: rocky
             version: 9
             dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
           - os: almalinux
             version: 9
-            dockernamespace: quay.io/almalinux/almalinux
-
+            dockernamespace: quay.io/almalinuxorg/almalinux
+          - os: almalinux
+            version: 10
+            dockernamespace: quay.io/almalinuxorg/almalinux
+    runs-on: ubuntu-latest
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Specify Build Target
+        run: |
+          echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
+          
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+
+      - name: Run CI
+        run: ci/${{ matrix.os }}.sh
+  
+  buildTest-arm:
+    needs: makeTest
+    strategy:
+      matrix:
+        include:
+          - os: fedora
+            version: 41
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 42
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 43
+            dockernamespace: quay.io/fedora/fedora
+          - os: centos-stream
+            version: stream9
+            dockernamespace: quay.io/centos/centos
+          - os: rocky
+            version: 9
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: almalinux
+            version: 9
+            dockernamespace: quay.io/almalinuxorg/almalinux
+          - os: almalinux
+            version: 10
+            dockernamespace: quay.io/almalinuxorg/almalinux
+    runs-on: ubuntu-24.04-arm
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Specify Build Target
         run: |
@@ -58,18 +115,25 @@ jobs:
 
   mockTest:
     needs: makeTest
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runs-on-os:
+          - runner: ubuntu-22.04
+            arch: x86_64
+          - runner: ubuntu-22.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.runs-on-os.runner }}
     container: 
       image: quay.io/rockylinux/rockylinux:9
       options: --privileged
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Test Mock Build From Spec
         run: |
           echo "Install Mock"
           dnf -y install epel-release
-          dnf -y install mock gcc gcc-c++ glibc-devel.x86_64 libdrm-devel rpm-build make wget
+          dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
           echo "Get source files"
           make srpm-github
           echo "Run mock build"
-          mock -r rocky+epel-9-x86_64 --define="_github 1" --spec="displaylink.spec" --sources="."
+          mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."

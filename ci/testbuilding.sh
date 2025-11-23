@@ -2,7 +2,7 @@
 
 set -e
 
-dnf install -y gcc gcc-c++ glibc-devel.x86_64 libdrm-devel rpm-build make wget dnf-utils 'dnf-command(builddep)' git --enablerepo=extras
+dnf install -y gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget dnf-utils 'dnf-command(builddep)' git --enablerepo=extras
 
 dnf builddep -y ./displaylink.spec
 

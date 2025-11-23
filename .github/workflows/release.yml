@@ -4,33 +4,46 @@ on:
   release:
     types:
       - published
+      - edited
 
 jobs:  
-  buildrpms:
-    runs-on: ubuntu-latest
-    container: 
-      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+  buildrpms-x86-64:
     strategy:
       matrix:
         include:
-        - os: fedora
-          version: 39
-          dockernamespace: quay.io/fedora/fedora
-        - os: fedora
-          version: 40
-          dockernamespace: quay.io/fedora/fedora
-        - os: centos-stream
-          version: stream9
-          dockernamespace: quay.io/centos/centos
-        - os: rocky
-          version: 9
-          dockernamespace: quay.io/rockylinux/rockylinux
-        - os: almalinux
-          version: 9
-          dockernamespace: quay.io/almalinux/almalinux
-
+          - os: fedora
+            version: 41
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 42
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 43
+            dockernamespace: quay.io/fedora/fedora
+          - os: centos-stream
+            version: stream9
+            dockernamespace: quay.io/centos/centos
+          - os: rocky
+            version: 9
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: almalinux
+            version: 9
+            dockernamespace: quay.io/almalinuxorg/almalinux
+          - os: almalinux
+            version: 10
+            dockernamespace: quay.io/almalinuxorg/almalinux
+    runs-on: ubuntu-latest
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Make sure awk is present
+        run: |
+          if [ ${{ matrix.version }} -gt 40 ]; then dnf5 install gawk -y; else dnf install gawk -y; fi
 
       - name: Get version
         run: |
@@ -62,13 +75,97 @@ jobs:
       - run: chown `id -u`:`id -g` -R .
 
       - name: Upload RPM
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}
+          name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}-x86_64
           path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
 
       - name: Upload Assets To Release
-        uses: xresloader/upload-to-github-release@master
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: '${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm'
+          draft: false
+          update_latest_release: true
+          tags: true
+          overwrite: true
+
+  buildrpms-arm:
+    needs: buildrpms-x86-64
+    strategy:
+      matrix:
+        include:
+          - os: fedora
+            version: 41
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 42
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 43
+            dockernamespace: quay.io/fedora/fedora
+          - os: centos-stream
+            version: stream9
+            dockernamespace: quay.io/centos/centos
+          - os: rocky
+            version: 9
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: almalinux
+            version: 9
+            dockernamespace: quay.io/almalinuxorg/almalinux
+          - os: almalinux
+            version: 10
+            dockernamespace: quay.io/almalinuxorg/almalinux
+    runs-on: ubuntu-24.04-arm
+    container: 
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make sure awk is present
+        run: |
+          if [ ${{ matrix.version }} -gt 40 ]; then dnf5 install gawk -y; else dnf install gawk -y; fi
+
+      - name: Get version
+        run: |
+          echo "VERSION=$(grep ^VERSION Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+      
+      - name: Get release
+        run: |
+          echo "RELEASE=$(grep ^RELEASE Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+
+      - name: Specify A Target For make
+        run: |
+          echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
+
+      - name: Environment variable for setting name of RPM when using EVDI from Github
+        run: |
+          echo "EVDISOURCE=.github_evdi" >> $GITHUB_ENV
+
+      - name: Environment variable for OS version
+        run: |
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+      
+      - name: Run CI
+        run: ci/${{ matrix.os }}.sh
+
+      - name: Rename files
+        run : ls -la
+      - run: mv aarch64/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.aarch64.rpm ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.aarch64.rpm
+      - run: chown `id -u`:`id -g` -R .
+
+      - name: Upload RPM
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}-aarch64
+          path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
+
+      - name: Upload Assets To Release
+        uses: xresloader/upload-to-github-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

@@ -1,5 +1,5 @@
-%{!?_daemon_version:%global _daemon_version 6.0.0-24}
-%{!?_version:%global _version 1.14.6}
+%{!?_daemon_version:%global _daemon_version 6.2.0-30}
+%{!?_version:%global _version 1.14.11}
 %{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
@@ -9,18 +9,15 @@
 
 %global debug_package %{nil}
 
-# asahi-linux is kernel-16k
-%global _kernel_pagesize %(getconf PAGE_SIZE | awk '{print $1/1024}')
-
 %if 0%{?rhel} && 0%{?rhel} <= 7
 %global kernel_pkg_name kernel-ml
-%elif 0%{?_kernel_pagesize} > 4
-%global kernel_pkg_name kernel-%{_kernel_pagesize}k
 %else
 %global kernel_pkg_name kernel
 %endif
 
 %{?_github:%global _github_release .github_evdi}
+
+%define libevdi_abi %(echo %{_version} | cut -d. -f1)
 
 Name:     displaylink
 Version:  %{_version}
@@ -43,6 +40,8 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
+Patch0:   revert_el10_dma_import_change.patch
+
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
 BuildRequires:  make
@@ -58,14 +57,20 @@ Requires: epel-release
 %endif
 
 Requires:   dkms
-Requires:   %{kernel_pkg_name} >= 4.15, %{kernel_pkg_name}-devel >= 4.15
+# Asahi Fedora requires kernel-16k, kernel-16k-devel.
+Requires:   ((%{kernel_pkg_name} >= 4.15 and %{kernel_pkg_name}-devel >= 4.15) or (kernel-16k >= 6.4 and kernel-16k-devel >= 6.4))
 Requires:   make
 Requires:   libusbx
-Requires:   xorg-x11-server-Xorg >= 1.16
+Requires:   xorg-x11-server-Xwayland >= 23
+# Xorg is removed in CentOS Stream 10 and Fedora 43+.
+# Recommend xorg-x11-server-Xorg but do not require it to avoid install failures on Wayland-only systems.
+Recommends:   xorg-x11-server-Xorg >= 1.16
 Conflicts:  mutter < 3.32
 Conflicts:  xorg-x11-server-Xorg = 1.20.1
+Conflicts:  libevdi%{libevdi_abi}
 
-Provides:   bundled(libevdi) = %{version}
+Provides:   bundled(libevdi1) = %{version}
+Provides:   bundled(dkms-evdi) = %{version}
 
 %description
 This adds support for HDMI/VGA adapters built upon the DisplayLink DL-7xxx,
@@ -88,11 +93,12 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
 %endif
+
+%patch 0 -p1
 
 sed -i 's/\r//' README.md
 
@@ -174,6 +180,13 @@ chmod +x %{buildroot}%{_libexecdir}/%{name}/udev.sh
   %{_bindir}/udevadm trigger --action=add "$(dirname "$device")"
 done
 
+# Gnome/Mutter - wait for primary GPU
+drm_deps=$(sed -n '/^drm_[[:alpha:]]*_helper/p' /proc/modules | awk '{print $4}' | tr ',' '\n' | sort -u | tr '\n' ' ')
+drm_deps=${drm_deps/evdi/}
+if [[ -n $drm_deps ]]; then
+  echo -e "\nsoftdep evdi pre: $drm_deps" >> %{_sysconfdir}/modprobe.d/evdi.conf
+fi
+
 %{_bindir}/systemctl start displaylink-driver.service
 
 %files
@@ -190,6 +203,7 @@ done
 %{_prefix}/src/evdi-%{version}/Kconfig
 %{_prefix}/src/evdi-%{version}/LICENSE
 %{_prefix}/src/evdi-%{version}/Makefile
+%{_prefix}/src/evdi-%{version}/README.md
 %{_prefix}/src/evdi-%{version}/dkms.conf
 %{_prefix}/src/evdi-%{version}/dkms_install.sh
 %{_prefix}/src/evdi-%{version}/evdi_connector.c
@@ -217,8 +231,15 @@ done
 %{_prefix}/src/evdi-%{version}/evdi_sysfs.c
 %{_prefix}/src/evdi-%{version}/evdi_sysfs.h
 %{_prefix}/src/evdi-%{version}/tests/.kunitconfig
-%{_prefix}/src/evdi-%{version}/tests/evdi_test.c
 %{_prefix}/src/evdi-%{version}/tests/Makefile
+%{_prefix}/src/evdi-%{version}/tests/evdi_fake_compositor.c
+%{_prefix}/src/evdi-%{version}/tests/evdi_fake_compositor.h
+%{_prefix}/src/evdi-%{version}/tests/evdi_fake_user_client.c
+%{_prefix}/src/evdi-%{version}/tests/evdi_fake_user_client.h
+%{_prefix}/src/evdi-%{version}/tests/evdi_test.c
+%{_prefix}/src/evdi-%{version}/tests/evdi_test.h
+%{_prefix}/src/evdi-%{version}/tests/test_evdi_vt_switch.c
+
 
 %dir %{_libexecdir}/%{name}
 %{_libexecdir}/%{name}/DisplayLinkManager
@@ -240,6 +261,59 @@ done
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Mon Sep 29 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-1
+- Add patch reverting change in evdi that breaks EL10 builds. String literals
+  were added in kernel 6.13. EL10 kernels are 6.12.
+
+* Sun Sep 28 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-1
+- Update to evdi 1.14.11
+- Update to latest DisplayLink package 6.2.0
+
+* Fri Jun 6 2025 Mrinal Dhillon <mrinaldhillon@gmail.com>     1.14.11-1
+- Change requires for xorg-x11-server-Xorg to recommends
+- Start requiring xorg-x11-server-XWayland
+
+* Wed May 14 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.10-1
+- Update to evdi 1.14.10 that was released on Github
+
+* Sat Apr 26 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.9-2
+- Update to new DisplayLink 6.1.1 package
+- Remove old patch since DisplayLink package includes the latest
+  evdi 1.14.9 package
+- Add patch when using the release on Github. Official release has
+  newer updates to evdi which adds support for kernel 6.15. These updates
+  have not made their way back into the repo as of this release.
+
+* Tue Apr 01 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.9-1
+- Update to the latest evdi release v1.14.9
+
+* Tue Mar 11 2025 Mrinal Dhillon <mrinaldhillon@gmail.com> 1.14.9-1
+- Remove using pagesize to determine kernel package name
+- Add support to use Asahi kernel packages
+
+* Wed Feb 26 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.8-1
+- Update to the latest evdi release v1.14.8
+- Add a conflicts for older libevdi installs
+- Add workaround for Gnome/Mutter in postinstall
+- Update patch for evdi tarball included in Displaylink driver download
+
+* Wed Dec 11 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-4
+- Add patches for evdi builds on kernels 6.12 and 6.13-rc4 from upstream
+
+* Thu Nov 28 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-3
+- Add a patch to fix building evdi on EL 9.5 kernels
+
+* Sun Nov 10 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-2
+- Update to new DisplayLink 6.1.0 package
+- Add patch from evdi repo when using GH releases which is present in the
+  bundled evdi tarball
+
+* Fri Nov 08 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.7-1
+- Update to use the latest evdi release from upstream
+
+* Fri Aug 30 2024 Mrinal Dhillon <mrinaldhillon@gmail.com> 1.14.6-2
+- Add aarch64 support
+
 * Wed Aug 14 2024 Michael L. Young <elgueromexicano@gmail.com> 1.14.6-1
 - Update to use the latest evdi release which fixes build issues on newer kernels
 
