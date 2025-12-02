@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.2.0-30}
 %{!?_version:%global _version 1.14.11}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -93,12 +93,11 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
+%patch 0 -p1
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
 %endif
-
-%patch 0 -p1
 
 sed -i 's/\r//' README.md
 
@@ -261,6 +260,10 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Mon Dec 01 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-2
+- Change patch for EL10 kernels to only be applied to bundled evdi tarball
+  now that the patch has been merged upstream
+
 * Mon Sep 29 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-1
 - Add patch reverting change in evdi that breaks EL10 builds. String literals
   were added in kernel 6.13. EL10 kernels are 6.12.
