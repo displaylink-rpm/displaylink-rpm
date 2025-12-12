@@ -49,6 +49,8 @@ Patch4:   0004-Fix-building-on-EL-10-kernels.patch
 Patch5:   0005-Fix-RHEL-9.7-and-10.1-kernels.patch
 Patch6:   0006-Remove-unnecessary-EDID-size-check.patch
 
+Patch7:   0001-Fixup-EL9-and-EL10-support.patch
+
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
 BuildRequires:  make
@@ -112,6 +114,8 @@ cd evdi-%{version}
 %patch -P 4 -p1
 %patch -P 5 -p1
 %patch -P 6 -p1
+
+%patch -P 7 -p1
 
 sed -i 's/\r//' README.md
 
@@ -277,6 +281,8 @@ fi
 * Thu Dec 11 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-3
 - Add patches from upstream that have not been released yet.
   Support for kernel 6.18, EL 9.7 and 10.1 support
+- Add patch that is being submitted to upstream to fixup EL 9.7 and 10.1
+  support
 
 * Mon Dec 01 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-2
 - Change patch for EL10 kernels to only be applied to bundled evdi tarball
