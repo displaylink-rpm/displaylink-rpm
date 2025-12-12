@@ -1,0 +1,104 @@
+From 0de7c51edd877a9bef06684cd10674b533613b0c Mon Sep 17 00:00:00 2001
+From: Simone Caronni <negativo17@gmail.com>
+Date: Mon, 1 Dec 2025 09:38:40 +0100
+Subject: [PATCH 5/6] Fix RHEL 9.7 and 10.1 kernels
+
+---
+ module/Makefile         | 2 +-
+ module/evdi_connector.c | 2 +-
+ module/evdi_drm_drv.c   | 2 +-
+ module/evdi_fb.c        | 4 ++--
+ module/evdi_gem.c       | 2 +-
+ module/evdi_painter.c   | 2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/module/Makefile b/module/Makefile
+index 5bb0134..a6bdf8e 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -9,7 +9,7 @@
+ include /etc/os-release
+ 
+ ifneq (,$(findstring rhel,$(ID_LIKE)))
+-ELFLAG := -DEL$(VERSION_ID)
++ELFLAG := -DEL$(shell echo $(VERSION_ID) | cut -d. -f1)
+ endif
+ 
+ Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
+diff --git a/module/evdi_connector.c b/module/evdi_connector.c
+index 2155507..77e524b 100644
+--- a/module/evdi_connector.c
++++ b/module/evdi_connector.c
+@@ -78,7 +78,7 @@ static bool is_lowest_frequency_mode_of_given_resolution(
+ }
+ 
+ static enum drm_mode_status evdi_mode_valid(struct drm_connector *connector,
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ 					    const struct drm_display_mode *mode)
+ #else
+ 					    struct drm_display_mode *mode)
+diff --git a/module/evdi_drm_drv.c b/module/evdi_drm_drv.c
+index dba8b4b..1a42496 100644
+--- a/module/evdi_drm_drv.c
++++ b/module/evdi_drm_drv.c
+@@ -153,7 +153,7 @@ static struct drm_driver driver = {
+ 
+ 	.name = DRIVER_NAME,
+ 	.desc = DRIVER_DESC,
+-#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ #else
+ 	.date = DRIVER_DATE,
+ #endif
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index e96ec98..13c70fb 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -471,7 +471,7 @@ int evdifb_create(struct drm_fb_helper *helper,
+ 	return ret;
+ }
+ 
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ #else
+ static struct drm_fb_helper_funcs evdi_fb_helper_funcs = {
+ 	.fb_probe = evdifb_create,
+@@ -520,7 +520,7 @@ int evdi_fbdev_init(struct drm_device *dev)
+ 		return -ENOMEM;
+ 
+ 	evdi->fbdev = efbdev;
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ 	drm_fb_helper_prepare(dev, &efbdev->helper, 32, NULL);
+ #elif KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+ 	drm_fb_helper_prepare(dev, &efbdev->helper, 32, &evdi_fb_helper_funcs);
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index 8e27ca3..ee1dbcf 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -29,7 +29,7 @@
+ #include <linux/vmalloc.h>
+ 
+ 
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index ced4f1c..47e0acd 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -36,7 +36,7 @@
+ #endif
+ 
+ /* Import of DMA_BUF namespace was reverted in EL8 */
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+-- 
+2.43.7
+

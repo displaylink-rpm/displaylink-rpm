@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.1.1-17}
 %{!?_version:%global _version 1.14.11}
-%{!?_release:%global _release 2}
+%{!?_release:%global _release 3}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -40,8 +40,14 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   revert_el10_dma_import_change.patch
-Patch1:   update_older_bundled_evdi_to_1-14-11.patch
+Patch0:   update_older_bundled_evdi_to_1-14-11.patch
+
+Patch1:   0001-Support-Linux-v6.18-Lock-on-dev-struct_mutex-unneces.patch
+Patch2:   0002-Support-Linux-v6.18-Remove-lock-on-device-struct_mut.patch
+Patch3:   0003-fix-README-Outdated-link-to-AUR-package.patch
+Patch4:   0004-Fix-building-on-EL-10-kernels.patch
+Patch5:   0005-Fix-RHEL-9.7-and-10.1-kernels.patch
+Patch6:   0006-Remove-unnecessary-EDID-size-check.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -94,12 +100,18 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch 1 -p1
-%patch 0 -p1
+%patch -P 0 -p1
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
 %endif
+
+%patch -P 1 -p1
+%patch -P 2 -p1
+%patch -P 3 -p1
+%patch -P 4 -p1
+%patch -P 5 -p1
+%patch -P 6 -p1
 
 sed -i 's/\r//' README.md
 
@@ -262,6 +274,10 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Thu Dec 11 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-3
+- Add patches from upstream that have not been released yet.
+  Support for kernel 6.18, EL 9.7 and 10.1 support
+
 * Mon Dec 01 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-2
 - Change patch for EL10 kernels to only be applied to bundled evdi tarball
   now that the patch has been merged upstream

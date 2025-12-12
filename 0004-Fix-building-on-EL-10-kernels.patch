@@ -1,0 +1,43 @@
+From 9004c9ee6caeddc56b95cdaa82281e073035f251 Mon Sep 17 00:00:00 2001
+From: "Michael L. Young" <elgueromexicano@gmail.com>
+Date: Sat, 15 Nov 2025 23:31:39 -0500
+Subject: [PATCH 4/6] Fix building on EL 10 kernels
+
+The EL 10 kernels are on 6.12. The string literals change happened in version
+6.13.
+
+Signed-off-by: Michael L. Young <elgueromexicano@gmail.com>
+---
+ module/evdi_gem.c     | 2 +-
+ module/evdi_painter.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index ee1dbcf..8e27ca3 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -29,7 +29,7 @@
+ #include <linux/vmalloc.h>
+ 
+ 
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index 47e0acd..ced4f1c 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -36,7 +36,7 @@
+ #endif
+ 
+ /* Import of DMA_BUF namespace was reverted in EL8 */
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+-- 
+2.43.7
+

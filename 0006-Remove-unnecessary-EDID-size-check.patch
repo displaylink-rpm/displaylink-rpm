@@ -1,0 +1,40 @@
+From b140b01a222fccb52777b0f44bbd055c5bb46981 Mon Sep 17 00:00:00 2001
+From: Jakub Prussak <jakub.prussak@synaptics.com>
+Date: Mon, 8 Dec 2025 14:11:23 +0000
+Subject: [PATCH 6/6] Remove unnecessary EDID size check.
+
+---
+ module/evdi_painter.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index ced4f1c..9ad42bb 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -862,7 +862,6 @@ evdi_painter_connect(struct evdi_device *evdi,
+ {
+ 	struct evdi_painter *painter = evdi->painter;
+ 	struct edid *new_edid = NULL;
+-	unsigned int expected_edid_size = 0;
+ 	char buf[100];
+ 
+ 	evdi_log_process(buf, sizeof(buf));
+@@ -887,15 +886,6 @@ evdi_painter_connect(struct evdi_device *evdi,
+ 		return -EFAULT;
+ 	}
+ 
+-	expected_edid_size = sizeof(struct edid) +
+-			     new_edid->extensions * EDID_EXT_BLOCK_SIZE;
+-	if (expected_edid_size != edid_length) {
+-		EVDI_ERROR("Wrong edid size. Expected %d but is %d\n",
+-			   expected_edid_size, edid_length);
+-		kfree(new_edid);
+-		return -EINVAL;
+-	}
+-
+ 	if (painter->drm_filp)
+ 		EVDI_WARN("(card%d) Double connect - replacing %p with %p\n",
+ 			  evdi->dev_index, painter->drm_filp, file);
+-- 
+2.43.7
+

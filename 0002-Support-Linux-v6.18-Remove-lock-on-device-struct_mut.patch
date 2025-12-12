@@ -1,0 +1,43 @@
+From cc97fab0e2cfc7fba980f645b4901280018586db Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Tue, 14 Oct 2025 00:10:24 +0000
+Subject: [PATCH 2/6] [Support Linux v6.18] Remove lock on device->struct_mutex
+
+We unnecesarilly lock struct_mutex here
+- We do not modify struct drm_device object here.
+- evdi_pin_pages is already using own lock for pages
+- drm_gem_create_mmap_offset is already using vma lock inside
+- struct_mutex is removed since kernel 6.18
+---
+ module/evdi_gem.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index f594d1b..ee1dbcf 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -402,11 +402,9 @@ int evdi_gem_mmap(struct drm_file *file,
+ 	struct drm_gem_object *obj;
+ 	int ret = 0;
+ 
+-	mutex_lock(&dev->struct_mutex);
+ 	obj = drm_gem_object_lookup(file, handle);
+ 	if (obj == NULL) {
+-		ret = -ENOENT;
+-		goto unlock;
++		return -ENOENT;
+ 	}
+ 	gobj = to_evdi_bo(obj);
+ 
+@@ -429,8 +427,6 @@ int evdi_gem_mmap(struct drm_file *file,
+ 
+  out:
+ 	drm_gem_object_put(&gobj->base);
+- unlock:
+-	mutex_unlock(&dev->struct_mutex);
+ 	return ret;
+ }
+ 
+-- 
+2.43.7
+

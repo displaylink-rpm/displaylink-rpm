@@ -1,0 +1,34 @@
+From d00021b6a926b5ae14f45c95e908180422425b96 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 13 Oct 2025 23:59:29 +0000
+Subject: [PATCH 1/6] [Support Linux v6.18] Lock on dev struct_mutex
+ unnecessary as cursor is only modified
+
+---
+ module/evdi_modeset.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/module/evdi_modeset.c b/module/evdi_modeset.c
+index 9636323..6674e4b 100644
+--- a/module/evdi_modeset.c
++++ b/module/evdi_modeset.c
+@@ -341,8 +341,6 @@ static void evdi_cursor_atomic_update(struct drm_plane *plane,
+ 		int32_t cursor_position_x = 0;
+ 		int32_t cursor_position_y = 0;
+ 
+-		mutex_lock(&plane->dev->struct_mutex);
+-
+ 		evdi_cursor_position(evdi->cursor, &cursor_position_x,
+ 		&cursor_position_y);
+ 		evdi_cursor_move(evdi->cursor, state->crtc_x, state->crtc_y);
+@@ -367,7 +365,6 @@ static void evdi_cursor_atomic_update(struct drm_plane *plane,
+ 			cursor_changed = true;
+ 		}
+ 
+-		mutex_unlock(&plane->dev->struct_mutex);
+ 		if (!evdi->cursor_events_enabled) {
+ 			if (fb != NULL) {
+ 				if (efb->obj->allow_sw_cursor_rect_updates) {
+-- 
+2.43.7
+

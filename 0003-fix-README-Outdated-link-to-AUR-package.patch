@@ -1,0 +1,25 @@
+From 60639abb45f27b44944fa370f6ba4212a11b12a2 Mon Sep 17 00:00:00 2001
+From: Lukas Westholt <lukas.westholt@ekd-solar.de>
+Date: Mon, 27 Oct 2025 13:36:40 +0100
+Subject: [PATCH 3/6] fix(README): Outdated link to AUR package
+
+---
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 6288c41..860926f 100644
+--- a/README.md
++++ b/README.md
+@@ -22,7 +22,7 @@ EVDI is usually combined with the DisplayLink driver, we release it as a deb pac
+ 
+ There is an community driven GitHub project at [DisplayLink RPM](https://github.com/displaylink-rpm/displaylink-rpm) which is generating RPM package for Fedora, CentOS Stream, Rocky Linux and AlmaLinux OS. It uses our code as the basis to create the RPM packages.
+ 
+-There is also an [AUR package](https://aur.archlinux.org/packages/evdi) maintained by the community.
++There is also an [AUR package](https://aur.archlinux.org/packages/evdi-dkms) maintained by the community.
+ 
+ ## Contributing
+ 
+-- 
+2.43.7
+
