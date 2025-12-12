@@ -1,0 +1,113 @@
+From 687c9ec5220c5794da475979f06d7895202b35d5 Mon Sep 17 00:00:00 2001
+From: "Michael L. Young" <elgueromexicano@gmail.com>
+Date: Fri, 12 Dec 2025 11:41:51 -0500
+Subject: [PATCH 1/1] Fixup EL9 and EL10 support
+
+The latest EL 9.7 and 10.1 kernels backported changes from newer kernels up to
+6.15.
+
+This change accounts for those changes and restores functionality on these newer
+kernels.
+
+Signed-off-by: Michael L. Young <elgueromexicano@gmail.com>
+---
+ module/evdi_drm_drv.c      | 2 +-
+ module/evdi_fb.c           | 2 +-
+ module/evdi_painter.c      | 4 ++--
+ module/evdi_platform_dev.c | 3 ++-
+ module/evdi_platform_dev.h | 2 +-
+ module/evdi_platform_drv.h | 2 +-
+ 6 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/module/evdi_drm_drv.c b/module/evdi_drm_drv.c
+index 1a42496..c326651 100644
+--- a/module/evdi_drm_drv.c
++++ b/module/evdi_drm_drv.c
+@@ -104,7 +104,7 @@ static struct drm_driver driver = {
+ 	.open = evdi_driver_open,
+ 	.postclose = evdi_driver_postclose,
+ 
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ #ifdef CONFIG_FB
+ 	.fbdev_probe = evdifb_create,
+ #endif
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index 13c70fb..b87a9b1 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -522,7 +522,7 @@ int evdi_fbdev_init(struct drm_device *dev)
+ 	evdi->fbdev = efbdev;
+ #if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ 	drm_fb_helper_prepare(dev, &efbdev->helper, 32, NULL);
+-#elif KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#elif KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8)
+ 	drm_fb_helper_prepare(dev, &efbdev->helper, 32, &evdi_fb_helper_funcs);
+ #else
+ 	drm_fb_helper_prepare(dev, &efbdev->helper, &evdi_fb_helper_funcs);
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index c5d1251..7ef3159 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -36,9 +36,9 @@
+ #endif
+ 
+ /* Import of DMA_BUF namespace was reverted in EL8 */
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ MODULE_IMPORT_NS("DMA_BUF");
+-#elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
++#elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
+ MODULE_IMPORT_NS(DMA_BUF);
+ #endif
+ 
+diff --git a/module/evdi_platform_dev.c b/module/evdi_platform_dev.c
+index b47f2d6..9358c34 100644
+--- a/module/evdi_platform_dev.c
++++ b/module/evdi_platform_dev.c
+@@ -85,7 +85,7 @@ err_free:
+ 	return PTR_ERR_OR_ZERO(dev);
+ }
+ 
+-/* EL9 kernel removed the callback that was returning void  */
++/* EL9 kernel removed the callback that was returning void. Do not use for EL9 */
+ #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
+ void evdi_platform_device_remove(struct platform_device *pdev)
+ #else
+@@ -98,6 +98,7 @@ int evdi_platform_device_remove(struct platform_device *pdev)
+ 
+ 	evdi_drm_device_remove(data->drm_dev);
+ 	kfree(data);
++/* Need to return int for EL9 kernels */
+ #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
+ #else
+ 	return 0;
+diff --git a/module/evdi_platform_dev.h b/module/evdi_platform_dev.h
+index 5dddcbb..9c178ab 100644
+--- a/module/evdi_platform_dev.h
++++ b/module/evdi_platform_dev.h
+@@ -32,7 +32,7 @@ struct platform_device *evdi_platform_dev_create(struct platform_device_info *in
+ void evdi_platform_dev_destroy(struct platform_device *dev);
+ 
+ int evdi_platform_device_probe(struct platform_device *pdev);
+-/* EL9 kernel removed the callback that was returning void  */
++/* EL9 kernel removed the callback that was returning void. Do not use for EL9  */
+ #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
+ void evdi_platform_device_remove(struct platform_device *pdev);
+ #else
+diff --git a/module/evdi_platform_drv.h b/module/evdi_platform_drv.h
+index 4917160..daf7df9 100644
+--- a/module/evdi_platform_drv.h
++++ b/module/evdi_platform_drv.h
+@@ -27,7 +27,7 @@ struct platform_device_info;
+ 
+ #define DRIVER_NAME   "evdi"
+ #define DRIVER_DESC   "Extensible Virtual Display Interface"
+-#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ #else
+ #define DRIVER_DATE   "20250630"
+ #endif
+-- 
+2.43.7
+

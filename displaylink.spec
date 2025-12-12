@@ -40,7 +40,7 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
-Patch0:   revert_el10_dma_import_change.patch
+Patch0:   0001-Fixup-EL9-and-EL10-support.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -98,6 +98,8 @@ gzip -dc evdi.tar.gz | tar -xvvf -
 %setup -q -T -D -a 0
 cd evdi-%{version}
 %endif
+
+%patch -P 0 -p1
 
 sed -i 's/\r//' README.md
 
@@ -260,6 +262,10 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Fri Dec 26 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.12-1
+- Add patch that is being submitted to upstream to fixup EL 9.7 and 10.1
+  support
+
 * Mon Dec 01 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-2
 - Change patch for EL10 kernels to only be applied to bundled evdi tarball
   now that the patch has been merged upstream
