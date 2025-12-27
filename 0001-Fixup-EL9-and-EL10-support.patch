@@ -1,7 +1,7 @@
-From 687c9ec5220c5794da475979f06d7895202b35d5 Mon Sep 17 00:00:00 2001
+From e147525c51a8da2b4ca5a4b585a7841ad83631f9 Mon Sep 17 00:00:00 2001
 From: "Michael L. Young" <elgueromexicano@gmail.com>
 Date: Fri, 12 Dec 2025 11:41:51 -0500
-Subject: [PATCH 1/1] Fixup EL9 and EL10 support
+Subject: [PATCH] Fixup EL9 and EL10 support
 
 The latest EL 9.7 and 10.1 kernels backported changes from newer kernels up to
 6.15.
@@ -33,10 +33,10 @@ index 1a42496..c326651 100644
  	.fbdev_probe = evdifb_create,
  #endif
 diff --git a/module/evdi_fb.c b/module/evdi_fb.c
-index 13c70fb..b87a9b1 100644
+index d69b7f8..e1a90e3 100644
 --- a/module/evdi_fb.c
 +++ b/module/evdi_fb.c
-@@ -522,7 +522,7 @@ int evdi_fbdev_init(struct drm_device *dev)
+@@ -523,7 +523,7 @@ int evdi_fbdev_init(struct drm_device *dev)
  	evdi->fbdev = efbdev;
  #if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
  	drm_fb_helper_prepare(dev, &efbdev->helper, 32, NULL);
@@ -46,10 +46,10 @@ index 13c70fb..b87a9b1 100644
  #else
  	drm_fb_helper_prepare(dev, &efbdev->helper, &evdi_fb_helper_funcs);
 diff --git a/module/evdi_painter.c b/module/evdi_painter.c
-index c5d1251..7ef3159 100644
+index bf85b18..eb7e1ec 100644
 --- a/module/evdi_painter.c
 +++ b/module/evdi_painter.c
-@@ -36,9 +36,9 @@
+@@ -39,9 +39,9 @@
  #endif
  
  /* Import of DMA_BUF namespace was reverted in EL8 */
@@ -96,7 +96,7 @@ index 5dddcbb..9c178ab 100644
  void evdi_platform_device_remove(struct platform_device *pdev);
  #else
 diff --git a/module/evdi_platform_drv.h b/module/evdi_platform_drv.h
-index 4917160..daf7df9 100644
+index c61c0da..0613a1a 100644
 --- a/module/evdi_platform_drv.h
 +++ b/module/evdi_platform_drv.h
 @@ -27,7 +27,7 @@ struct platform_device_info;
@@ -106,7 +106,7 @@ index 4917160..daf7df9 100644
 -#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
 +#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
  #else
- #define DRIVER_DATE   "20250630"
+ #define DRIVER_DATE   "20251219"
  #endif
 -- 
 2.43.7
