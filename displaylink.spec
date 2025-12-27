@@ -1,4 +1,4 @@
-%{!?_daemon_version:%global _daemon_version 6.2.0-30}
+%{!?_daemon_version:%global _daemon_version 6.1.1-17}
 %{!?_version:%global _version 1.14.12}
 %{!?_release:%global _release 1}
 
@@ -267,6 +267,8 @@ fi
 - Update to evdi v1.14.12
 - Add patch that is being submitted to upstream to fixup EL 9.7 and 10.1
   support
+- Revert back to 6.1.1-17 version of the DisplayLink Manager driver
+- Add patch for bundled version of DLM to update evdi to 1.14.12
 
 * Mon Dec 01 2025 Michael L. Young <elgueromexicano@gmail.com> 1.14.11-2
 - Change patch for EL10 kernels to only be applied to bundled evdi tarball
