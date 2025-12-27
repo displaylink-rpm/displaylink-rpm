@@ -23,6 +23,9 @@ jobs:
           - os: centos-stream
             version: stream9
             dockernamespace: quay.io/centos/centos
+          - os: centos-stream
+            version: stream10
+            dockernamespace: quay.io/centos/centos
           - os: rocky
             version: 9
             dockernamespace: quay.io/rockylinux/rockylinux
@@ -107,6 +110,9 @@ jobs:
             dockernamespace: quay.io/fedora/fedora
           - os: centos-stream
             version: stream9
+            dockernamespace: quay.io/centos/centos
+          - os: centos-stream
+            version: stream10
             dockernamespace: quay.io/centos/centos
           - os: rocky
             version: 9
