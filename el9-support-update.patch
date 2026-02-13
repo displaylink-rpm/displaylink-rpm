@@ -1,0 +1,62 @@
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index 60895b2..2f6c29b 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -607,7 +607,7 @@ int evdi_fb_get_bpp(uint32_t format)
+ 	return info->cpp[0] * 8;
+ }
+ 
+-#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ static bool is_xe_gem(struct dma_buf *dmabuf)
+ {
+ 	struct drm_gem_object *obj;
+@@ -671,7 +671,7 @@ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 	if (ret)
+ 		goto err_inval;
+ 
+-#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ 	efb->is_from_xe = is_xe_gem(obj->dma_buf);
+ #endif
+ 	return &efb->base;
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index 4a1d2d5..a969eb7 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -119,7 +119,7 @@ struct evdi_painter {
+ 	unsigned int ddcci_buffer_length;
+ 	struct notifier_block vt_notifier;
+ 	int fg_console;
+-#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ 	struct dentry *debugfs_measure_copy;
+ #endif
+ };
+@@ -1263,7 +1263,7 @@ static void evdi_painter_unregister_from_vt(struct evdi_painter *painter)
+ 	EVDI_TEST_HOOK(evdi_testhook_painter_vt_register(&painter->vt_notifier));
+ }
+ 
+-#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ static int evdi_painter_debugfs_measure_copy_fb(void *data, u64 val)
+ {
+ 	struct evdi_painter *painter = (struct evdi_painter *)data;
+@@ -1327,7 +1327,7 @@ int evdi_painter_init(struct evdi_device *dev)
+ 		dev->painter->vblank = NULL;
+ 		dev->painter->drm_device = dev->ddev;
+ 		evdi_painter_register_to_vt(dev->painter);
+-#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ 		dev->painter->debugfs_measure_copy = debugfs_create_file("measure_copy_fb", 0400, dev->ddev->debugfs_root, dev->painter, &evdi_painter_debug_test_ops);
+ #endif
+ 
+@@ -1349,7 +1349,7 @@ void evdi_painter_cleanup(struct evdi_painter *painter)
+ 	}
+ 
+ 	painter_lock(painter);
+-#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ 	debugfs_lookup_and_remove("measure_copy_fb", painter->drm_device->debugfs_root);
+ #endif
+ 	evdi_painter_unregister_from_vt(painter);
