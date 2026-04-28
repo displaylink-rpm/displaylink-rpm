@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.2.0-30}
 %{!?_version:%global _version 1.14.15}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -41,7 +41,6 @@ Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
 Patch0:   update-bundled-evdi-to-latest-release.patch
-Patch1:   evdi-patches-main-branch.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -99,8 +98,6 @@ gzip -dc evdi.tar.gz | tar -xvvf -
 %setup -q -T -D -a 0
 cd evdi-%{version}
 %endif
-
-%patch -P 1 -p1
 
 sed -i 's/\r//' README.md
 
@@ -263,6 +260,9 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Mon Apr 27 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.15-2
+- Remove patch for changes that are in upstream evdi
+
 * Mon Apr 27 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.15-1
 - Update to evdi v1.14.15
 - Update patch for bundled version of DLM to update evdi to 1.14.15
