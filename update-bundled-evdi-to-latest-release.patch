@@ -1,883 +1,202 @@
-diff -urN evdi-a/ci/build_against_kernel evdi-b/ci/build_against_kernel
---- evdi-a/ci/build_against_kernel	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/ci/build_against_kernel	2026-02-09 03:40:17.000000000 -0500
-@@ -237,7 +237,7 @@
+From 149dbaea6ca49a20fa04636cf4a60ca5ee75b8a6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 13 Oct 2025 14:37:34 -0700
+Subject: [PATCH 01/28] [Support Linux v6.18] No need to lock in drm_gem_lookup
+ as it is already cares for locking
+
+---
+ module/evdi_modeset.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/module/evdi_modeset.c b/module/evdi_modeset.c
+index cadd7910..96363232 100644
+--- a/module/evdi_modeset.c
++++ b/module/evdi_modeset.c
+@@ -134,13 +134,11 @@ static int evdi_crtc_cursor_set(struct drm_crtc *crtc,
  
-   local src_dir
-   local KTAG=v${KVER}
--  local extra_cflags="-DCONFIG_FB"
-+  local extra_cflags="-DCONFIG_FB -DCONFIG_DRM_TTM_HELPER"
-   if [ "${KVER}" == "master" ]; then
-     KTAG="origin/master"
-   else
-diff -urN evdi-a/ci/deb_config evdi-b/ci/deb_config
---- evdi-a/ci/deb_config	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/ci/deb_config	2026-02-09 03:40:17.000000000 -0500
-@@ -8,7 +8,7 @@
- evdi_maintainer='Synaptics Technical Support <technical-enquiries@synaptics.com>'
+ 	EVDI_CHECKPT();
+ 	if (handle) {
+-		mutex_lock(&dev->struct_mutex);
+ 		obj = drm_gem_object_lookup(file, handle);
+ 		if (obj)
+ 			eobj = to_evdi_bo(obj);
+ 		else
+ 			EVDI_ERROR("Failed to lookup gem object.\n");
+-		mutex_unlock(&dev->struct_mutex);
+ 	}
  
- # shellcheck disable=SC2034
--evdi_version='1.14.11'
-+evdi_version='1.14.14'
+ 	evdi_cursor_set(evdi->cursor,
+
+From d00021b6a926b5ae14f45c95e908180422425b96 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 13 Oct 2025 23:59:29 +0000
+Subject: [PATCH 02/28] [Support Linux v6.18] Lock on dev struct_mutex
+ unnecessary as cursor is only modified
+
+---
+ module/evdi_modeset.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/module/evdi_modeset.c b/module/evdi_modeset.c
+index 96363232..6674e4b3 100644
+--- a/module/evdi_modeset.c
++++ b/module/evdi_modeset.c
+@@ -341,8 +341,6 @@ static void evdi_cursor_atomic_update(struct drm_plane *plane,
+ 		int32_t cursor_position_x = 0;
+ 		int32_t cursor_position_y = 0;
  
- # shellcheck disable=SC2034
- evdi_description="Extensible Virtual Display Interface (EVDI) is a Linux® kernel module that enables management of multiple screens.
-diff -urN evdi-a/.clang-format evdi-b/.clang-format
---- evdi-a/.clang-format	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/.clang-format	1969-12-31 19:00:00.000000000 -0500
-@@ -1,689 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0
--#
--# clang-format configuration file. Intended for clang-format >= 11.
--#
--# For more information, see:
--#
--#   Documentation/process/clang-format.rst
--#   https://clang.llvm.org/docs/ClangFormat.html
--#   https://clang.llvm.org/docs/ClangFormatStyleOptions.html
--#
-----
--AccessModifierOffset: -4
--AlignAfterOpenBracket: Align
--AlignConsecutiveAssignments: false
--AlignConsecutiveDeclarations: false
--AlignEscapedNewlines: Left
--AlignOperands: true
--AlignTrailingComments: false
--AllowAllParametersOfDeclarationOnNextLine: false
--AllowShortBlocksOnASingleLine: false
--AllowShortCaseLabelsOnASingleLine: false
--AllowShortFunctionsOnASingleLine: None
--AllowShortIfStatementsOnASingleLine: false
--AllowShortLoopsOnASingleLine: false
--AlwaysBreakAfterDefinitionReturnType: None
--AlwaysBreakAfterReturnType: None
--AlwaysBreakBeforeMultilineStrings: false
--AlwaysBreakTemplateDeclarations: false
--BinPackArguments: true
--BinPackParameters: true
--BraceWrapping:
--  AfterClass: false
--  AfterControlStatement: false
--  AfterEnum: false
--  AfterFunction: true
--  AfterNamespace: true
--  AfterObjCDeclaration: false
--  AfterStruct: false
--  AfterUnion: false
--  AfterExternBlock: false
--  BeforeCatch: false
--  BeforeElse: false
--  IndentBraces: false
--  SplitEmptyFunction: true
--  SplitEmptyRecord: true
--  SplitEmptyNamespace: true
--BreakBeforeBinaryOperators: None
--BreakBeforeBraces: Custom
--BreakBeforeInheritanceComma: false
--BreakBeforeTernaryOperators: false
--BreakConstructorInitializersBeforeComma: false
--BreakConstructorInitializers: BeforeComma
--BreakAfterJavaFieldAnnotations: false
--BreakStringLiterals: false
--ColumnLimit: 80
--CommentPragmas: '^ IWYU pragma:'
--CompactNamespaces: false
--ConstructorInitializerAllOnOneLineOrOnePerLine: false
--ConstructorInitializerIndentWidth: 8
--ContinuationIndentWidth: 8
--Cpp11BracedListStyle: false
--DerivePointerAlignment: false
--DisableFormat: false
--ExperimentalAutoDetectBinPacking: false
--FixNamespaceComments: false
+-		mutex_lock(&plane->dev->struct_mutex);
 -
--# Taken from:
--#   git grep -h '^#define [^[:space:]]*for_each[^[:space:]]*(' include/ tools/ \
--#   | sed "s,^#define \([^[:space:]]*for_each[^[:space:]]*\)(.*$,  - '\1'," \
--#   | LC_ALL=C sort -u
--ForEachMacros:
--  - '__ata_qc_for_each'
--  - '__bio_for_each_bvec'
--  - '__bio_for_each_segment'
--  - '__evlist__for_each_entry'
--  - '__evlist__for_each_entry_continue'
--  - '__evlist__for_each_entry_from'
--  - '__evlist__for_each_entry_reverse'
--  - '__evlist__for_each_entry_safe'
--  - '__for_each_mem_range'
--  - '__for_each_mem_range_rev'
--  - '__for_each_thread'
--  - '__hlist_for_each_rcu'
--  - '__map__for_each_symbol_by_name'
--  - '__perf_evlist__for_each_entry'
--  - '__perf_evlist__for_each_entry_reverse'
--  - '__perf_evlist__for_each_entry_safe'
--  - '__rq_for_each_bio'
--  - '__shost_for_each_device'
--  - 'apei_estatus_for_each_section'
--  - 'ata_for_each_dev'
--  - 'ata_for_each_link'
--  - 'ata_qc_for_each'
--  - 'ata_qc_for_each_raw'
--  - 'ata_qc_for_each_with_internal'
--  - 'ax25_for_each'
--  - 'ax25_uid_for_each'
--  - 'bio_for_each_bvec'
--  - 'bio_for_each_bvec_all'
--  - 'bio_for_each_folio_all'
--  - 'bio_for_each_integrity_vec'
--  - 'bio_for_each_segment'
--  - 'bio_for_each_segment_all'
--  - 'bio_list_for_each'
--  - 'bip_for_each_vec'
--  - 'bond_for_each_slave'
--  - 'bond_for_each_slave_rcu'
--  - 'bpf__perf_for_each_map'
--  - 'bpf__perf_for_each_map_named'
--  - 'bpf_for_each_spilled_reg'
--  - 'bpf_object__for_each_map'
--  - 'bpf_object__for_each_program'
--  - 'bpf_object__for_each_safe'
--  - 'bpf_perf_object__for_each'
--  - 'btree_for_each_safe128'
--  - 'btree_for_each_safe32'
--  - 'btree_for_each_safe64'
--  - 'btree_for_each_safel'
--  - 'card_for_each_dev'
--  - 'cgroup_taskset_for_each'
--  - 'cgroup_taskset_for_each_leader'
--  - 'cpufreq_for_each_efficient_entry_idx'
--  - 'cpufreq_for_each_entry'
--  - 'cpufreq_for_each_entry_idx'
--  - 'cpufreq_for_each_valid_entry'
--  - 'cpufreq_for_each_valid_entry_idx'
--  - 'css_for_each_child'
--  - 'css_for_each_descendant_post'
--  - 'css_for_each_descendant_pre'
--  - 'damon_for_each_region'
--  - 'damon_for_each_region_safe'
--  - 'damon_for_each_scheme'
--  - 'damon_for_each_scheme_safe'
--  - 'damon_for_each_target'
--  - 'damon_for_each_target_safe'
--  - 'data__for_each_file'
--  - 'data__for_each_file_new'
--  - 'data__for_each_file_start'
--  - 'device_for_each_child_node'
--  - 'displayid_iter_for_each'
--  - 'dma_fence_array_for_each'
--  - 'dma_fence_chain_for_each'
--  - 'dma_fence_unwrap_for_each'
--  - 'dma_resv_for_each_fence'
--  - 'dma_resv_for_each_fence_unlocked'
--  - 'do_for_each_ftrace_op'
--  - 'drm_atomic_crtc_for_each_plane'
--  - 'drm_atomic_crtc_state_for_each_plane'
--  - 'drm_atomic_crtc_state_for_each_plane_state'
--  - 'drm_atomic_for_each_plane_damage'
--  - 'drm_client_for_each_connector_iter'
--  - 'drm_client_for_each_modeset'
--  - 'drm_connector_for_each_possible_encoder'
--  - 'drm_for_each_bridge_in_chain'
--  - 'drm_for_each_connector_iter'
--  - 'drm_for_each_crtc'
--  - 'drm_for_each_crtc_reverse'
--  - 'drm_for_each_encoder'
--  - 'drm_for_each_encoder_mask'
--  - 'drm_for_each_fb'
--  - 'drm_for_each_legacy_plane'
--  - 'drm_for_each_plane'
--  - 'drm_for_each_plane_mask'
--  - 'drm_for_each_privobj'
--  - 'drm_mm_for_each_hole'
--  - 'drm_mm_for_each_node'
--  - 'drm_mm_for_each_node_in_range'
--  - 'drm_mm_for_each_node_safe'
--  - 'dsa_switch_for_each_available_port'
--  - 'dsa_switch_for_each_cpu_port'
--  - 'dsa_switch_for_each_port'
--  - 'dsa_switch_for_each_port_continue_reverse'
--  - 'dsa_switch_for_each_port_safe'
--  - 'dsa_switch_for_each_user_port'
--  - 'dsa_tree_for_each_user_port'
--  - 'dso__for_each_symbol'
--  - 'dsos__for_each_with_build_id'
--  - 'elf_hash_for_each_possible'
--  - 'elf_section__for_each_rel'
--  - 'elf_section__for_each_rela'
--  - 'elf_symtab__for_each_symbol'
--  - 'evlist__for_each_cpu'
--  - 'evlist__for_each_entry'
--  - 'evlist__for_each_entry_continue'
--  - 'evlist__for_each_entry_from'
--  - 'evlist__for_each_entry_reverse'
--  - 'evlist__for_each_entry_safe'
--  - 'flow_action_for_each'
--  - 'for_each_acpi_dev_match'
--  - 'for_each_active_dev_scope'
--  - 'for_each_active_drhd_unit'
--  - 'for_each_active_iommu'
--  - 'for_each_active_route'
--  - 'for_each_aggr_pgid'
--  - 'for_each_available_child_of_node'
--  - 'for_each_bench'
--  - 'for_each_bio'
--  - 'for_each_board_func_rsrc'
--  - 'for_each_btf_ext_rec'
--  - 'for_each_btf_ext_sec'
--  - 'for_each_bvec'
--  - 'for_each_card_auxs'
--  - 'for_each_card_auxs_safe'
--  - 'for_each_card_components'
--  - 'for_each_card_dapms'
--  - 'for_each_card_pre_auxs'
--  - 'for_each_card_prelinks'
--  - 'for_each_card_rtds'
--  - 'for_each_card_rtds_safe'
--  - 'for_each_card_widgets'
--  - 'for_each_card_widgets_safe'
--  - 'for_each_cgroup_storage_type'
--  - 'for_each_child_of_node'
--  - 'for_each_clear_bit'
--  - 'for_each_clear_bit_from'
--  - 'for_each_clear_bitrange'
--  - 'for_each_clear_bitrange_from'
--  - 'for_each_cmd'
--  - 'for_each_cmsghdr'
--  - 'for_each_collection'
--  - 'for_each_comp_order'
--  - 'for_each_compatible_node'
--  - 'for_each_component_dais'
--  - 'for_each_component_dais_safe'
--  - 'for_each_console'
--  - 'for_each_console_srcu'
--  - 'for_each_cpu'
--  - 'for_each_cpu_and'
--  - 'for_each_cpu_wrap'
--  - 'for_each_dapm_widgets'
--  - 'for_each_dedup_cand'
--  - 'for_each_dev_addr'
--  - 'for_each_dev_scope'
--  - 'for_each_dma_cap_mask'
--  - 'for_each_dpcm_be'
--  - 'for_each_dpcm_be_rollback'
--  - 'for_each_dpcm_be_safe'
--  - 'for_each_dpcm_fe'
--  - 'for_each_drhd_unit'
--  - 'for_each_dss_dev'
--  - 'for_each_efi_memory_desc'
--  - 'for_each_efi_memory_desc_in_map'
--  - 'for_each_element'
--  - 'for_each_element_extid'
--  - 'for_each_element_id'
--  - 'for_each_endpoint_of_node'
--  - 'for_each_event'
--  - 'for_each_event_tps'
--  - 'for_each_evictable_lru'
--  - 'for_each_fib6_node_rt_rcu'
--  - 'for_each_fib6_walker_rt'
--  - 'for_each_free_mem_pfn_range_in_zone'
--  - 'for_each_free_mem_pfn_range_in_zone_from'
--  - 'for_each_free_mem_range'
--  - 'for_each_free_mem_range_reverse'
--  - 'for_each_func_rsrc'
--  - 'for_each_group_device'
--  - 'for_each_group_evsel'
--  - 'for_each_group_member'
--  - 'for_each_hstate'
--  - 'for_each_if'
--  - 'for_each_inject_fn'
--  - 'for_each_insn'
--  - 'for_each_insn_prefix'
--  - 'for_each_intid'
--  - 'for_each_iommu'
--  - 'for_each_ip_tunnel_rcu'
--  - 'for_each_irq_nr'
--  - 'for_each_lang'
--  - 'for_each_link_codecs'
--  - 'for_each_link_cpus'
--  - 'for_each_link_platforms'
--  - 'for_each_lru'
--  - 'for_each_matching_node'
--  - 'for_each_matching_node_and_match'
--  - 'for_each_mem_pfn_range'
--  - 'for_each_mem_range'
--  - 'for_each_mem_range_rev'
--  - 'for_each_mem_region'
--  - 'for_each_member'
--  - 'for_each_memory'
--  - 'for_each_migratetype_order'
--  - 'for_each_missing_reg'
--  - 'for_each_net'
--  - 'for_each_net_continue_reverse'
--  - 'for_each_net_rcu'
--  - 'for_each_netdev'
--  - 'for_each_netdev_continue'
--  - 'for_each_netdev_continue_rcu'
--  - 'for_each_netdev_continue_reverse'
--  - 'for_each_netdev_feature'
--  - 'for_each_netdev_in_bond_rcu'
--  - 'for_each_netdev_rcu'
--  - 'for_each_netdev_reverse'
--  - 'for_each_netdev_safe'
--  - 'for_each_new_connector_in_state'
--  - 'for_each_new_crtc_in_state'
--  - 'for_each_new_mst_mgr_in_state'
--  - 'for_each_new_plane_in_state'
--  - 'for_each_new_plane_in_state_reverse'
--  - 'for_each_new_private_obj_in_state'
--  - 'for_each_new_reg'
--  - 'for_each_node'
--  - 'for_each_node_by_name'
--  - 'for_each_node_by_type'
--  - 'for_each_node_mask'
--  - 'for_each_node_state'
--  - 'for_each_node_with_cpus'
--  - 'for_each_node_with_property'
--  - 'for_each_nonreserved_multicast_dest_pgid'
--  - 'for_each_of_allnodes'
--  - 'for_each_of_allnodes_from'
--  - 'for_each_of_cpu_node'
--  - 'for_each_of_pci_range'
--  - 'for_each_old_connector_in_state'
--  - 'for_each_old_crtc_in_state'
--  - 'for_each_old_mst_mgr_in_state'
--  - 'for_each_old_plane_in_state'
--  - 'for_each_old_private_obj_in_state'
--  - 'for_each_oldnew_connector_in_state'
--  - 'for_each_oldnew_crtc_in_state'
--  - 'for_each_oldnew_mst_mgr_in_state'
--  - 'for_each_oldnew_plane_in_state'
--  - 'for_each_oldnew_plane_in_state_reverse'
--  - 'for_each_oldnew_private_obj_in_state'
--  - 'for_each_online_cpu'
--  - 'for_each_online_node'
--  - 'for_each_online_pgdat'
--  - 'for_each_path'
--  - 'for_each_pci_bridge'
--  - 'for_each_pci_dev'
--  - 'for_each_pcm_streams'
--  - 'for_each_physmem_range'
--  - 'for_each_populated_zone'
--  - 'for_each_possible_cpu'
--  - 'for_each_present_cpu'
--  - 'for_each_prime_number'
--  - 'for_each_prime_number_from'
--  - 'for_each_probe_cache_entry'
--  - 'for_each_process'
--  - 'for_each_process_thread'
--  - 'for_each_prop_codec_conf'
--  - 'for_each_prop_dai_codec'
--  - 'for_each_prop_dai_cpu'
--  - 'for_each_prop_dlc_codecs'
--  - 'for_each_prop_dlc_cpus'
--  - 'for_each_prop_dlc_platforms'
--  - 'for_each_property_of_node'
--  - 'for_each_reg'
--  - 'for_each_reg_filtered'
--  - 'for_each_registered_fb'
--  - 'for_each_requested_gpio'
--  - 'for_each_requested_gpio_in_range'
--  - 'for_each_reserved_mem_range'
--  - 'for_each_reserved_mem_region'
--  - 'for_each_rtd_codec_dais'
--  - 'for_each_rtd_components'
--  - 'for_each_rtd_cpu_dais'
--  - 'for_each_rtd_dais'
--  - 'for_each_script'
--  - 'for_each_sec'
--  - 'for_each_set_bit'
--  - 'for_each_set_bit_from'
--  - 'for_each_set_bitrange'
--  - 'for_each_set_bitrange_from'
--  - 'for_each_set_clump8'
--  - 'for_each_sg'
--  - 'for_each_sg_dma_page'
--  - 'for_each_sg_page'
--  - 'for_each_sgtable_dma_page'
--  - 'for_each_sgtable_dma_sg'
--  - 'for_each_sgtable_page'
--  - 'for_each_sgtable_sg'
--  - 'for_each_shell_test'
--  - 'for_each_sibling_event'
--  - 'for_each_subelement'
--  - 'for_each_subelement_extid'
--  - 'for_each_subelement_id'
--  - 'for_each_sublist'
--  - 'for_each_subsystem'
--  - 'for_each_supported_activate_fn'
--  - 'for_each_supported_inject_fn'
--  - 'for_each_test'
--  - 'for_each_thread'
--  - 'for_each_token'
--  - 'for_each_unicast_dest_pgid'
--  - 'for_each_vsi'
--  - 'for_each_wakeup_source'
--  - 'for_each_zone'
--  - 'for_each_zone_zonelist'
--  - 'for_each_zone_zonelist_nodemask'
--  - 'func_for_each_insn'
--  - 'fwnode_for_each_available_child_node'
--  - 'fwnode_for_each_child_node'
--  - 'fwnode_graph_for_each_endpoint'
--  - 'gadget_for_each_ep'
--  - 'genradix_for_each'
--  - 'genradix_for_each_from'
--  - 'hash_for_each'
--  - 'hash_for_each_possible'
--  - 'hash_for_each_possible_rcu'
--  - 'hash_for_each_possible_rcu_notrace'
--  - 'hash_for_each_possible_safe'
--  - 'hash_for_each_rcu'
--  - 'hash_for_each_safe'
--  - 'hashmap__for_each_entry'
--  - 'hashmap__for_each_entry_safe'
--  - 'hashmap__for_each_key_entry'
--  - 'hashmap__for_each_key_entry_safe'
--  - 'hctx_for_each_ctx'
--  - 'hists__for_each_format'
--  - 'hists__for_each_sort_list'
--  - 'hlist_bl_for_each_entry'
--  - 'hlist_bl_for_each_entry_rcu'
--  - 'hlist_bl_for_each_entry_safe'
--  - 'hlist_for_each'
--  - 'hlist_for_each_entry'
--  - 'hlist_for_each_entry_continue'
--  - 'hlist_for_each_entry_continue_rcu'
--  - 'hlist_for_each_entry_continue_rcu_bh'
--  - 'hlist_for_each_entry_from'
--  - 'hlist_for_each_entry_from_rcu'
--  - 'hlist_for_each_entry_rcu'
--  - 'hlist_for_each_entry_rcu_bh'
--  - 'hlist_for_each_entry_rcu_notrace'
--  - 'hlist_for_each_entry_safe'
--  - 'hlist_for_each_entry_srcu'
--  - 'hlist_for_each_safe'
--  - 'hlist_nulls_for_each_entry'
--  - 'hlist_nulls_for_each_entry_from'
--  - 'hlist_nulls_for_each_entry_rcu'
--  - 'hlist_nulls_for_each_entry_safe'
--  - 'i3c_bus_for_each_i2cdev'
--  - 'i3c_bus_for_each_i3cdev'
--  - 'idr_for_each_entry'
--  - 'idr_for_each_entry_continue'
--  - 'idr_for_each_entry_continue_ul'
--  - 'idr_for_each_entry_ul'
--  - 'in_dev_for_each_ifa_rcu'
--  - 'in_dev_for_each_ifa_rtnl'
--  - 'inet_bind_bucket_for_each'
--  - 'inet_lhash2_for_each_icsk'
--  - 'inet_lhash2_for_each_icsk_continue'
--  - 'inet_lhash2_for_each_icsk_rcu'
--  - 'interval_tree_for_each_double_span'
--  - 'interval_tree_for_each_span'
--  - 'intlist__for_each_entry'
--  - 'intlist__for_each_entry_safe'
--  - 'iopt_for_each_contig_area'
--  - 'kcore_copy__for_each_phdr'
--  - 'key_for_each'
--  - 'key_for_each_safe'
--  - 'klp_for_each_func'
--  - 'klp_for_each_func_safe'
--  - 'klp_for_each_func_static'
--  - 'klp_for_each_object'
--  - 'klp_for_each_object_safe'
--  - 'klp_for_each_object_static'
--  - 'kunit_suite_for_each_test_case'
--  - 'kvm_for_each_memslot'
--  - 'kvm_for_each_memslot_in_gfn_range'
--  - 'kvm_for_each_vcpu'
--  - 'libbpf_nla_for_each_attr'
--  - 'list_for_each'
--  - 'list_for_each_codec'
--  - 'list_for_each_codec_safe'
--  - 'list_for_each_continue'
--  - 'list_for_each_entry'
--  - 'list_for_each_entry_continue'
--  - 'list_for_each_entry_continue_rcu'
--  - 'list_for_each_entry_continue_reverse'
--  - 'list_for_each_entry_from'
--  - 'list_for_each_entry_from_rcu'
--  - 'list_for_each_entry_from_reverse'
--  - 'list_for_each_entry_lockless'
--  - 'list_for_each_entry_rcu'
--  - 'list_for_each_entry_reverse'
--  - 'list_for_each_entry_safe'
--  - 'list_for_each_entry_safe_continue'
--  - 'list_for_each_entry_safe_from'
--  - 'list_for_each_entry_safe_reverse'
--  - 'list_for_each_entry_srcu'
--  - 'list_for_each_from'
--  - 'list_for_each_prev'
--  - 'list_for_each_prev_safe'
--  - 'list_for_each_safe'
--  - 'llist_for_each'
--  - 'llist_for_each_entry'
--  - 'llist_for_each_entry_safe'
--  - 'llist_for_each_safe'
--  - 'map__for_each_symbol'
--  - 'map__for_each_symbol_by_name'
--  - 'map_for_each_event'
--  - 'map_for_each_metric'
--  - 'maps__for_each_entry'
--  - 'maps__for_each_entry_safe'
--  - 'mci_for_each_dimm'
--  - 'media_device_for_each_entity'
--  - 'media_device_for_each_intf'
--  - 'media_device_for_each_link'
--  - 'media_device_for_each_pad'
--  - 'msi_for_each_desc'
--  - 'nanddev_io_for_each_page'
--  - 'netdev_for_each_lower_dev'
--  - 'netdev_for_each_lower_private'
--  - 'netdev_for_each_lower_private_rcu'
--  - 'netdev_for_each_mc_addr'
--  - 'netdev_for_each_uc_addr'
--  - 'netdev_for_each_upper_dev_rcu'
--  - 'netdev_hw_addr_list_for_each'
--  - 'nft_rule_for_each_expr'
--  - 'nla_for_each_attr'
--  - 'nla_for_each_nested'
--  - 'nlmsg_for_each_attr'
--  - 'nlmsg_for_each_msg'
--  - 'nr_neigh_for_each'
--  - 'nr_neigh_for_each_safe'
--  - 'nr_node_for_each'
--  - 'nr_node_for_each_safe'
--  - 'of_for_each_phandle'
--  - 'of_property_for_each_string'
--  - 'of_property_for_each_u32'
--  - 'pci_bus_for_each_resource'
--  - 'pci_dev_for_each_resource'
--  - 'pcl_for_each_chunk'
--  - 'pcl_for_each_segment'
--  - 'pcm_for_each_format'
--  - 'perf_config_items__for_each_entry'
--  - 'perf_config_sections__for_each_entry'
--  - 'perf_config_set__for_each_entry'
--  - 'perf_cpu_map__for_each_cpu'
--  - 'perf_evlist__for_each_entry'
--  - 'perf_evlist__for_each_entry_reverse'
--  - 'perf_evlist__for_each_entry_safe'
--  - 'perf_evlist__for_each_evsel'
--  - 'perf_evlist__for_each_mmap'
--  - 'perf_hpp_list__for_each_format'
--  - 'perf_hpp_list__for_each_format_safe'
--  - 'perf_hpp_list__for_each_sort_list'
--  - 'perf_hpp_list__for_each_sort_list_safe'
--  - 'perf_pmu__for_each_hybrid_pmu'
--  - 'ping_portaddr_for_each_entry'
--  - 'ping_portaddr_for_each_entry_rcu'
--  - 'plist_for_each'
--  - 'plist_for_each_continue'
--  - 'plist_for_each_entry'
--  - 'plist_for_each_entry_continue'
--  - 'plist_for_each_entry_safe'
--  - 'plist_for_each_safe'
--  - 'pnp_for_each_card'
--  - 'pnp_for_each_dev'
--  - 'protocol_for_each_card'
--  - 'protocol_for_each_dev'
--  - 'queue_for_each_hw_ctx'
--  - 'radix_tree_for_each_slot'
--  - 'radix_tree_for_each_tagged'
--  - 'rb_for_each'
--  - 'rbtree_postorder_for_each_entry_safe'
--  - 'rdma_for_each_block'
--  - 'rdma_for_each_port'
--  - 'rdma_umem_for_each_dma_block'
--  - 'resort_rb__for_each_entry'
--  - 'resource_list_for_each_entry'
--  - 'resource_list_for_each_entry_safe'
--  - 'rhl_for_each_entry_rcu'
--  - 'rhl_for_each_rcu'
--  - 'rht_for_each'
--  - 'rht_for_each_entry'
--  - 'rht_for_each_entry_from'
--  - 'rht_for_each_entry_rcu'
--  - 'rht_for_each_entry_rcu_from'
--  - 'rht_for_each_entry_safe'
--  - 'rht_for_each_from'
--  - 'rht_for_each_rcu'
--  - 'rht_for_each_rcu_from'
--  - 'rq_for_each_bvec'
--  - 'rq_for_each_segment'
--  - 'rq_list_for_each'
--  - 'rq_list_for_each_safe'
--  - 'scsi_for_each_prot_sg'
--  - 'scsi_for_each_sg'
--  - 'sctp_for_each_hentry'
--  - 'sctp_skb_for_each'
--  - 'sec_for_each_insn'
--  - 'sec_for_each_insn_continue'
--  - 'sec_for_each_insn_from'
--  - 'shdma_for_each_chan'
--  - 'shost_for_each_device'
--  - 'sk_for_each'
--  - 'sk_for_each_bound'
--  - 'sk_for_each_entry_offset_rcu'
--  - 'sk_for_each_from'
--  - 'sk_for_each_rcu'
--  - 'sk_for_each_safe'
--  - 'sk_nulls_for_each'
--  - 'sk_nulls_for_each_from'
--  - 'sk_nulls_for_each_rcu'
--  - 'snd_array_for_each'
--  - 'snd_pcm_group_for_each_entry'
--  - 'snd_soc_dapm_widget_for_each_path'
--  - 'snd_soc_dapm_widget_for_each_path_safe'
--  - 'snd_soc_dapm_widget_for_each_sink_path'
--  - 'snd_soc_dapm_widget_for_each_source_path'
--  - 'strlist__for_each_entry'
--  - 'strlist__for_each_entry_safe'
--  - 'sym_for_each_insn'
--  - 'sym_for_each_insn_continue_reverse'
--  - 'symbols__for_each_entry'
--  - 'tb_property_for_each'
--  - 'tcf_act_for_each_action'
--  - 'tcf_exts_for_each_action'
--  - 'udp_portaddr_for_each_entry'
--  - 'udp_portaddr_for_each_entry_rcu'
--  - 'usb_hub_for_each_child'
--  - 'v4l2_device_for_each_subdev'
--  - 'v4l2_m2m_for_each_dst_buf'
--  - 'v4l2_m2m_for_each_dst_buf_safe'
--  - 'v4l2_m2m_for_each_src_buf'
--  - 'v4l2_m2m_for_each_src_buf_safe'
--  - 'virtio_device_for_each_vq'
--  - 'while_for_each_ftrace_op'
--  - 'xa_for_each'
--  - 'xa_for_each_marked'
--  - 'xa_for_each_range'
--  - 'xa_for_each_start'
--  - 'xas_for_each'
--  - 'xas_for_each_conflict'
--  - 'xas_for_each_marked'
--  - 'xbc_array_for_each_value'
--  - 'xbc_for_each_key_value'
--  - 'xbc_node_for_each_array_value'
--  - 'xbc_node_for_each_child'
--  - 'xbc_node_for_each_key_value'
--  - 'xbc_node_for_each_subkey'
--  - 'zorro_for_each_dev'
--
--IncludeBlocks: Preserve
--IncludeCategories:
--  - Regex: '.*'
--    Priority: 1
--IncludeIsMainRegex: '(Test)?$'
--IndentCaseLabels: false
--IndentGotoLabels: false
--IndentPPDirectives: None
--IndentWidth: 8
--IndentWrappedFunctionNames: false
--JavaScriptQuotes: Leave
--JavaScriptWrapImports: true
--KeepEmptyLinesAtTheStartOfBlocks: false
--MacroBlockBegin: ''
--MacroBlockEnd: ''
--MaxEmptyLinesToKeep: 1
--NamespaceIndentation: None
--ObjCBinPackProtocolList: Auto
--ObjCBlockIndentWidth: 8
--ObjCSpaceAfterProperty: true
--ObjCSpaceBeforeProtocolList: true
--
--# Taken from git's rules
--PenaltyBreakAssignment: 10
--PenaltyBreakBeforeFirstCallParameter: 30
--PenaltyBreakComment: 10
--PenaltyBreakFirstLessLess: 0
--PenaltyBreakString: 10
--PenaltyExcessCharacter: 100
--PenaltyReturnTypeOnItsOwnLine: 60
--
--PointerAlignment: Right
--ReflowComments: false
--SortIncludes: false
--SortUsingDeclarations: false
--SpaceAfterCStyleCast: false
--SpaceAfterTemplateKeyword: true
--SpaceBeforeAssignmentOperators: true
--SpaceBeforeCtorInitializerColon: true
--SpaceBeforeInheritanceColon: true
--SpaceBeforeParens: ControlStatementsExceptForEachMacros
--SpaceBeforeRangeBasedForLoopColon: true
--SpaceInEmptyParentheses: false
--SpacesBeforeTrailingComments: 1
--SpacesInAngles: false
--SpacesInContainerLiterals: false
--SpacesInCStyleCastParentheses: false
--SpacesInParentheses: false
--SpacesInSquareBrackets: false
--Standard: Cpp03
--TabWidth: 8
--UseTab: Always
--...
-diff -urN evdi-a/.github/ISSUE_TEMPLATE.md evdi-b/.github/ISSUE_TEMPLATE.md
---- evdi-a/.github/ISSUE_TEMPLATE.md	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/.github/ISSUE_TEMPLATE.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,28 +0,0 @@
--<!-- Initially please make sure the problem hasn't been already addressed: -->
--  * Are you using the latest driver?
--    <!-- (https://www.displaylink.com/downloads/ubuntu) -->
--  * Are you using the latest EVDI version?
--    <!-- (https://github.com/DisplayLink/evdi/releases) -->
--  * If you are using a DisplayLink device, have you checked 'troubleshooting'
--    on DisplayLink's website?
--    <!-- (https://support.displaylink.com/knowledgebase/topics/103927-troubleshooting-ubuntu) -->
--  * Is this issue related to evdi/kernel?
--    <!-- (if it is rather connected to DisplayLinkManager please take a look at support
--    https://support.displaylink.com or forum https://www.displaylink.org/forum/) -->
--
--<!-- Some information for baseline would help a lot: -->
--  * Linux distribution and its version
--  * Linux kernel version
--  * Xorg version (if used)
--  * Desktop environment in use
--
--<!--
--Please provide good title for the issue and description.
--If you can give us logs they will be welcome but please don't paste long listings
--as they will make it hard to read the thread, instead you can use other services
--for sharing raw text like pastebin or gist.
--Also anything that may help to understand the problem will be appreciated
--(configuration files, screenshots, photos, video capturing the problem).
--
--Thanks!
---->
-diff -urN evdi-a/.github/PULL_REQUEST_TEMPLATE.md evdi-b/.github/PULL_REQUEST_TEMPLATE.md
---- evdi-a/.github/PULL_REQUEST_TEMPLATE.md	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/.github/PULL_REQUEST_TEMPLATE.md	1969-12-31 19:00:00.000000000 -0500
-@@ -1,14 +0,0 @@
--Before submitting the PR please make sure you have run *ci* scripts:
--  * `./ci/build_against_kernel` (see `--help` for all options)
--    We need backward compatibility and this script is a handy way of testing
--    build compliance with many kernel versions.
--  * `./ci/run_style_check`
--    We want to be as style compliant as possible. Again, this is a handy way of
--    checking it.
--
--If you have more than one change consider creating separate PRs for them; it
--will make the review process much easier. Also provide some description (links
--to source code or mailing list are welcome - this might help to understand the
--change).
--
--Thanks for the contribution!
-diff -urN evdi-a/.gitignore evdi-b/.gitignore
---- evdi-a/.gitignore	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/.gitignore	1969-12-31 19:00:00.000000000 -0500
-@@ -1,27 +0,0 @@
--*.cmd
--*.d
--*.ko
--*.o
--*.order
--*.rej
--*.so
--*.so.*
--*.symvers
--
--module/.cache.mk
--module/.tmp_versions/
--module/built-in.a
--module/evdi.mod
--module/evdi.mod.c
--
--site/
--tmp/
--
--checkpatch.pl
--const_structs.checkpatch
--spelling.txt
--
--__pycache__/
--.venv_evdi/
--.cache/
--compile_commands.json
-diff -urN evdi-a/.gitlab/CODEOWNERS evdi-b/.gitlab/CODEOWNERS
---- evdi-a/.gitlab/CODEOWNERS	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/.gitlab/CODEOWNERS	1969-12-31 19:00:00.000000000 -0500
-@@ -1,2 +0,0 @@
--[MAINTAINER]
--* @lspintzyk @jprussak @emajewska @mlukaszek @akaleta
-diff -urN evdi-a/library/evdi_lib.c evdi-b/library/evdi_lib.c
---- evdi-a/library/evdi_lib.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/library/evdi_lib.c	2026-02-09 03:40:17.000000000 -0500
-@@ -1,4 +1,4 @@
--// SPDX-License-Identifier: LGPL-2.1-only
-+// SPDX-License-Identifier: LGPL-2.1-or-later
- // Copyright (c) 2015 - 2024 DisplayLink (UK) Ltd.
+ 		evdi_cursor_position(evdi->cursor, &cursor_position_x,
+ 		&cursor_position_y);
+ 		evdi_cursor_move(evdi->cursor, state->crtc_x, state->crtc_y);
+@@ -367,7 +365,6 @@ static void evdi_cursor_atomic_update(struct drm_plane *plane,
+ 			cursor_changed = true;
+ 		}
  
- #include <stddef.h>
-diff -urN evdi-a/library/evdi_lib.h evdi-b/library/evdi_lib.h
---- evdi-a/library/evdi_lib.h	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/library/evdi_lib.h	2026-02-09 03:40:17.000000000 -0500
-@@ -1,4 +1,4 @@
--/* SPDX-License-Identifier: LGPL-2.1-only
-+/* SPDX-License-Identifier: LGPL-2.1-or-later
-  * Copyright (c) 2015 - 2024 DisplayLink (UK) Ltd.
-  */
+-		mutex_unlock(&plane->dev->struct_mutex);
+ 		if (!evdi->cursor_events_enabled) {
+ 			if (fb != NULL) {
+ 				if (efb->obj->allow_sw_cursor_rect_updates) {
+
+From cc97fab0e2cfc7fba980f645b4901280018586db Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Tue, 14 Oct 2025 00:10:24 +0000
+Subject: [PATCH 03/28] [Support Linux v6.18] Remove lock on
+ device->struct_mutex
+
+We unnecesarilly lock struct_mutex here
+- We do not modify struct drm_device object here.
+- evdi_pin_pages is already using own lock for pages
+- drm_gem_create_mmap_offset is already using vma lock inside
+- struct_mutex is removed since kernel 6.18
+---
+ module/evdi_gem.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index f594d1b3..ee1dbcff 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -402,11 +402,9 @@ int evdi_gem_mmap(struct drm_file *file,
+ 	struct drm_gem_object *obj;
+ 	int ret = 0;
  
-@@ -15,7 +15,7 @@
+-	mutex_lock(&dev->struct_mutex);
+ 	obj = drm_gem_object_lookup(file, handle);
+ 	if (obj == NULL) {
+-		ret = -ENOENT;
+-		goto unlock;
++		return -ENOENT;
+ 	}
+ 	gobj = to_evdi_bo(obj);
  
- #define LIBEVDI_VERSION_MAJOR 1
- #define LIBEVDI_VERSION_MINOR 14
--#define LIBEVDI_VERSION_PATCH 11
-+#define LIBEVDI_VERSION_PATCH 14
+@@ -429,8 +427,6 @@ int evdi_gem_mmap(struct drm_file *file,
  
- struct evdi_lib_version {
- 	int version_major;
-diff -urN evdi-a/library/evdi_procfs.c evdi-b/library/evdi_procfs.c
---- evdi-a/library/evdi_procfs.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/library/evdi_procfs.c	2026-02-09 03:40:17.000000000 -0500
-@@ -1,4 +1,4 @@
--// SPDX-License-Identifier: LGPL-2.1-only
-+// SPDX-License-Identifier: LGPL-2.1-or-later
- // Copyright (c) 2015 - 2024 DisplayLink (UK) Ltd.
+  out:
+ 	drm_gem_object_put(&gobj->base);
+- unlock:
+-	mutex_unlock(&dev->struct_mutex);
+ 	return ret;
+ }
  
- #include "evdi_lib.h"
-diff -urN evdi-a/library/Makefile evdi-b/library/Makefile
---- evdi-a/library/Makefile	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/library/Makefile	2026-02-09 03:40:17.000000000 -0500
-@@ -11,7 +11,7 @@
- DEPS = evdi_ioctl.h
- CFLAGS := -I../module -std=gnu99 -fPIC -D_FILE_OFFSET_BITS=64 $(CFLAGS) $$($(PKG_CONFIG) --cflags-only-I libdrm)
+
+From 60639abb45f27b44944fa370f6ba4212a11b12a2 Mon Sep 17 00:00:00 2001
+From: Lukas Westholt <lukas.westholt@ekd-solar.de>
+Date: Mon, 27 Oct 2025 13:36:40 +0100
+Subject: [PATCH 04/28] fix(README): Outdated link to AUR package
+
+---
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 6288c410..860926ff 100644
+--- a/README.md
++++ b/README.md
+@@ -22,7 +22,7 @@ EVDI is usually combined with the DisplayLink driver, we release it as a deb pac
  
--LIBVER := 1.14.11
-+LIBVER := 1.14.14
- LIBABI := 1
+ There is an community driven GitHub project at [DisplayLink RPM](https://github.com/displaylink-rpm/displaylink-rpm) which is generating RPM package for Fedora, CentOS Stream, Rocky Linux and AlmaLinux OS. It uses our code as the basis to create the RPM packages.
  
- PREFIX ?= /usr/local
-diff -urN evdi-a/module/dkms.conf evdi-b/module/dkms.conf
---- evdi-a/module/dkms.conf	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/dkms.conf	2026-02-09 03:40:17.000000000 -0500
-@@ -7,7 +7,7 @@
- #
+-There is also an [AUR package](https://aur.archlinux.org/packages/evdi) maintained by the community.
++There is also an [AUR package](https://aur.archlinux.org/packages/evdi-dkms) maintained by the community.
  
- PACKAGE_NAME="evdi"
--PACKAGE_VERSION=1.14.11
-+PACKAGE_VERSION=1.14.14
- AUTOINSTALL=yes
+ ## Contributing
  
- MAKE[0]="make all INCLUDEDIR=/lib/modules/$kernelver/build/include KVERSION=$kernelver DKMS_BUILD=1"
-diff -urN evdi-a/module/dkms_install.sh evdi-b/module/dkms_install.sh
---- evdi-a/module/dkms_install.sh	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/dkms_install.sh	2026-02-09 03:40:17.000000000 -0500
-@@ -2,7 +2,7 @@
- # SPDX-License-Identifier: GPL-2.0-only
- # Copyright (c) 2023 DisplayLink (UK) Ltd.
+
+From 9004c9ee6caeddc56b95cdaa82281e073035f251 Mon Sep 17 00:00:00 2001
+From: "Michael L. Young" <elgueromexicano@gmail.com>
+Date: Sat, 15 Nov 2025 23:31:39 -0500
+Subject: [PATCH 05/28] Fix building on EL 10 kernels
+
+The EL 10 kernels are on 6.12. The string literals change happened in version
+6.13.
+
+Signed-off-by: Michael L. Young <elgueromexicano@gmail.com>
+---
+ module/evdi_gem.c     | 2 +-
+ module/evdi_painter.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index ee1dbcff..8e27ca3b 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -29,7 +29,7 @@
+ #include <linux/vmalloc.h>
  
--evdi_version='1.14.11'
-+evdi_version='1.14.14'
  
- EVDI_DIR=$(dirname "${BASH_SOURCE[0]}")
- EVDI_REBOOT_RATIONALE=
-diff -urN evdi-a/module/evdi_connector.c evdi-b/module/evdi_connector.c
---- evdi-a/module/evdi_connector.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_connector.c	2026-02-09 03:40:17.000000000 -0500
-@@ -78,7 +78,7 @@
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index 47e0acd4..ced4f1ca 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -36,7 +36,7 @@
+ #endif
+ 
+ /* Import of DMA_BUF namespace was reverted in EL8 */
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+
+From 0de7c51edd877a9bef06684cd10674b533613b0c Mon Sep 17 00:00:00 2001
+From: Simone Caronni <negativo17@gmail.com>
+Date: Mon, 1 Dec 2025 09:38:40 +0100
+Subject: [PATCH 06/28] Fix RHEL 9.7 and 10.1 kernels
+
+---
+ module/Makefile         | 2 +-
+ module/evdi_connector.c | 2 +-
+ module/evdi_drm_drv.c   | 2 +-
+ module/evdi_fb.c        | 4 ++--
+ module/evdi_gem.c       | 2 +-
+ module/evdi_painter.c   | 2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/module/Makefile b/module/Makefile
+index 5bb0134b..a6bdf8eb 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -9,7 +9,7 @@
+ include /etc/os-release
+ 
+ ifneq (,$(findstring rhel,$(ID_LIKE)))
+-ELFLAG := -DEL$(VERSION_ID)
++ELFLAG := -DEL$(shell echo $(VERSION_ID) | cut -d. -f1)
+ endif
+ 
+ Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
+diff --git a/module/evdi_connector.c b/module/evdi_connector.c
+index 21555074..77e524bc 100644
+--- a/module/evdi_connector.c
++++ b/module/evdi_connector.c
+@@ -78,7 +78,7 @@ static bool is_lowest_frequency_mode_of_given_resolution(
  }
  
  static enum drm_mode_status evdi_mode_valid(struct drm_connector *connector,
@@ -886,19 +205,11 @@ diff -urN evdi-a/module/evdi_connector.c evdi-b/module/evdi_connector.c
  					    const struct drm_display_mode *mode)
  #else
  					    struct drm_display_mode *mode)
-diff -urN evdi-a/module/evdi_drm_drv.c evdi-b/module/evdi_drm_drv.c
---- evdi-a/module/evdi_drm_drv.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_drm_drv.c	2026-02-09 03:40:17.000000000 -0500
-@@ -104,7 +104,7 @@
- 	.open = evdi_driver_open,
- 	.postclose = evdi_driver_postclose,
- 
--#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
-+#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
- #ifdef CONFIG_FB
- 	.fbdev_probe = evdifb_create,
- #endif
-@@ -153,7 +153,7 @@
+diff --git a/module/evdi_drm_drv.c b/module/evdi_drm_drv.c
+index dba8b4be..1a424967 100644
+--- a/module/evdi_drm_drv.c
++++ b/module/evdi_drm_drv.c
+@@ -153,7 +153,7 @@ static struct drm_driver driver = {
  
  	.name = DRIVER_NAME,
  	.desc = DRIVER_DESC,
@@ -907,29 +218,11 @@ diff -urN evdi-a/module/evdi_drm_drv.c evdi-b/module/evdi_drm_drv.c
  #else
  	.date = DRIVER_DATE,
  #endif
-diff -urN evdi-a/module/evdi_drm_drv.h evdi-b/module/evdi_drm_drv.h
---- evdi-a/module/evdi_drm_drv.h	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_drm_drv.h	2026-02-09 03:40:17.000000000 -0500
-@@ -79,6 +79,7 @@
- 	struct drm_framebuffer base;
- 	struct evdi_gem_object *obj;
- 	bool active;
-+	bool is_from_xe;
- };
- 
- #define to_evdi_fb(x) container_of(x, struct evdi_framebuffer, base)
-diff -urN evdi-a/module/evdi_fb.c evdi-b/module/evdi_fb.c
---- evdi-a/module/evdi_fb.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_fb.c	2026-02-09 03:40:17.000000000 -0500
-@@ -25,6 +25,7 @@
- #include <drm/drm_crtc_helper.h>
- #include <drm/drm_fb_helper.h>
- #include <drm/drm_atomic.h>
-+#include <drm/drm_print.h>
- #if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
- #include <drm/drm_damage_helper.h>
- #endif
-@@ -471,7 +472,7 @@
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index e96ec986..13c70fb6 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -471,7 +471,7 @@ int evdifb_create(struct drm_fb_helper *helper,
  	return ret;
  }
  
@@ -938,58 +231,415 @@ diff -urN evdi-a/module/evdi_fb.c evdi-b/module/evdi_fb.c
  #else
  static struct drm_fb_helper_funcs evdi_fb_helper_funcs = {
  	.fb_probe = evdifb_create,
-@@ -520,9 +521,9 @@
+@@ -520,7 +520,7 @@ int evdi_fbdev_init(struct drm_device *dev)
  		return -ENOMEM;
  
  	evdi->fbdev = efbdev;
 -#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
 +#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
  	drm_fb_helper_prepare(dev, &efbdev->helper, 32, NULL);
+ #elif KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+ 	drm_fb_helper_prepare(dev, &efbdev->helper, 32, &evdi_fb_helper_funcs);
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index 8e27ca3b..ee1dbcff 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -29,7 +29,7 @@
+ #include <linux/vmalloc.h>
+ 
+ 
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index ced4f1ca..47e0acd4 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -36,7 +36,7 @@
+ #endif
+ 
+ /* Import of DMA_BUF namespace was reverted in EL8 */
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
+ MODULE_IMPORT_NS("DMA_BUF");
+ #elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+ MODULE_IMPORT_NS(DMA_BUF);
+
+From b140b01a222fccb52777b0f44bbd055c5bb46981 Mon Sep 17 00:00:00 2001
+From: Jakub Prussak <jakub.prussak@synaptics.com>
+Date: Mon, 8 Dec 2025 14:11:23 +0000
+Subject: [PATCH 07/28] Remove unnecessary EDID size check.
+
+---
+ module/evdi_painter.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index ced4f1ca..9ad42bb4 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -862,7 +862,6 @@ evdi_painter_connect(struct evdi_device *evdi,
+ {
+ 	struct evdi_painter *painter = evdi->painter;
+ 	struct edid *new_edid = NULL;
+-	unsigned int expected_edid_size = 0;
+ 	char buf[100];
+ 
+ 	evdi_log_process(buf, sizeof(buf));
+@@ -887,15 +886,6 @@ evdi_painter_connect(struct evdi_device *evdi,
+ 		return -EFAULT;
+ 	}
+ 
+-	expected_edid_size = sizeof(struct edid) +
+-			     new_edid->extensions * EDID_EXT_BLOCK_SIZE;
+-	if (expected_edid_size != edid_length) {
+-		EVDI_ERROR("Wrong edid size. Expected %d but is %d\n",
+-			   expected_edid_size, edid_length);
+-		kfree(new_edid);
+-		return -EINVAL;
+-	}
+-
+ 	if (painter->drm_filp)
+ 		EVDI_WARN("(card%d) Double connect - replacing %p with %p\n",
+ 			  evdi->dev_index, painter->drm_filp, file);
+
+From 4ee5d2ec530b4b064d2b3c319c75c58f36570263 Mon Sep 17 00:00:00 2001
+From: Jakub Prussak <jakub.prussak@synaptics.com>
+Date: Wed, 17 Dec 2025 13:42:57 +0000
+Subject: [PATCH 08/28] Preliminary support for kernel 6.19
+
+---
+ module/evdi_fb.c  | 1 +
+ module/evdi_gem.c | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index 13c70fb6..d69b7f8a 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -25,6 +25,7 @@
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_fb_helper.h>
+ #include <drm/drm_atomic.h>
++#include <drm/drm_print.h>
+ #if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
+ #include <drm/drm_damage_helper.h>
+ #endif
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index ee1dbcff..5cf545b5 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -21,6 +21,7 @@
+ #else
+ #include <drm/drmP.h>
+ #endif
++#include <drm/drm_print.h>
+ #include "evdi_drm_drv.h"
+ #include "evdi_params.h"
+ #include <linux/shmem_fs.h>
+
+From 05712c8688e05af0eb51f9e73903512bf8971a0c Mon Sep 17 00:00:00 2001
+From: Jakub Prussak <jakub.prussak@synaptics.com>
+Date: Thu, 11 Dec 2025 10:37:03 +0000
+Subject: [PATCH 09/28] Add cache flush befeore reading pixels
+
+---
+ module/evdi_painter.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index c5d12512..bf85b18f 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -19,6 +19,9 @@
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_edid.h>
++#if defined(CONFIG_X86)
++#include <drm/drm_cache.h>
++#endif
+ #include "evdi_drm.h"
+ #include "evdi_drm_drv.h"
+ #include "evdi_cursor.h"
+@@ -198,6 +201,9 @@ static int copy_primary_pixels(struct evdi_framebuffer *efb,
+ 			     r->y2);
+ 
+ 		for (; y > 0; --y) {
++#if defined(CONFIG_X86)
++			drm_clflush_virt_range((void *)src, byte_span);
++#endif
+ 			if (copy_to_user(dst, src, byte_span))
+ 				return -EFAULT;
+ 
+
+From 313329653330337beca688782a43e27b9a32aef2 Mon Sep 17 00:00:00 2001
+From: Jakub Prussak <jakub.prussak@synaptics.com>
+Date: Fri, 19 Dec 2025 12:26:18 +0000
+Subject: [PATCH 10/28] Set version to 1.14.12
+
+---
+ ci/deb_config              | 2 +-
+ library/Makefile           | 2 +-
+ library/evdi_lib.h         | 2 +-
+ module/Makefile            | 2 +-
+ module/dkms.conf           | 2 +-
+ module/dkms_install.sh     | 2 +-
+ module/evdi_platform_drv.h | 4 ++--
+ 7 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/ci/deb_config b/ci/deb_config
+index ae240109..ffad9f83 100644
+--- a/ci/deb_config
++++ b/ci/deb_config
+@@ -8,7 +8,7 @@ evdi_package_name='evdi'
+ evdi_maintainer='Synaptics Technical Support <technical-enquiries@synaptics.com>'
+ 
+ # shellcheck disable=SC2034
+-evdi_version='1.14.11'
++evdi_version='1.14.12'
+ 
+ # shellcheck disable=SC2034
+ evdi_description="Extensible Virtual Display Interface (EVDI) is a Linux® kernel module that enables management of multiple screens.
+diff --git a/library/Makefile b/library/Makefile
+index bd24271b..d50ad65d 100644
+--- a/library/Makefile
++++ b/library/Makefile
+@@ -11,7 +11,7 @@ PKG_CONFIG ?= pkg-config
+ DEPS = evdi_ioctl.h
+ CFLAGS := -I../module -std=gnu99 -fPIC -D_FILE_OFFSET_BITS=64 $(CFLAGS) $$($(PKG_CONFIG) --cflags-only-I libdrm)
+ 
+-LIBVER := 1.14.11
++LIBVER := 1.14.12
+ LIBABI := 1
+ 
+ PREFIX ?= /usr/local
+diff --git a/library/evdi_lib.h b/library/evdi_lib.h
+index 98a54914..e77eaa94 100644
+--- a/library/evdi_lib.h
++++ b/library/evdi_lib.h
+@@ -15,7 +15,7 @@ extern "C" {
+ 
+ #define LIBEVDI_VERSION_MAJOR 1
+ #define LIBEVDI_VERSION_MINOR 14
+-#define LIBEVDI_VERSION_PATCH 11
++#define LIBEVDI_VERSION_PATCH 12
+ 
+ struct evdi_lib_version {
+ 	int version_major;
+diff --git a/module/Makefile b/module/Makefile
+index a6bdf8eb..f689c55a 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -59,7 +59,7 @@ CP ?= cp
+ DKMS ?= dkms
+ RM ?= rm
+ 
+-MODVER=1.14.11
++MODVER=1.14.12
+ 
+ ifeq ($(KVER),)
+ 	KVER := $(shell uname -r)
+diff --git a/module/dkms.conf b/module/dkms.conf
+index b35e0b5b..5ea73917 100644
+--- a/module/dkms.conf
++++ b/module/dkms.conf
+@@ -7,7 +7,7 @@
+ #
+ 
+ PACKAGE_NAME="evdi"
+-PACKAGE_VERSION=1.14.11
++PACKAGE_VERSION=1.14.12
+ AUTOINSTALL=yes
+ 
+ MAKE[0]="make all INCLUDEDIR=/lib/modules/$kernelver/build/include KVERSION=$kernelver DKMS_BUILD=1"
+diff --git a/module/dkms_install.sh b/module/dkms_install.sh
+index 997b4053..ab0f08e6 100755
+--- a/module/dkms_install.sh
++++ b/module/dkms_install.sh
+@@ -2,7 +2,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ # Copyright (c) 2023 DisplayLink (UK) Ltd.
+ 
+-evdi_version='1.14.11'
++evdi_version='1.14.12'
+ 
+ EVDI_DIR=$(dirname "${BASH_SOURCE[0]}")
+ EVDI_REBOOT_RATIONALE=
+diff --git a/module/evdi_platform_drv.h b/module/evdi_platform_drv.h
+index 49171600..c61c0daa 100644
+--- a/module/evdi_platform_drv.h
++++ b/module/evdi_platform_drv.h
+@@ -29,12 +29,12 @@ struct platform_device_info;
+ #define DRIVER_DESC   "Extensible Virtual Display Interface"
+ #if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
+ #else
+-#define DRIVER_DATE   "20250630"
++#define DRIVER_DATE   "20251219"
+ #endif
+ 
+ #define DRIVER_MAJOR 1
+ #define DRIVER_MINOR 14
+-#define DRIVER_PATCH 11
++#define DRIVER_PATCH 12
+ 
+ void evdi_platform_remove_all_devices(struct device *device);
+ unsigned int evdi_platform_device_count(struct device *device);
+
+From e147525c51a8da2b4ca5a4b585a7841ad83631f9 Mon Sep 17 00:00:00 2001
+From: "Michael L. Young" <elgueromexicano@gmail.com>
+Date: Fri, 12 Dec 2025 11:41:51 -0500
+Subject: [PATCH 11/28] Fixup EL9 and EL10 support
+
+The latest EL 9.7 and 10.1 kernels backported changes from newer kernels up to
+6.15.
+
+This change accounts for those changes and restores functionality on these newer
+kernels.
+
+Signed-off-by: Michael L. Young <elgueromexicano@gmail.com>
+---
+ module/evdi_drm_drv.c      | 2 +-
+ module/evdi_fb.c           | 2 +-
+ module/evdi_painter.c      | 4 ++--
+ module/evdi_platform_dev.c | 3 ++-
+ module/evdi_platform_dev.h | 2 +-
+ module/evdi_platform_drv.h | 2 +-
+ 6 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/module/evdi_drm_drv.c b/module/evdi_drm_drv.c
+index 1a424967..c3266517 100644
+--- a/module/evdi_drm_drv.c
++++ b/module/evdi_drm_drv.c
+@@ -104,7 +104,7 @@ static struct drm_driver driver = {
+ 	.open = evdi_driver_open,
+ 	.postclose = evdi_driver_postclose,
+ 
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ #ifdef CONFIG_FB
+ 	.fbdev_probe = evdifb_create,
+ #endif
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index d69b7f8a..e1a90e3c 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -523,7 +523,7 @@ int evdi_fbdev_init(struct drm_device *dev)
+ 	evdi->fbdev = efbdev;
+ #if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ 	drm_fb_helper_prepare(dev, &efbdev->helper, 32, NULL);
 -#elif KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
 +#elif KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8)
  	drm_fb_helper_prepare(dev, &efbdev->helper, 32, &evdi_fb_helper_funcs);
  #else
  	drm_fb_helper_prepare(dev, &efbdev->helper, &evdi_fb_helper_funcs);
-@@ -606,6 +607,24 @@
- 	return info->cpp[0] * 8;
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index bf85b18f..eb7e1ec7 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -39,9 +39,9 @@
+ #endif
+ 
+ /* Import of DMA_BUF namespace was reverted in EL8 */
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
++#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ MODULE_IMPORT_NS("DMA_BUF");
+-#elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
++#elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
+ MODULE_IMPORT_NS(DMA_BUF);
+ #endif
+ 
+diff --git a/module/evdi_platform_dev.c b/module/evdi_platform_dev.c
+index b47f2d6f..9358c345 100644
+--- a/module/evdi_platform_dev.c
++++ b/module/evdi_platform_dev.c
+@@ -85,7 +85,7 @@ int evdi_platform_device_probe(struct platform_device *pdev)
+ 	return PTR_ERR_OR_ZERO(dev);
  }
  
-+#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
-+static bool is_xe_gem(struct dma_buf *dmabuf)
-+{
-+	struct drm_gem_object *obj;
-+
-+	if (!dmabuf)
-+		return false;
-+	if (dmabuf->ops->vmap != drm_gem_dmabuf_vmap || !dmabuf->owner)
-+		return false;
-+	obj = dmabuf->priv;
-+	if (!obj || !obj->funcs)
-+		return false;
-+
-+	return strncmp("xe", dmabuf->owner->name, min_t(size_t, 2, strlen(dmabuf->owner->name))) == 0;
-+		return false;
-+}
-+#endif
-+
- struct drm_framebuffer *evdi_fb_user_fb_create(
- 					struct drm_device *dev,
- 					struct drm_file *file,
-@@ -651,6 +670,10 @@
- 				    mode_cmd, to_evdi_bo(obj));
- 	if (ret)
- 		goto err_inval;
-+
-+#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
-+	efb->is_from_xe = is_xe_gem(obj->dma_buf);
-+#endif
- 	return &efb->base;
+-/* EL9 kernel removed the callback that was returning void  */
++/* EL9 kernel removed the callback that was returning void. Do not use for EL9 */
+ #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
+ void evdi_platform_device_remove(struct platform_device *pdev)
+ #else
+@@ -98,6 +98,7 @@ int evdi_platform_device_remove(struct platform_device *pdev)
  
-  err_no_mem:
-diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
---- evdi-a/module/evdi_gem.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_gem.c	2026-02-09 03:40:17.000000000 -0500
-@@ -15,12 +15,15 @@
+ 	evdi_drm_device_remove(data->drm_dev);
+ 	kfree(data);
++/* Need to return int for EL9 kernels */
+ #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
+ #else
+ 	return 0;
+diff --git a/module/evdi_platform_dev.h b/module/evdi_platform_dev.h
+index 5dddcbb7..9c178ab7 100644
+--- a/module/evdi_platform_dev.h
++++ b/module/evdi_platform_dev.h
+@@ -32,7 +32,7 @@ struct platform_device *evdi_platform_dev_create(struct platform_device_info *in
+ void evdi_platform_dev_destroy(struct platform_device *dev);
+ 
+ int evdi_platform_device_probe(struct platform_device *pdev);
+-/* EL9 kernel removed the callback that was returning void  */
++/* EL9 kernel removed the callback that was returning void. Do not use for EL9  */
+ #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
+ void evdi_platform_device_remove(struct platform_device *pdev);
+ #else
+diff --git a/module/evdi_platform_drv.h b/module/evdi_platform_drv.h
+index c61c0daa..0613a1a5 100644
+--- a/module/evdi_platform_drv.h
++++ b/module/evdi_platform_drv.h
+@@ -27,7 +27,7 @@ struct platform_device_info;
+ 
+ #define DRIVER_NAME   "evdi"
+ #define DRIVER_DESC   "Extensible Virtual Display Interface"
+-#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ #else
+ #define DRIVER_DATE   "20251219"
+ #endif
+
+From b75e4010b831a0f98342dc9a78cf59df8d840ad0 Mon Sep 17 00:00:00 2001
+From: Luasz Spintzyk <lukasz.spintzyk@synaptics.com>
+Date: Tue, 13 Jan 2026 13:49:51 +0100
+Subject: [PATCH 12/28] Detect xe exported gem object without vmap/vunmap
+ callbacks and use proper vmap/vunmap implementation for them
+
+---
+ ci/build_against_kernel |  2 +-
+ module/Kconfig          |  1 +
+ module/evdi_gem.c       | 79 ++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 77 insertions(+), 5 deletions(-)
+
+diff --git a/ci/build_against_kernel b/ci/build_against_kernel
+index 1eed37bf..75ed061f 100755
+--- a/ci/build_against_kernel
++++ b/ci/build_against_kernel
+@@ -237,7 +237,7 @@ build_one() { # KVER
+ 
+   local src_dir
+   local KTAG=v${KVER}
+-  local extra_cflags="-DCONFIG_FB"
++  local extra_cflags="-DCONFIG_FB -DCONFIG_DRM_TTM_HELPER"
+   if [ "${KVER}" == "master" ]; then
+     KTAG="origin/master"
+   else
+diff --git a/module/Kconfig b/module/Kconfig
+index 80d87659..4b8a6dec 100644
+--- a/module/Kconfig
++++ b/module/Kconfig
+@@ -24,6 +24,7 @@ config DRM_EVDI_KUNIT_TEST
+ 	tristate "KUnit tests for evdi" if !KUNIT_ALL_TESTS
+ 		depends on DRM_EVDI && KUNIT
+ 		default KUNIT_ALL_TESTS
++		select DRM_TTM_HELPER
+ 	help
+ 		KUnit tests for evdi DRM module.
+ 		This option is useful for kernel developers.
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index 5cf545b5..4d795ca4 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -15,8 +15,10 @@
  #include <linux/dma-buf-map.h>
  #endif
  #if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
@@ -1000,12 +650,7 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  #elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE
  #else
  #include <drm/drmP.h>
- #endif
-+#include <drm/drm_print.h>
- #include "evdi_drm_drv.h"
- #include "evdi_params.h"
- #include <linux/shmem_fs.h>
-@@ -289,6 +292,77 @@
+@@ -290,6 +292,76 @@ static void evdi_unpin_pages(struct evdi_gem_object *obj)
  		evdi_gem_put_pages(obj);
  	mutex_unlock(&obj->pages_lock);
  }
@@ -1021,7 +666,7 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
 +	if (!obj || !obj->funcs)
 +		return false;
 +
-+	if (strncmp("xe", dmabuf->owner->name, min_t(size_t, 2, strlen(dmabuf->owner->name))) != 0)
++	if (strncmp("xe", dmabuf->owner->name, min((size_t)2, (size_t)strlen(dmabuf->owner->name))) != 0)
 +		return false;
 +
 +	return obj->funcs->vmap == NULL;
@@ -1057,14 +702,13 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
 +
 +static int evdi_dma_buf_vmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map)
 +{
-+	int ret = -EINVAL;
++	int ret;
 +
++	ret = dma_buf_vmap_unlocked(dmabuf, map);
 +#if IS_ENABLED(CONFIG_DRM_TTM_HELPER)
-+	if (is_xe_gem_ttm_object_without_vmap(dmabuf))
++	if (ret && is_xe_gem_ttm_object_without_vmap(dmabuf))
 +		ret = dma_buf_vmap_xe_gem_unlocked(dmabuf, map);
 +#endif
-+	if (ret)
-+		ret = dma_buf_vmap_unlocked(dmabuf, map);
 +	return ret;
 +}
 +
@@ -1083,7 +727,7 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  
  int evdi_gem_vmap(struct evdi_gem_object *obj)
  {
-@@ -304,7 +378,7 @@
+@@ -305,7 +377,7 @@ int evdi_gem_vmap(struct evdi_gem_object *obj)
  
  #if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
  # if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
@@ -1092,7 +736,7 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  # else
  		ret = dma_buf_vmap(obj->base.import_attach->dmabuf, &map);
  # endif
-@@ -342,7 +416,7 @@
+@@ -343,7 +415,7 @@ void evdi_gem_vunmap(struct evdi_gem_object *obj)
  			iosys_map_set_vaddr(&map, obj->vmapping);
  
  # if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
@@ -1101,27 +745,33 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  # else
  		dma_buf_vunmap(obj->base.import_attach->dmabuf, &map);
  # endif
-@@ -402,12 +476,9 @@
- 	struct drm_gem_object *obj;
+@@ -404,9 +476,8 @@ int evdi_gem_mmap(struct drm_file *file,
  	int ret = 0;
  
--	mutex_lock(&dev->struct_mutex);
  	obj = drm_gem_object_lookup(file, handle);
 -	if (obj == NULL) {
--		ret = -ENOENT;
--		goto unlock;
--	}
 +	if (obj == NULL)
-+		return -ENOENT;
+ 		return -ENOENT;
+-	}
  	gobj = to_evdi_bo(obj);
  
  	ret = evdi_pin_pages(gobj);
-@@ -429,11 +500,27 @@
- 
-  out:
- 	drm_gem_object_put(&gobj->base);
-- unlock:
--	mutex_unlock(&dev->struct_mutex);
+
+From 2f0b61106a6bb3e935d6a8f136f87fc92a9f1554 Mon Sep 17 00:00:00 2001
+From: Luasz Spintzyk <lukasz.spintzyk@synaptics.com>
+Date: Fri, 16 Jan 2026 15:01:53 +0100
+Subject: [PATCH 13/28] Workaround BUG check from drm_prime_sg_to_page_array
+ about wrong pages array size
+
+---
+ module/evdi_gem.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index 4d795ca4..5654c4ce 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -502,6 +502,24 @@ int evdi_gem_mmap(struct drm_file *file,
  	return ret;
  }
  
@@ -1146,7 +796,7 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  struct drm_gem_object *
  evdi_prime_import_sg_table(struct drm_device *dev,
  			   struct dma_buf_attachment *attach,
-@@ -441,6 +528,7 @@
+@@ -509,6 +527,7 @@ evdi_prime_import_sg_table(struct drm_device *dev,
  {
  	struct evdi_gem_object *obj;
  	int npages;
@@ -1154,7 +804,7 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  	bool called_by_mutter;
  
  	called_by_mutter = evdi_was_called_by_mutter();
-@@ -450,6 +538,8 @@
+@@ -518,6 +537,8 @@ evdi_prime_import_sg_table(struct drm_device *dev,
  		return ERR_CAST(obj);
  
  	npages = DIV_ROUND_UP(attach->dmabuf->size, PAGE_SIZE);
@@ -1163,44 +813,247 @@ diff -urN evdi-a/module/evdi_gem.c evdi-b/module/evdi_gem.c
  	DRM_DEBUG_PRIME("Importing %d pages\n", npages);
  	obj->pages = kvmalloc_array(npages, sizeof(struct page *), GFP_KERNEL);
  	if (!obj->pages) {
-diff -urN evdi-a/module/evdi_modeset.c evdi-b/module/evdi_modeset.c
---- evdi-a/module/evdi_modeset.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_modeset.c	2026-02-09 03:40:17.000000000 -0500
-@@ -134,13 +134,11 @@
+
+From 5c45099174ee790d545606a6448436e5c03b01fb Mon Sep 17 00:00:00 2001
+From: Luasz Spintzyk <lukasz.spintzyk@synaptics.com>
+Date: Tue, 20 Jan 2026 11:36:58 +0100
+Subject: [PATCH 14/28] Allow dual licensing of libevdi
+
+libevdi allows now LGPL-2.1-or-later
+---
+ README.md             | 2 +-
+ library/evdi_lib.c    | 2 +-
+ library/evdi_lib.h    | 2 +-
+ library/evdi_procfs.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/README.md b/README.md
+index 860926ff..a04197eb 100644
+--- a/README.md
++++ b/README.md
+@@ -43,7 +43,7 @@ There are several topics we plan to cover in the future, including:
+ ## Licensing
  
- 	EVDI_CHECKPT();
- 	if (handle) {
--		mutex_lock(&dev->struct_mutex);
- 		obj = drm_gem_object_lookup(file, handle);
- 		if (obj)
- 			eobj = to_evdi_bo(obj);
- 		else
- 			EVDI_ERROR("Failed to lookup gem object.\n");
--		mutex_unlock(&dev->struct_mutex);
- 	}
+ Elements of this project are licensed under various licenses. In particular, the `module` and `library` are licensed
+-under GPL v2 and LGPL v2.1 respectively - consult separate `LICENSE` files in subfolders. Remaining files and subfolders (unless
++under GPL v2 and LGPL v2.1-or-later respectively - consult separate `LICENSE` files in subfolders. Remaining files and subfolders (unless
+ a separate `LICENSE` file states otherwise) are licensed under MIT license.
  
- 	evdi_cursor_set(evdi->cursor,
-@@ -343,8 +341,6 @@
- 		int32_t cursor_position_x = 0;
- 		int32_t cursor_position_y = 0;
  
--		mutex_lock(&plane->dev->struct_mutex);
--
- 		evdi_cursor_position(evdi->cursor, &cursor_position_x,
- 		&cursor_position_y);
- 		evdi_cursor_move(evdi->cursor, state->crtc_x, state->crtc_y);
-@@ -369,7 +365,6 @@
- 			cursor_changed = true;
- 		}
+diff --git a/library/evdi_lib.c b/library/evdi_lib.c
+index e2675928..5c437dfc 100644
+--- a/library/evdi_lib.c
++++ b/library/evdi_lib.c
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: LGPL-2.1-only
++// SPDX-License-Identifier: LGPL-2.1-or-later
+ // Copyright (c) 2015 - 2024 DisplayLink (UK) Ltd.
  
--		mutex_unlock(&plane->dev->struct_mutex);
- 		if (!evdi->cursor_events_enabled) {
- 			if (fb != NULL) {
- 				if (efb->obj->allow_sw_cursor_rect_updates) {
-diff -urN evdi-a/module/evdi_painter.c evdi-b/module/evdi_painter.c
---- evdi-a/module/evdi_painter.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_painter.c	2026-02-09 03:40:17.000000000 -0500
-@@ -14,11 +14,15 @@
+ #include <stddef.h>
+diff --git a/library/evdi_lib.h b/library/evdi_lib.h
+index e77eaa94..16c3cd3b 100644
+--- a/library/evdi_lib.h
++++ b/library/evdi_lib.h
+@@ -1,4 +1,4 @@
+-/* SPDX-License-Identifier: LGPL-2.1-only
++/* SPDX-License-Identifier: LGPL-2.1-or-later
+  * Copyright (c) 2015 - 2024 DisplayLink (UK) Ltd.
+  */
+ 
+diff --git a/library/evdi_procfs.c b/library/evdi_procfs.c
+index 575d1225..15bf6cdc 100644
+--- a/library/evdi_procfs.c
++++ b/library/evdi_procfs.c
+@@ -1,4 +1,4 @@
+-// SPDX-License-Identifier: LGPL-2.1-only
++// SPDX-License-Identifier: LGPL-2.1-or-later
+ // Copyright (c) 2015 - 2024 DisplayLink (UK) Ltd.
+ 
+ #include "evdi_lib.h"
+
+From bf97bc9e3e5818c6e4e6c3c7754d70ac9afb72b7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Tue, 20 Jan 2026 14:46:20 +0100
+Subject: [PATCH 15/28] Set version to 1.14.13
+
+---
+ ci/deb_config              | 2 +-
+ library/Makefile           | 2 +-
+ library/evdi_lib.h         | 2 +-
+ module/Makefile            | 2 +-
+ module/dkms.conf           | 2 +-
+ module/dkms_install.sh     | 2 +-
+ module/evdi_platform_drv.h | 4 ++--
+ 7 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/ci/deb_config b/ci/deb_config
+index ffad9f83..7eaccd36 100644
+--- a/ci/deb_config
++++ b/ci/deb_config
+@@ -8,7 +8,7 @@ evdi_package_name='evdi'
+ evdi_maintainer='Synaptics Technical Support <technical-enquiries@synaptics.com>'
+ 
+ # shellcheck disable=SC2034
+-evdi_version='1.14.12'
++evdi_version='1.14.13'
+ 
+ # shellcheck disable=SC2034
+ evdi_description="Extensible Virtual Display Interface (EVDI) is a Linux® kernel module that enables management of multiple screens.
+diff --git a/library/Makefile b/library/Makefile
+index d50ad65d..7569c3b5 100644
+--- a/library/Makefile
++++ b/library/Makefile
+@@ -11,7 +11,7 @@ PKG_CONFIG ?= pkg-config
+ DEPS = evdi_ioctl.h
+ CFLAGS := -I../module -std=gnu99 -fPIC -D_FILE_OFFSET_BITS=64 $(CFLAGS) $$($(PKG_CONFIG) --cflags-only-I libdrm)
+ 
+-LIBVER := 1.14.12
++LIBVER := 1.14.13
+ LIBABI := 1
+ 
+ PREFIX ?= /usr/local
+diff --git a/library/evdi_lib.h b/library/evdi_lib.h
+index 16c3cd3b..b061a3bb 100644
+--- a/library/evdi_lib.h
++++ b/library/evdi_lib.h
+@@ -15,7 +15,7 @@ extern "C" {
+ 
+ #define LIBEVDI_VERSION_MAJOR 1
+ #define LIBEVDI_VERSION_MINOR 14
+-#define LIBEVDI_VERSION_PATCH 12
++#define LIBEVDI_VERSION_PATCH 13
+ 
+ struct evdi_lib_version {
+ 	int version_major;
+diff --git a/module/Makefile b/module/Makefile
+index f689c55a..177ad2d6 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -59,7 +59,7 @@ CP ?= cp
+ DKMS ?= dkms
+ RM ?= rm
+ 
+-MODVER=1.14.12
++MODVER=1.14.13
+ 
+ ifeq ($(KVER),)
+ 	KVER := $(shell uname -r)
+diff --git a/module/dkms.conf b/module/dkms.conf
+index 5ea73917..7cc7eaa5 100644
+--- a/module/dkms.conf
++++ b/module/dkms.conf
+@@ -7,7 +7,7 @@
+ #
+ 
+ PACKAGE_NAME="evdi"
+-PACKAGE_VERSION=1.14.12
++PACKAGE_VERSION=1.14.13
+ AUTOINSTALL=yes
+ 
+ MAKE[0]="make all INCLUDEDIR=/lib/modules/$kernelver/build/include KVERSION=$kernelver DKMS_BUILD=1"
+diff --git a/module/dkms_install.sh b/module/dkms_install.sh
+index ab0f08e6..5e163781 100755
+--- a/module/dkms_install.sh
++++ b/module/dkms_install.sh
+@@ -2,7 +2,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ # Copyright (c) 2023 DisplayLink (UK) Ltd.
+ 
+-evdi_version='1.14.12'
++evdi_version='1.14.13'
+ 
+ EVDI_DIR=$(dirname "${BASH_SOURCE[0]}")
+ EVDI_REBOOT_RATIONALE=
+diff --git a/module/evdi_platform_drv.h b/module/evdi_platform_drv.h
+index c61c0daa..931afdde 100644
+--- a/module/evdi_platform_drv.h
++++ b/module/evdi_platform_drv.h
+@@ -29,12 +29,12 @@ struct platform_device_info;
+ #define DRIVER_DESC   "Extensible Virtual Display Interface"
+ #if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
+ #else
+-#define DRIVER_DATE   "20251219"
++#define DRIVER_DATE   "20260120"
+ #endif
+ 
+ #define DRIVER_MAJOR 1
+ #define DRIVER_MINOR 14
+-#define DRIVER_PATCH 12
++#define DRIVER_PATCH 13
+ 
+ void evdi_platform_remove_all_devices(struct device *device);
+ unsigned int evdi_platform_device_count(struct device *device);
+
+From 4ba17f84cc5e4e62d5b27dbe7858a8bfc19bd0ff Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 26 Jan 2026 09:53:33 +0100
+Subject: [PATCH 16/28] Fix WARN_ONCE in dma_buf_vmap_unlocked on xe-platform
+
+---
+ module/evdi_gem.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index 5654c4ce..e9185afe 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -340,13 +340,14 @@ static void dma_buf_vunmap_xe_gem_unlocked(struct dma_buf *dmabuf, struct iosys_
+ 
+ static int evdi_dma_buf_vmap_unlocked(struct dma_buf *dmabuf, struct iosys_map *map)
+ {
+-	int ret;
++	int ret = -EINVAL;
+ 
+-	ret = dma_buf_vmap_unlocked(dmabuf, map);
+ #if IS_ENABLED(CONFIG_DRM_TTM_HELPER)
+-	if (ret && is_xe_gem_ttm_object_without_vmap(dmabuf))
++	if (is_xe_gem_ttm_object_without_vmap(dmabuf))
+ 		ret = dma_buf_vmap_xe_gem_unlocked(dmabuf, map);
+ #endif
++	if (ret)
++		ret = dma_buf_vmap_unlocked(dmabuf, map);
+ 	return ret;
+ }
+ 
+
+From 72ac91788759da2ef344d068d92844c3619e0e4a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 26 Jan 2026 10:00:08 +0100
+Subject: [PATCH 17/28] Fix style check warning
+
+---
+ module/evdi_gem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index e9185afe..8216b6d5 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -304,7 +304,7 @@ static bool is_xe_gem_ttm_object_without_vmap(struct dma_buf *dmabuf)
+ 	if (!obj || !obj->funcs)
+ 		return false;
+ 
+-	if (strncmp("xe", dmabuf->owner->name, min((size_t)2, (size_t)strlen(dmabuf->owner->name))) != 0)
++	if (strncmp("xe", dmabuf->owner->name, min_t(size_t, 2, strlen(dmabuf->owner->name))) != 0)
+ 		return false;
+ 
+ 	return obj->funcs->vmap == NULL;
+
+From 95a87464712143cfc4dd17551ad46abc8aa54eaa Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 2 Feb 2026 10:00:17 +0100
+Subject: [PATCH 18/28] debugfs: add function to measure drm_framebuffer copy
+ time
+
+---
+ module/evdi_painter.c | 66 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 65 insertions(+), 1 deletion(-)
+
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index eb7e1ec7..fd833c54 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -14,6 +14,7 @@
  #include <drm/drm_file.h>
  #include <drm/drm_vblank.h>
  #include <drm/drm_ioctl.h>
@@ -1208,15 +1061,7 @@ diff -urN evdi-a/module/evdi_painter.c evdi-b/module/evdi_painter.c
  #elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE
  #else
  #include <drm/drmP.h>
- #endif
- #include <drm/drm_edid.h>
-+#if defined(CONFIG_X86)
-+#include <drm/drm_cache.h>
-+#endif
- #include "evdi_drm.h"
- #include "evdi_drm_drv.h"
- #include "evdi_cursor.h"
-@@ -28,17 +32,19 @@
+@@ -31,9 +32,11 @@
  #include <linux/compiler.h>
  #include <linux/platform_device.h>
  #include <linux/completion.h>
@@ -1229,17 +1074,7 @@ diff -urN evdi-a/module/evdi_painter.c evdi-b/module/evdi_painter.c
  #if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE || defined(EL8)
  #include <linux/compiler_attributes.h>
  #endif
- 
- /* Import of DMA_BUF namespace was reverted in EL8 */
--#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
-+#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
- MODULE_IMPORT_NS("DMA_BUF");
--#elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
-+#elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
- MODULE_IMPORT_NS(DMA_BUF);
- #endif
- 
-@@ -113,6 +119,9 @@
+@@ -116,6 +119,9 @@ struct evdi_painter {
  	unsigned int ddcci_buffer_length;
  	struct notifier_block vt_notifier;
  	int fg_console;
@@ -1249,7 +1084,157 @@ diff -urN evdi-a/module/evdi_painter.c evdi-b/module/evdi_painter.c
  };
  
  static void expand_rect(struct drm_clip_rect *a, const struct drm_clip_rect *b)
-@@ -166,6 +175,39 @@
+@@ -1219,6 +1225,58 @@ static void evdi_painter_unregister_from_vt(struct evdi_painter *painter)
+ 	EVDI_TEST_HOOK(evdi_testhook_painter_vt_register(&painter->vt_notifier));
+ }
+ 
++#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++static int evdi_painter_debugfs_measure_copy_fb(void *data, u64 val)
++{
++	struct evdi_painter *painter = (struct evdi_painter *)data;
++	struct drm_framebuffer *fb;
++	struct evdi_framebuffer *efb;
++	uint32_t dst_buf_size = 0;
++	struct iosys_map dst_mapping = IOSYS_MAP_INIT_VADDR(NULL);
++	ktime_t copy_start_time = 0;
++	ktime_t copy_end_time = 0;
++	uint32_t copy_time = 0;
++
++
++	fb = drm_framebuffer_lookup(painter->drm_device, painter->drm_filp, val);
++
++	if (!fb) {
++		EVDI_ERROR("Failed to lookup fb %llu\n", val);
++		return 0;
++	}
++
++	efb = to_evdi_fb(fb);
++	dst_buf_size = fb->obj[0]->size;
++	dst_mapping.vaddr = vmalloc(dst_buf_size);
++
++	if (evdi_gem_vmap(efb->obj) == -ENOMEM || !efb->obj->vmapping) {
++		EVDI_ERROR("Failed to map buffer\n");
++		goto put_fb;
++	}
++
++	drm_gem_fb_begin_cpu_access(fb, DMA_FROM_DEVICE);
++	copy_start_time = ktime_get();
++		
++	memcpy(dst_mapping.vaddr, efb->obj->vmapping, dst_buf_size);
++
++	copy_end_time = ktime_get();
++	drm_gem_fb_end_cpu_access(fb, DMA_FROM_DEVICE);
++
++	evdi_gem_vunmap(efb->obj);
++	vfree(dst_mapping.vaddr);
++	copy_time = ktime_to_ms(copy_end_time - copy_start_time);
++
++	EVDI_DEBUG("debugfs: measure_copy_fb %llu takes %u [ms]\n", val, copy_time);
++put_fb:
++
++	drm_framebuffer_put(fb);
++	return copy_time;
++	return 0;
++}
++
++DEFINE_DEBUGFS_ATTRIBUTE(evdi_painter_debug_test_ops, NULL, evdi_painter_debugfs_measure_copy_fb, "%llu\n");
++#endif
++
+ int evdi_painter_init(struct evdi_device *dev)
+ {
+ 	EVDI_CHECKPT();
+@@ -1232,6 +1290,9 @@ int evdi_painter_init(struct evdi_device *dev)
+ 		dev->painter->vblank = NULL;
+ 		dev->painter->drm_device = dev->ddev;
+ 		evdi_painter_register_to_vt(dev->painter);
++#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++		dev->painter->debugfs_measure_copy = debugfs_create_file("measure_copy_fb", 0400, dev->ddev->debugfs_root, dev->painter, &evdi_painter_debug_test_ops);
++#endif
+ 
+ 		INIT_LIST_HEAD(&dev->painter->pending_events);
+ 		INIT_DELAYED_WORK(&dev->painter->send_events_work,
+@@ -1251,6 +1312,9 @@ void evdi_painter_cleanup(struct evdi_painter *painter)
+ 	}
+ 
+ 	painter_lock(painter);
++#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++	debugfs_lookup_and_remove("measure_copy_fb", painter->drm_device->debugfs_root);
++#endif
+ 	evdi_painter_unregister_from_vt(painter);
+ 	kfree(painter->edid);
+ 	painter->edid_length = 0;
+
+From 0078ee27136cc6705453a81a0c209126ae2e54c0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 2 Feb 2026 10:00:17 +0100
+Subject: [PATCH 19/28] Improve copy time from intel xe buffer with
+ write-combine cache
+
+This improved copy time from 60ms to about 16ms (due to intermediate
+copy)
+---
+ module/evdi_drm_drv.h |  1 +
+ module/evdi_fb.c      | 22 ++++++++++++++++++++++
+ module/evdi_painter.c | 41 +++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 62 insertions(+), 2 deletions(-)
+
+diff --git a/module/evdi_drm_drv.h b/module/evdi_drm_drv.h
+index 748046c7..c88aa530 100644
+--- a/module/evdi_drm_drv.h
++++ b/module/evdi_drm_drv.h
+@@ -79,6 +79,7 @@ struct evdi_framebuffer {
+ 	struct drm_framebuffer base;
+ 	struct evdi_gem_object *obj;
+ 	bool active;
++	bool is_from_xe;
+ };
+ 
+ #define to_evdi_fb(x) container_of(x, struct evdi_framebuffer, base)
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index e1a90e3c..60895b24 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -607,6 +607,24 @@ int evdi_fb_get_bpp(uint32_t format)
+ 	return info->cpp[0] * 8;
+ }
+ 
++#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
++static bool is_xe_gem(struct dma_buf *dmabuf)
++{
++	struct drm_gem_object *obj;
++
++	if (!dmabuf)
++		return false;
++	if (dmabuf->ops->vmap != drm_gem_dmabuf_vmap || !dmabuf->owner)
++		return false;
++	obj = dmabuf->priv;
++	if (!obj || !obj->funcs)
++		return false;
++
++	return strncmp("xe", dmabuf->owner->name, min_t(size_t, 2, strlen(dmabuf->owner->name))) == 0;
++		return false;
++}
++#endif
++
+ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 					struct drm_device *dev,
+ 					struct drm_file *file,
+@@ -652,6 +670,10 @@ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 				    mode_cmd, to_evdi_bo(obj));
+ 	if (ret)
+ 		goto err_inval;
++
++#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
++	efb->is_from_xe = is_xe_gem(obj->dma_buf);
++#endif
+ 	return &efb->base;
+ 
+  err_no_mem:
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index fd833c54..4a1d2d5b 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -175,6 +175,39 @@ static void collapse_dirty_rects(struct drm_clip_rect *rects, int *count)
  	*count = 1;
  }
  
@@ -1289,7 +1274,7 @@ diff -urN evdi-a/module/evdi_painter.c evdi-b/module/evdi_painter.c
  static int copy_primary_pixels(struct evdi_framebuffer *efb,
  			       char __user *buffer,
  			       int buf_byte_stride,
-@@ -178,6 +220,11 @@
+@@ -187,6 +220,11 @@ static int copy_primary_pixels(struct evdi_framebuffer *efb,
  
  	EVDI_CHECKPT();
  
@@ -1301,291 +1286,1155 @@ diff -urN evdi-a/module/evdi_painter.c evdi-b/module/evdi_painter.c
  	for (r = rects; r != rects + num_rects; ++r) {
  		const int byte_offset = r->x1 * 4;
  		const int byte_span = (r->x2 - r->x1) * 4;
-@@ -198,6 +245,9 @@
- 			     r->y2);
+@@ -1256,7 +1294,7 @@ static int evdi_painter_debugfs_measure_copy_fb(void *data, u64 val)
  
- 		for (; y > 0; --y) {
-+#if defined(CONFIG_X86)
-+			drm_clflush_virt_range((void *)src, byte_span);
-+#endif
- 			if (copy_to_user(dst, src, byte_span))
- 				return -EFAULT;
+ 	drm_gem_fb_begin_cpu_access(fb, DMA_FROM_DEVICE);
+ 	copy_start_time = ktime_get();
+-		
++
+ 	memcpy(dst_mapping.vaddr, efb->obj->vmapping, dst_buf_size);
  
-@@ -862,7 +912,6 @@
- {
- 	struct evdi_painter *painter = evdi->painter;
- 	struct edid *new_edid = NULL;
--	unsigned int expected_edid_size = 0;
- 	char buf[100];
+ 	copy_end_time = ktime_get();
+@@ -1271,7 +1309,6 @@ static int evdi_painter_debugfs_measure_copy_fb(void *data, u64 val)
  
- 	evdi_log_process(buf, sizeof(buf));
-@@ -887,15 +936,6 @@
- 		return -EFAULT;
- 	}
- 
--	expected_edid_size = sizeof(struct edid) +
--			     new_edid->extensions * EDID_EXT_BLOCK_SIZE;
--	if (expected_edid_size != edid_length) {
--		EVDI_ERROR("Wrong edid size. Expected %d but is %d\n",
--			   expected_edid_size, edid_length);
--		kfree(new_edid);
--		return -EINVAL;
--	}
--
- 	if (painter->drm_filp)
- 		EVDI_WARN("(card%d) Double connect - replacing %p with %p\n",
- 			  evdi->dev_index, painter->drm_filp, file);
-@@ -1223,6 +1263,57 @@
- 	EVDI_TEST_HOOK(evdi_testhook_painter_vt_register(&painter->vt_notifier));
+ 	drm_framebuffer_put(fb);
+ 	return copy_time;
+-	return 0;
  }
  
-+#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
-+static int evdi_painter_debugfs_measure_copy_fb(void *data, u64 val)
-+{
-+	struct evdi_painter *painter = (struct evdi_painter *)data;
-+	struct drm_framebuffer *fb;
-+	struct evdi_framebuffer *efb;
-+	uint32_t dst_buf_size = 0;
-+	struct iosys_map dst_mapping = IOSYS_MAP_INIT_VADDR(NULL);
-+	ktime_t copy_start_time = 0;
-+	ktime_t copy_end_time = 0;
-+	uint32_t copy_time = 0;
-+
-+
-+	fb = drm_framebuffer_lookup(painter->drm_device, painter->drm_filp, val);
-+
-+	if (!fb) {
-+		EVDI_ERROR("Failed to lookup fb %llu\n", val);
-+		return 0;
-+	}
-+
-+	efb = to_evdi_fb(fb);
-+	dst_buf_size = fb->obj[0]->size;
-+	dst_mapping.vaddr = vmalloc(dst_buf_size);
-+
-+	if (evdi_gem_vmap(efb->obj) == -ENOMEM || !efb->obj->vmapping) {
-+		EVDI_ERROR("Failed to map buffer\n");
-+		goto put_fb;
-+	}
-+
-+	drm_gem_fb_begin_cpu_access(fb, DMA_FROM_DEVICE);
-+	copy_start_time = ktime_get();
-+
-+	memcpy(dst_mapping.vaddr, efb->obj->vmapping, dst_buf_size);
-+
-+	copy_end_time = ktime_get();
-+	drm_gem_fb_end_cpu_access(fb, DMA_FROM_DEVICE);
-+
-+	evdi_gem_vunmap(efb->obj);
-+	vfree(dst_mapping.vaddr);
-+	copy_time = ktime_to_ms(copy_end_time - copy_start_time);
-+
-+	EVDI_DEBUG("debugfs: measure_copy_fb %llu takes %u [ms]\n", val, copy_time);
-+put_fb:
-+
-+	drm_framebuffer_put(fb);
-+	return copy_time;
-+}
-+
-+DEFINE_DEBUGFS_ATTRIBUTE(evdi_painter_debug_test_ops, NULL, evdi_painter_debugfs_measure_copy_fb, "%llu\n");
-+#endif
-+
- int evdi_painter_init(struct evdi_device *dev)
- {
- 	EVDI_CHECKPT();
-@@ -1236,6 +1327,9 @@
- 		dev->painter->vblank = NULL;
- 		dev->painter->drm_device = dev->ddev;
- 		evdi_painter_register_to_vt(dev->painter);
-+#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
-+		dev->painter->debugfs_measure_copy = debugfs_create_file("measure_copy_fb", 0400, dev->ddev->debugfs_root, dev->painter, &evdi_painter_debug_test_ops);
-+#endif
+ DEFINE_DEBUGFS_ATTRIBUTE(evdi_painter_debug_test_ops, NULL, evdi_painter_debugfs_measure_copy_fb, "%llu\n");
+
+From 750044ce73cf2eec9178889c4f851f0ff01368b3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 9 Feb 2026 09:40:17 +0100
+Subject: [PATCH 20/28] Set version to 1.14.14
+
+---
+ ci/deb_config              | 2 +-
+ library/Makefile           | 2 +-
+ library/evdi_lib.h         | 2 +-
+ module/Makefile            | 2 +-
+ module/dkms.conf           | 2 +-
+ module/dkms_install.sh     | 2 +-
+ module/evdi_platform_drv.h | 4 ++--
+ 7 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/ci/deb_config b/ci/deb_config
+index 7eaccd36..22ce7792 100644
+--- a/ci/deb_config
++++ b/ci/deb_config
+@@ -8,7 +8,7 @@ evdi_package_name='evdi'
+ evdi_maintainer='Synaptics Technical Support <technical-enquiries@synaptics.com>'
  
- 		INIT_LIST_HEAD(&dev->painter->pending_events);
- 		INIT_DELAYED_WORK(&dev->painter->send_events_work,
-@@ -1255,6 +1349,9 @@
- 	}
+ # shellcheck disable=SC2034
+-evdi_version='1.14.13'
++evdi_version='1.14.14'
  
- 	painter_lock(painter);
-+#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
-+	debugfs_lookup_and_remove("measure_copy_fb", painter->drm_device->debugfs_root);
-+#endif
- 	evdi_painter_unregister_from_vt(painter);
- 	kfree(painter->edid);
- 	painter->edid_length = 0;
-diff -urN evdi-a/module/evdi_platform_dev.c evdi-b/module/evdi_platform_dev.c
---- evdi-a/module/evdi_platform_dev.c	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_platform_dev.c	2026-02-09 03:40:17.000000000 -0500
-@@ -85,7 +85,7 @@
- 	return PTR_ERR_OR_ZERO(dev);
- }
+ # shellcheck disable=SC2034
+ evdi_description="Extensible Virtual Display Interface (EVDI) is a Linux® kernel module that enables management of multiple screens.
+diff --git a/library/Makefile b/library/Makefile
+index 7569c3b5..36781bfb 100644
+--- a/library/Makefile
++++ b/library/Makefile
+@@ -11,7 +11,7 @@ PKG_CONFIG ?= pkg-config
+ DEPS = evdi_ioctl.h
+ CFLAGS := -I../module -std=gnu99 -fPIC -D_FILE_OFFSET_BITS=64 $(CFLAGS) $$($(PKG_CONFIG) --cflags-only-I libdrm)
  
--/* EL9 kernel removed the callback that was returning void  */
-+/* EL9 kernel removed the callback that was returning void. Do not use for EL9 */
- #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
- void evdi_platform_device_remove(struct platform_device *pdev)
- #else
-@@ -98,6 +98,7 @@
+-LIBVER := 1.14.13
++LIBVER : 1.14.14
+ LIBABI := 1
  
- 	evdi_drm_device_remove(data->drm_dev);
- 	kfree(data);
-+/* Need to return int for EL9 kernels */
- #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
- #else
- 	return 0;
-diff -urN evdi-a/module/evdi_platform_dev.h evdi-b/module/evdi_platform_dev.h
---- evdi-a/module/evdi_platform_dev.h	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_platform_dev.h	2026-02-09 03:40:17.000000000 -0500
-@@ -32,7 +32,7 @@
- void evdi_platform_dev_destroy(struct platform_device *dev);
+ PREFIX ?= /usr/local
+diff --git a/library/evdi_lib.h b/library/evdi_lib.h
+index b061a3bb..946a49f7 100644
+--- a/library/evdi_lib.h
++++ b/library/evdi_lib.h
+@@ -15,7 +15,7 @@ extern "C" {
  
- int evdi_platform_device_probe(struct platform_device *pdev);
--/* EL9 kernel removed the callback that was returning void  */
-+/* EL9 kernel removed the callback that was returning void. Do not use for EL9  */
- #if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
- void evdi_platform_device_remove(struct platform_device *pdev);
- #else
-diff -urN evdi-a/module/evdi_platform_drv.h evdi-b/module/evdi_platform_drv.h
---- evdi-a/module/evdi_platform_drv.h	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/evdi_platform_drv.h	2026-02-09 03:40:17.000000000 -0500
-@@ -27,14 +27,14 @@
+ #define LIBEVDI_VERSION_MAJOR 1
+ #define LIBEVDI_VERSION_MINOR 14
+-#define LIBEVDI_VERSION_PATCH 13
++#define LIBEVDI_VERSION_PATCH 14
  
- #define DRIVER_NAME   "evdi"
+ struct evdi_lib_version {
+ 	int version_major;
+diff --git a/module/Makefile b/module/Makefile
+index 177ad2d6..8b737c91 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -59,7 +59,7 @@ CP ?= cp
+ DKMS ?= dkms
+ RM ?= rm
+ 
+-MODVER=1.14.13
++MODVER=1.14.14
+ 
+ ifeq ($(KVER),)
+ 	KVER := $(shell uname -r)
+diff --git a/module/dkms.conf b/module/dkms.conf
+index 7cc7eaa5..391328b4 100644
+--- a/module/dkms.conf
++++ b/module/dkms.conf
+@@ -7,7 +7,7 @@
+ #
+ 
+ PACKAGE_NAME="evdi"
+-PACKAGE_VERSION=1.14.13
++PACKAGE_VERSION=1.14.14
+ AUTOINSTALL=yes
+ 
+ MAKE[0]="make all INCLUDEDIR=/lib/modules/$kernelver/build/include KVERSION=$kernelver DKMS_BUILD=1"
+diff --git a/module/dkms_install.sh b/module/dkms_install.sh
+index 5e163781..ee2f55d9 100755
+--- a/module/dkms_install.sh
++++ b/module/dkms_install.sh
+@@ -2,7 +2,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ # Copyright (c) 2023 DisplayLink (UK) Ltd.
+ 
+-evdi_version='1.14.13'
++evdi_version='1.14.14'
+ 
+ EVDI_DIR=$(dirname "${BASH_SOURCE[0]}")
+ EVDI_REBOOT_RATIONALE=
+diff --git a/module/evdi_platform_drv.h b/module/evdi_platform_drv.h
+index 91750ac6..f3c524c3 100644
+--- a/module/evdi_platform_drv.h
++++ b/module/evdi_platform_drv.h
+@@ -29,12 +29,12 @@ struct platform_device_info;
  #define DRIVER_DESC   "Extensible Virtual Display Interface"
--#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE
-+#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ #if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
  #else
--#define DRIVER_DATE   "20250630"
+-#define DRIVER_DATE   "20260120"
 +#define DRIVER_DATE   "20260209"
  #endif
  
  #define DRIVER_MAJOR 1
  #define DRIVER_MINOR 14
--#define DRIVER_PATCH 11
+-#define DRIVER_PATCH 13
 +#define DRIVER_PATCH 14
  
  void evdi_platform_remove_all_devices(struct device *device);
  unsigned int evdi_platform_device_count(struct device *device);
-diff -urN evdi-a/module/Kconfig evdi-b/module/Kconfig
---- evdi-a/module/Kconfig	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/Kconfig	2026-02-09 03:40:17.000000000 -0500
-@@ -24,6 +24,7 @@
- 	tristate "KUnit tests for evdi" if !KUNIT_ALL_TESTS
- 		depends on DRM_EVDI && KUNIT
- 		default KUNIT_ALL_TESTS
-+		select DRM_TTM_HELPER
- 	help
- 		KUnit tests for evdi DRM module.
- 		This option is useful for kernel developers.
-diff -urN evdi-a/module/Makefile evdi-b/module/Makefile
---- evdi-a/module/Makefile	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/module/Makefile	2026-02-09 03:40:17.000000000 -0500
-@@ -9,7 +9,7 @@
- include /etc/os-release
+
+From c88fb924d4b1581d874f2786c9b62feef078a4e1 Mon Sep 17 00:00:00 2001
+From: Tess Hoffman <tess@zrhoffman.net>
+Date: Mon, 16 Feb 2026 22:36:48 -0700
+Subject: [PATCH 21/28] Unconditionally include <drm/drm_cache.h>.
+
+Fixes DisplayLink/evdi#555.
+---
+ module/evdi_painter.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index 4a1d2d5b..46e11d8a 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -20,9 +20,7 @@
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_edid.h>
+-#if defined(CONFIG_X86)
+ #include <drm/drm_cache.h>
+-#endif
+ #include "evdi_drm.h"
+ #include "evdi_drm_drv.h"
+ #include "evdi_cursor.h"
+
+From 16a091e06a8250ee404c3abc2bc5bfb1ebd1d862 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 16 Feb 2026 13:26:20 +0000
+Subject: [PATCH 22/28] Drop fbdev code
+
+Code behind CONFIG_FB was newer user or to my knowledge working.
+Since it broken 6.20 build - I am removing it as this adds unnecessary
+work to support it.
+---
+ ci/build_against_kernel |   2 +-
+ module/evdi_drm_drv.c   |  18 --
+ module/evdi_drm_drv.h   |   8 -
+ module/evdi_fb.c        | 375 ----------------------------------------
+ 4 files changed, 1 insertion(+), 402 deletions(-)
+
+diff --git a/ci/build_against_kernel b/ci/build_against_kernel
+index 75ed061f..74a684a4 100755
+--- a/ci/build_against_kernel
++++ b/ci/build_against_kernel
+@@ -237,7 +237,7 @@ build_one() { # KVER
  
- ifneq (,$(findstring rhel,$(ID_LIKE)))
--ELFLAG := -DEL$(VERSION_ID)
-+ELFLAG := -DEL$(shell echo $(VERSION_ID) | cut -d. -f1)
- endif
+   local src_dir
+   local KTAG=v${KVER}
+-  local extra_cflags="-DCONFIG_FB -DCONFIG_DRM_TTM_HELPER"
++  local extra_cflags="-DCONFIG_DRM_TTM_HELPER"
+   if [ "${KVER}" == "master" ]; then
+     KTAG="origin/master"
+   else
+diff --git a/module/evdi_drm_drv.c b/module/evdi_drm_drv.c
+index c3266517..af4f4023 100644
+--- a/module/evdi_drm_drv.c
++++ b/module/evdi_drm_drv.c
+@@ -104,12 +104,6 @@ static struct drm_driver driver = {
+ 	.open = evdi_driver_open,
+ 	.postclose = evdi_driver_postclose,
  
- Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
-@@ -59,7 +59,7 @@
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+-#ifdef CONFIG_FB
+-	.fbdev_probe = evdifb_create,
+-#endif
+-#endif
+-
+ 	/* gem hooks */
+ #if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
+ #elif KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
+@@ -198,11 +192,6 @@ static int evdi_drm_device_init(struct drm_device *dev)
+ 		goto err_free;
+ 
+ 	evdi_modeset_init(dev);
+-#ifdef CONFIG_FB
+-	ret = evdi_fbdev_init(dev);
+-	if (ret)
+-		goto err_init;
+-#endif /* CONFIG_FB */
+ 
+ 	ret = drm_vblank_init(dev, 1);
+ 	if (ret)
+@@ -218,9 +207,6 @@ static int evdi_drm_device_init(struct drm_device *dev)
+ 	return 0;
+ 
+ err_init:
+-#ifdef CONFIG_FB
+-	evdi_fbdev_cleanup(dev);
+-#endif /* CONFIG_FB */
+ err_free:
+ 	EVDI_ERROR("Failed to setup drm device %d\n", ret);
+ 	evdi_cursor_free(evdi->cursor);
+@@ -289,10 +275,6 @@ struct drm_device *evdi_drm_device_create(struct device *parent)
+ static void evdi_drm_device_deinit(struct drm_device *dev)
+ {
+ 	drm_kms_helper_poll_fini(dev);
+-#ifdef CONFIG_FB
+-	evdi_fbdev_unplug(dev);
+-	evdi_fbdev_cleanup(dev);
+-#endif /* CONFIG_FB */
+ 	evdi_modeset_cleanup(dev);
+ 	drm_atomic_helper_shutdown(dev);
+ }
+diff --git a/module/evdi_drm_drv.h b/module/evdi_drm_drv.h
+index c88aa530..38edbe36 100644
+--- a/module/evdi_drm_drv.h
++++ b/module/evdi_drm_drv.h
+@@ -99,14 +99,6 @@ void evdi_driver_postclose(struct drm_device *dev, struct drm_file *file_priv);
+ long evdi_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+ #endif
+ 
+-
+-#ifdef CONFIG_FB
+-int evdi_fbdev_init(struct drm_device *dev);
+-void evdi_fbdev_cleanup(struct drm_device *dev);
+-void evdi_fbdev_unplug(struct drm_device *dev);
+-int evdifb_create(struct drm_fb_helper *helper,
+-			 struct drm_fb_helper_surface_size *sizes);
+-#endif /* CONFIG_FB */
+ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 				struct drm_device *dev,
+ 				struct drm_file *file,
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index 60895b24..a6a2edc7 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -12,9 +12,6 @@
+  */
+ 
+ #include <linux/slab.h>
+-#ifdef CONFIG_FB
+-#include <linux/fb.h>
+-#endif /* CONFIG_FB */
+ #include <linux/dma-buf.h>
+ #include <linux/version.h>
+ #if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+@@ -86,141 +83,6 @@ struct drm_clip_rect evdi_framebuffer_sanitize_rect(
+ 	return rect;
+ }
+ 
+-#ifdef CONFIG_FB
+-static int evdi_handle_damage(struct evdi_framebuffer *fb,
+-		       int x, int y, int width, int height)
+-{
+-	const struct drm_clip_rect dirty_rect = { x, y, x + width, y + height };
+-	const struct drm_clip_rect rect =
+-		evdi_framebuffer_sanitize_rect(fb, &dirty_rect);
+-	struct drm_device *dev = fb->base.dev;
+-	struct evdi_device *evdi = dev->dev_private;
+-
+-	EVDI_CHECKPT();
+-
+-	if (!fb->active)
+-		return 0;
+-	evdi_painter_set_scanout_buffer(evdi->painter, fb);
+-	evdi_painter_mark_dirty(evdi, &rect);
+-
+-	return 0;
+-}
+-
+-static int evdi_fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
+-{
+-	unsigned long start = vma->vm_start;
+-	unsigned long size = vma->vm_end - vma->vm_start;
+-	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
+-	unsigned long page, pos;
+-
+-	if (vma->vm_pgoff > (~0UL >> PAGE_SHIFT))
+-		return -EINVAL;
+-
+-	if (offset > info->fix.smem_len ||
+-	    size > info->fix.smem_len - offset)
+-		return -EINVAL;
+-
+-	pos = (unsigned long)info->fix.smem_start + offset;
+-
+-	pr_notice("mmap() framebuffer addr:%lu size:%lu\n", pos, size);
+-
+-	while (size > 0) {
+-		page = vmalloc_to_pfn((void *)pos);
+-		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED))
+-			return -EAGAIN;
+-
+-		start += PAGE_SIZE;
+-		pos += PAGE_SIZE;
+-		if (size > PAGE_SIZE)
+-			size -= PAGE_SIZE;
+-		else
+-			size = 0;
+-	}
+-
+-	return 0;
+-}
+-
+-static void evdi_fb_fillrect(struct fb_info *info,
+-			     const struct fb_fillrect *rect)
+-{
+-	struct evdi_fbdev *efbdev = info->par;
+-
+-	EVDI_CHECKPT();
+-	sys_fillrect(info, rect);
+-	evdi_handle_damage(&efbdev->efb, rect->dx, rect->dy, rect->width,
+-			   rect->height);
+-}
+-
+-static void evdi_fb_copyarea(struct fb_info *info,
+-			     const struct fb_copyarea *region)
+-{
+-	struct evdi_fbdev *efbdev = info->par;
+-
+-	EVDI_CHECKPT();
+-	sys_copyarea(info, region);
+-	evdi_handle_damage(&efbdev->efb, region->dx, region->dy, region->width,
+-			   region->height);
+-}
+-
+-static void evdi_fb_imageblit(struct fb_info *info,
+-			      const struct fb_image *image)
+-{
+-	struct evdi_fbdev *efbdev = info->par;
+-
+-	EVDI_CHECKPT();
+-	sys_imageblit(info, image);
+-	evdi_handle_damage(&efbdev->efb, image->dx, image->dy, image->width,
+-			   image->height);
+-}
+-
+-/*
+- * It's common for several clients to have framebuffer open simultaneously.
+- * e.g. both fbcon and X. Makes things interesting.
+- * Assumes caller is holding info->lock (for open and release at least)
+- */
+-static int evdi_fb_open(struct fb_info *info, int user)
+-{
+-	struct evdi_fbdev *efbdev = info->par;
+-
+-	efbdev->fb_count++;
+-	pr_notice("open /dev/fb%d user=%d fb_info=%p count=%d\n",
+-		  info->node, user, info, efbdev->fb_count);
+-
+-	return 0;
+-}
+-
+-/*
+- * Assumes caller is holding info->lock mutex (for open and release at least)
+- */
+-static int evdi_fb_release(struct fb_info *info, int user)
+-{
+-	struct evdi_fbdev *efbdev = info->par;
+-
+-	efbdev->fb_count--;
+-
+-	pr_warn("released /dev/fb%d user=%d count=%d\n",
+-		info->node, user, efbdev->fb_count);
+-
+-	return 0;
+-}
+-static const struct fb_ops evdifb_ops = {
+-	.owner = THIS_MODULE,
+-	.fb_check_var = drm_fb_helper_check_var,
+-	.fb_set_par = drm_fb_helper_set_par,
+-	.fb_fillrect = evdi_fb_fillrect,
+-	.fb_copyarea = evdi_fb_copyarea,
+-	.fb_imageblit = evdi_fb_imageblit,
+-	.fb_pan_display = drm_fb_helper_pan_display,
+-	.fb_blank = drm_fb_helper_blank,
+-	.fb_setcmap = drm_fb_helper_setcmap,
+-	.fb_debug_enter = drm_fb_helper_debug_enter,
+-	.fb_debug_leave = drm_fb_helper_debug_leave,
+-	.fb_mmap = evdi_fb_mmap,
+-	.fb_open = evdi_fb_open,
+-	.fb_release = evdi_fb_release,
+-};
+-#endif /* CONFIG_FB */
+-
+ #if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
+ #else
+ /*
+@@ -361,243 +223,6 @@ evdi_framebuffer_init(struct drm_device *dev,
+ 	return drm_framebuffer_init(dev, &efb->base, &evdifb_funcs);
+ }
+ 
+-#ifdef CONFIG_FB
+-int evdifb_create(struct drm_fb_helper *helper,
+-			 struct drm_fb_helper_surface_size *sizes)
+-{
+-	struct evdi_fbdev *efbdev = (struct evdi_fbdev *)helper;
+-	struct drm_device *dev = efbdev->helper.dev;
+-	struct fb_info *info;
+-	struct device *device = dev->dev;
+-	struct drm_framebuffer *fb;
+-	struct drm_mode_fb_cmd2 mode_cmd;
+-	struct evdi_gem_object *obj;
+-	uint32_t size;
+-	int ret = 0;
+-
+-	if (sizes->surface_bpp == 24) {
+-		sizes->surface_bpp = 32;
+-	} else if (sizes->surface_bpp != 32) {
+-		EVDI_ERROR("Not supported pixel format (bpp=%d)\n",
+-			   sizes->surface_bpp);
+-		return -EINVAL;
+-	}
+-
+-	mode_cmd.width = sizes->surface_width;
+-	mode_cmd.height = sizes->surface_height;
+-	mode_cmd.pitches[0] = mode_cmd.width * ((sizes->surface_bpp + 7) / 8);
+-
+-	mode_cmd.pixel_format = drm_mode_legacy_fb_format(sizes->surface_bpp,
+-							  sizes->surface_depth);
+-
+-	size = mode_cmd.pitches[0] * mode_cmd.height;
+-	size = ALIGN(size, PAGE_SIZE);
+-
+-	obj = evdi_gem_alloc_object(dev, size);
+-	if (!obj)
+-		goto out;
+-
+-	ret = evdi_gem_vmap(obj);
+-	if (ret) {
+-		DRM_ERROR("failed to vmap fb\n");
+-		goto out_gfree;
+-	}
+-
+-	info = framebuffer_alloc(0, device);
+-	if (!info) {
+-		ret = -ENOMEM;
+-		goto out_gfree;
+-	}
+-	info->par = efbdev;
+-
+-	ret = evdi_framebuffer_init(dev, &efbdev->efb,
+-#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
+-				    NULL,
+-#endif
+-				    &mode_cmd, obj);
+-	if (ret)
+-		goto out_gfree;
+-
+-	fb = &efbdev->efb.base;
+-
+-	efbdev->helper.fb = fb;
+-#if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+-	efbdev->helper.info = info;
+-#else
+-	efbdev->helper.fbdev = info;
+-#endif
+-
+-
+-	strscpy(info->fix.id, "evdidrmfb", sizeof(info->fix.id));
+-
+-	info->screen_base = efbdev->efb.obj->vmapping;
+-	info->fix.smem_len = size;
+-	info->fix.smem_start = (unsigned long)efbdev->efb.obj->vmapping;
+-
+-#if KERNEL_VERSION(6, 4, 0) <= LINUX_VERSION_CODE || defined(EL9)
+-#elif KERNEL_VERSION(4, 20, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	info->flags = FBINFO_DEFAULT;
+-#else
+-	info->flags = FBINFO_DEFAULT | FBINFO_CAN_FORCE_OUTPUT;
+-#endif
+-
+-	efbdev->fb_ops = &evdifb_ops;
+-	info->fbops = efbdev->fb_ops;
+-
+-#if KERNEL_VERSION(5, 2, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	drm_fb_helper_fill_info(info, &efbdev->helper, sizes);
+-#else
+-	drm_fb_helper_fill_fix(info, fb->pitches[0], fb->format->depth);
+-	drm_fb_helper_fill_var(info, &efbdev->helper, sizes->fb_width,
+-			       sizes->fb_height);
+-#endif
+-
+-	ret = fb_alloc_cmap(&info->cmap, 256, 0);
+-	if (ret) {
+-		ret = -ENOMEM;
+-		goto out_gfree;
+-	}
+-
+-	DRM_DEBUG_KMS("allocated %dx%d vmal %p\n",
+-		      fb->width, fb->height, efbdev->efb.obj->vmapping);
+-
+-	return ret;
+- out_gfree:
+-#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	drm_gem_object_put(&efbdev->efb.obj->base);
+-#else
+-	drm_gem_object_put_unlocked(&efbdev->efb.obj->base);
+-#endif
+- out:
+-	return ret;
+-}
+-
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+-#else
+-static struct drm_fb_helper_funcs evdi_fb_helper_funcs = {
+-	.fb_probe = evdifb_create,
+-};
+-#endif
+-
+-static void evdi_fbdev_destroy(__always_unused struct drm_device *dev,
+-			       struct evdi_fbdev *efbdev)
+-{
+-	struct fb_info *info;
+-
+-#if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+-	if (efbdev->helper.info) {
+-		info = efbdev->helper.info;
+-#else
+-	if (efbdev->helper.fbdev) {
+-		info = efbdev->helper.fbdev;
+-#endif
+-		unregister_framebuffer(info);
+-		if (info->cmap.len)
+-			fb_dealloc_cmap(&info->cmap);
+-
+-		framebuffer_release(info);
+-	}
+-	drm_fb_helper_fini(&efbdev->helper);
+-	if (efbdev->efb.obj) {
+-		drm_framebuffer_unregister_private(&efbdev->efb.base);
+-		drm_framebuffer_cleanup(&efbdev->efb.base);
+-#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-		drm_gem_object_put(&efbdev->efb.obj->base);
+-#else
+-		drm_gem_object_put_unlocked(&efbdev->efb.obj->base);
+-#endif
+-	}
+-}
+-
+-int evdi_fbdev_init(struct drm_device *dev)
+-{
+-	struct evdi_device *evdi;
+-	struct evdi_fbdev *efbdev;
+-	int ret;
+-
+-	evdi = dev->dev_private;
+-	efbdev = kzalloc(sizeof(struct evdi_fbdev), GFP_KERNEL);
+-	if (!efbdev)
+-		return -ENOMEM;
+-
+-	evdi->fbdev = efbdev;
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+-	drm_fb_helper_prepare(dev, &efbdev->helper, 32, NULL);
+-#elif KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	drm_fb_helper_prepare(dev, &efbdev->helper, 32, &evdi_fb_helper_funcs);
+-#else
+-	drm_fb_helper_prepare(dev, &efbdev->helper, &evdi_fb_helper_funcs);
+-#endif
+-
+-#if KERNEL_VERSION(5, 7, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	ret = drm_fb_helper_init(dev, &efbdev->helper);
+-#else
+-	ret = drm_fb_helper_init(dev, &efbdev->helper, 1);
+-#endif
+-	if (ret) {
+-		kfree(efbdev);
+-		return ret;
+-	}
+-
+-#if KERNEL_VERSION(5, 7, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
+-	drm_fb_helper_single_add_all_connectors(&efbdev->helper);
+-#endif
+-
+-#if KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+-	ret = drm_fb_helper_initial_config(&efbdev->helper);
+-#else
+-	ret = drm_fb_helper_initial_config(&efbdev->helper, 32);
+-#endif
+-
+-	if (ret) {
+-		drm_fb_helper_fini(&efbdev->helper);
+-		kfree(efbdev);
+-	}
+-	return ret;
+-}
+-
+-void evdi_fbdev_cleanup(struct drm_device *dev)
+-{
+-	struct evdi_device *evdi = dev->dev_private;
+-
+-	if (!evdi->fbdev)
+-		return;
+-
+-	evdi_fbdev_destroy(dev, evdi->fbdev);
+-	kfree(evdi->fbdev);
+-	evdi->fbdev = NULL;
+-}
+-
+-void evdi_fbdev_unplug(struct drm_device *dev)
+-{
+-	struct evdi_device *evdi = dev->dev_private;
+-	struct evdi_fbdev *efbdev;
+-
+-	if (!evdi->fbdev)
+-		return;
+-
+-	efbdev = evdi->fbdev;
+-#if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+-	if (efbdev->helper.info) {
+-		struct fb_info *info;
+-
+-		info = efbdev->helper.info;
+-#else
+-	if (efbdev->helper.fbdev) {
+-		struct fb_info *info;
+-
+-		info = efbdev->helper.fbdev;
+-#endif
+-#if KERNEL_VERSION(5, 6, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-		unregister_framebuffer(info);
+-#else
+-		unlink_framebuffer(info);
+-#endif
+-	}
+-}
+-#endif /* CONFIG_FB */
+-
+ int evdi_fb_get_bpp(uint32_t format)
+ {
+ 	const struct drm_format_info *info = drm_format_info(format);
+
+From 285faf4771f5a00265843058c2b1fb674d0c1b8b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Mon, 16 Feb 2026 13:27:49 +0000
+Subject: [PATCH 23/28] Fix kernel 6.20 style check
+
+---
+ module/evdi_connector.c    |  2 +-
+ module/evdi_debug.h        |  7 +++++++
+ module/evdi_drm_drv.c      |  2 +-
+ module/evdi_encoder.c      |  2 +-
+ module/evdi_gem.c          |  2 +-
+ module/evdi_modeset.c      |  4 ++--
+ module/evdi_painter.c      | 16 ++++++++--------
+ module/evdi_platform_dev.c |  2 +-
+ 8 files changed, 22 insertions(+), 15 deletions(-)
+
+diff --git a/module/evdi_connector.c b/module/evdi_connector.c
+index 77e524bc..945de255 100644
+--- a/module/evdi_connector.c
++++ b/module/evdi_connector.c
+@@ -184,7 +184,7 @@ int evdi_connector_init(struct drm_device *dev, struct drm_encoder *encoder)
+ 	struct drm_connector *connector;
+ 	struct evdi_device *evdi = dev->dev_private;
+ 
+-	connector = kzalloc(sizeof(struct drm_connector), GFP_KERNEL);
++	connector = kzalloc_obj(*connector, GFP_KERNEL);
+ 	if (!connector)
+ 		return -ENOMEM;
+ 
+diff --git a/module/evdi_debug.h b/module/evdi_debug.h
+index 14000811..ed3ad885 100644
+--- a/module/evdi_debug.h
++++ b/module/evdi_debug.h
+@@ -10,6 +10,7 @@
+ #define EVDI_DEBUG_H
+ 
+ #include "evdi_params.h"
++#include <linux/version.h>
+ 
+ #define EVDI_LOGLEVEL_FATAL   1
+ #define EVDI_LOGLEVEL_ERROR   2
+@@ -54,4 +55,10 @@
+ 
+ void evdi_log_process(char *buf, size_t size);
+ 
++
++#if KERNEL_VERSION(6, 20, 0) <= LINUX_VERSION_CODE
++#else
++#define kzalloc_obj(obj, flags) kzalloc(sizeof(typeof(obj)), flags)
++#endif
++
+ #endif /* EVDI_DEBUG_H */
+diff --git a/module/evdi_drm_drv.c b/module/evdi_drm_drv.c
+index af4f4023..3ce1af2d 100644
+--- a/module/evdi_drm_drv.c
++++ b/module/evdi_drm_drv.c
+@@ -176,7 +176,7 @@ static int evdi_drm_device_init(struct drm_device *dev)
+ 	int ret;
+ 
+ 	EVDI_CHECKPT();
+-	evdi = kzalloc(sizeof(struct evdi_device), GFP_KERNEL);
++	evdi = kzalloc_obj(*evdi, GFP_KERNEL);
+ 	if (!evdi)
+ 		return -ENOMEM;
+ 
+diff --git a/module/evdi_encoder.c b/module/evdi_encoder.c
+index 47fd19f2..e35dfc5a 100644
+--- a/module/evdi_encoder.c
++++ b/module/evdi_encoder.c
+@@ -51,7 +51,7 @@ struct drm_encoder *evdi_encoder_init(struct drm_device *dev)
+ 	struct drm_encoder *encoder;
+ 	int ret = 0;
+ 
+-	encoder = kzalloc(sizeof(struct drm_encoder), GFP_KERNEL);
++	encoder = kzalloc_obj(*encoder, GFP_KERNEL);
+ 	if (!encoder)
+ 		goto err;
+ 
+diff --git a/module/evdi_gem.c b/module/evdi_gem.c
+index 8216b6d5..a834fa25 100644
+--- a/module/evdi_gem.c
++++ b/module/evdi_gem.c
+@@ -99,7 +99,7 @@ struct evdi_gem_object *evdi_gem_alloc_object(struct drm_device *dev,
+ {
+ 	struct evdi_gem_object *obj;
+ 
+-	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
++	obj = kzalloc_obj(*obj, GFP_KERNEL);
+ 	if (obj == NULL)
+ 		return NULL;
+ 
+diff --git a/module/evdi_modeset.c b/module/evdi_modeset.c
+index 6674e4b3..fd7e31a3 100644
+--- a/module/evdi_modeset.c
++++ b/module/evdi_modeset.c
+@@ -432,7 +432,7 @@ static struct drm_plane *evdi_create_plane(
+ 	int ret;
+ 	char *plane_type = (type == DRM_PLANE_TYPE_CURSOR) ? "cursor" : "primary";
+ 
+-	plane = kzalloc(sizeof(*plane), GFP_KERNEL);
++	plane = kzalloc_obj(*plane, GFP_KERNEL);
+ 	if (plane == NULL) {
+ 		EVDI_ERROR("Failed to allocate %s plane\n", plane_type);
+ 		return NULL;
+@@ -469,7 +469,7 @@ static int evdi_crtc_init(struct drm_device *dev)
+ 	int status = 0;
+ 
+ 	EVDI_CHECKPT();
+-	crtc = kzalloc(sizeof(struct drm_crtc), GFP_KERNEL);
++	crtc = kzalloc_obj(*crtc, GFP_KERNEL);
+ 	if (crtc == NULL)
+ 		return -ENOMEM;
+ 
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index 46e11d8a..ba320cc7 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -413,7 +413,7 @@ static struct drm_pending_event *create_update_ready_event(void)
+ {
+ 	struct evdi_event_update_ready_pending *event;
+ 
+-	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	event = kzalloc_obj(*event, GFP_KERNEL);
+ 	if (!event) {
+ 		EVDI_ERROR("Failed to create update ready event\n");
+ 		return NULL;
+@@ -461,7 +461,7 @@ static struct drm_pending_event *create_cursor_set_event(
+ 	struct evdi_event_cursor_set_pending *event;
+ 	struct evdi_gem_object *eobj = NULL;
+ 
+-	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	event = kzalloc_obj(*event, GFP_KERNEL);
+ 	if (!event) {
+ 		EVDI_ERROR("Failed to create cursor set event\n");
+ 		return NULL;
+@@ -508,7 +508,7 @@ static struct drm_pending_event *create_cursor_move_event(
+ {
+ 	struct evdi_event_cursor_move_pending *event;
+ 
+-	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	event = kzalloc_obj(*event, GFP_KERNEL);
+ 	if (!event) {
+ 		EVDI_ERROR("Failed to create cursor move event\n");
+ 		return NULL;
+@@ -540,7 +540,7 @@ static struct drm_pending_event *create_dpms_event(int mode)
+ {
+ 	struct evdi_event_dpms_pending *event;
+ 
+-	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	event = kzalloc_obj(*event, GFP_KERNEL);
+ 	if (!event) {
+ 		EVDI_ERROR("Failed to create dpms event\n");
+ 		return NULL;
+@@ -568,7 +568,7 @@ static struct drm_pending_event *create_mode_changed_event(
+ {
+ 	struct evdi_event_mode_changed_pending *event;
+ 
+-	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	event = kzalloc_obj(*event, GFP_KERNEL);
+ 	if (!event) {
+ 		EVDI_ERROR("Failed to create mode changed event\n");
+ 		return NULL;
+@@ -855,7 +855,7 @@ static void evdi_add_i2c_adapter(struct evdi_device *evdi)
+ 	struct platform_device *platdev = to_platform_device(ddev->dev);
+ 	int result = 0;
+ 
+-	evdi->i2c_adapter = kzalloc(sizeof(*evdi->i2c_adapter), GFP_KERNEL);
++	evdi->i2c_adapter = kzalloc_obj(*evdi->i2c_adapter, GFP_KERNEL);
+ 
+ 	if (!evdi->i2c_adapter) {
+ 		EVDI_ERROR("(card%d) Failed to allocate for i2c adapter\n",
+@@ -1315,7 +1315,7 @@ DEFINE_DEBUGFS_ATTRIBUTE(evdi_painter_debug_test_ops, NULL, evdi_painter_debugfs
+ int evdi_painter_init(struct evdi_device *dev)
+ {
+ 	EVDI_CHECKPT();
+-	dev->painter = kzalloc(sizeof(*dev->painter), GFP_KERNEL);
++	dev->painter = kzalloc_obj(*dev->painter, GFP_KERNEL);
+ 	if (dev->painter) {
+ 		mutex_init(&dev->painter->lock);
+ 		dev->painter->edid = NULL;
+@@ -1402,7 +1402,7 @@ static struct drm_pending_event *create_ddcci_data_event(struct i2c_msg *msg)
+ {
+ 	struct evdi_event_ddcci_data_pending *event;
+ 
+-	event = kzalloc(sizeof(*event), GFP_KERNEL);
++	event = kzalloc_obj(*event, GFP_KERNEL);
+ 	if (!event || !msg) {
+ 		EVDI_ERROR("Failed to create ddcci data event\n");
+ 		return NULL;
+diff --git a/module/evdi_platform_dev.c b/module/evdi_platform_dev.c
+index 9358c345..35d38113 100644
+--- a/module/evdi_platform_dev.c
++++ b/module/evdi_platform_dev.c
+@@ -59,7 +59,7 @@ int evdi_platform_device_probe(struct platform_device *pdev)
+ 	struct evdi_platform_device_data *data;
+ 
+ 	EVDI_CHECKPT();
+-	data = kzalloc(sizeof(struct evdi_platform_device_data), GFP_KERNEL);
++	data = kzalloc_obj(*data, GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ #if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+
+From a1552db612a9fc3d981f5ac23ef8def51e3d9a4d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <Lukasz.Spintzyk@synaptics.com>
+Date: Thu, 20 Mar 2025 13:46:21 +0100
+Subject: [PATCH 24/28] Make libevdi install location same as used in
+ production
+
+---
+ library/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/library/Makefile b/library/Makefile
+index 36781bfb..4a9acdbb 100644
+--- a/library/Makefile
++++ b/library/Makefile
+@@ -14,7 +14,7 @@ CFLAGS := -I../module -std=gnu99 -fPIC -D_FILE_OFFSET_BITS=64 $(CFLAGS) $$($(PKG
+ LIBVER := 1.14.14
+ LIBABI := 1
+ 
+-PREFIX ?= /usr/local
++PREFIX ?= /usr
+ LIBDIR ?= $(PREFIX)/lib
+ 
+ default: libevdi.so.$(LIBVER)
+
+From 3dafd623f5c59ce6fe53f0662107d3e88f868de3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=C5=81ukasz=20Spintzyk?= <lukasz.spintzyk@synaptics.com>
+Date: Wed, 25 Feb 2026 07:24:01 +0000
+Subject: [PATCH 25/28] Set version to 1.14.15
+
+---
+ ci/deb_config              | 2 +-
+ library/Makefile           | 2 +-
+ library/evdi_lib.h         | 2 +-
+ module/Makefile            | 2 +-
+ module/dkms.conf           | 2 +-
+ module/dkms_install.sh     | 2 +-
+ module/evdi_platform_drv.h | 4 ++--
+ 7 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/ci/deb_config b/ci/deb_config
+index 22ce7792..70dcfdbf 100644
+--- a/ci/deb_config
++++ b/ci/deb_config
+@@ -8,7 +8,7 @@ evdi_package_name='evdi'
+ evdi_maintainer='Synaptics Technical Support <technical-enquiries@synaptics.com>'
+ 
+ # shellcheck disable=SC2034
+-evdi_version='1.14.14'
++evdi_version='1.14.15'
+ 
+ # shellcheck disable=SC2034
+ evdi_description="Extensible Virtual Display Interface (EVDI) is a Linux® kernel module that enables management of multiple screens.
+diff --git a/libraryMakefile b/library/Makefile
+index 4a9acdbb..32e11484 100644
+--- a/library/Makefile
++++ b/library/Makefile
+@@ -11,7 +11,7 @@ PKG_CONFIG ?= pkg-config
+ DEPS = evdi_ioctl.h
+ CFLAGS := -I../module -std=gnu99 -fPIC -D_FILE_OFFSET_BITS=64 $(CFLAGS) $$($(PKG_CONFIG) --cflags-only-I libdrm)
+ 
+-LIBVER := 1.14.14
++LIBVER := 1.14.15
+ LIBABI := 1
+ 
+ PREFIX ?= /usr
+diff --git a/library/evdi_lib.h b/library/evdi_lib.h
+index 946a49f7..b0369634 100644
+--- a/library/evdi_lib.h
++++ b/library/evdi_lib.h
+@@ -15,7 +15,7 @@ extern "C" {
+ 
+ #define LIBEVDI_VERSION_MAJOR 1
+ #define LIBEVDI_VERSION_MINOR 14
+-#define LIBEVDI_VERSION_PATCH 14
++#define LIBEVDI_VERSION_PATCH 15
+ 
+ struct evdi_lib_version {
+ 	int version_major;
+diff --git a/module/Makefile b/module/Makefile
+index 8b737c91..bf15ec33 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -59,7 +59,7 @@ CP ?= cp
  DKMS ?= dkms
  RM ?= rm
  
--MODVER=1.14.11
-+MODVER=1.14.14
+-MODVER=1.14.14
++MODVER=1.14.15
  
  ifeq ($(KVER),)
  	KVER := $(shell uname -r)
-diff -urN evdi-a/README.md evdi-b/README.md
---- evdi-a/README.md	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/README.md	2026-02-09 03:40:17.000000000 -0500
-@@ -22,7 +22,7 @@
+diff --git a/module/dkms.conf b/module/dkms.conf
+index 391328b4..b6904b2c 100644
+--- a/module/dkms.conf
++++ b/module/dkms.conf
+@@ -7,7 +7,7 @@
+ #
  
- There is an community driven GitHub project at [DisplayLink RPM](https://github.com/displaylink-rpm/displaylink-rpm) which is generating RPM package for Fedora, CentOS Stream, Rocky Linux and AlmaLinux OS. It uses our code as the basis to create the RPM packages.
+ PACKAGE_NAME="evdi"
+-PACKAGE_VERSION=1.14.14
++PACKAGE_VERSION=1.14.15
+ AUTOINSTALL=yes
  
--There is also an [AUR package](https://aur.archlinux.org/packages/evdi) maintained by the community.
-+There is also an [AUR package](https://aur.archlinux.org/packages/evdi-dkms) maintained by the community.
+ MAKE[0]="make all INCLUDEDIR=/lib/modules/$kernelver/build/include KVERSION=$kernelver DKMS_BUILD=1"
+diff --git a/module/dkms_install.sh b/module/dkms_install.sh
+index ee2f55d9..f32b9ef4 100755
+--- a/module/dkms_install.sh
++++ b/module/dkms_install.sh
+@@ -2,7 +2,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ # Copyright (c) 2023 DisplayLink (UK) Ltd.
  
- ## Contributing
+-evdi_version='1.14.14'
++evdi_version='1.14.15'
  
-@@ -43,7 +43,7 @@
- ## Licensing
+ EVDI_DIR=$(dirname "${BASH_SOURCE[0]}")
+ EVDI_REBOOT_RATIONALE=
+diff --git a/module/evdi_platform_drv.h b/module/evdi_platform_drv.h
+index f3c524c3..992692e2 100644
+--- a/module/evdi_platform_drv.h
++++ b/module/evdi_platform_drv.h
+@@ -29,12 +29,12 @@ struct platform_device_info;
+ #define DRIVER_DESC   "Extensible Virtual Display Interface"
+ #if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+ #else
+-#define DRIVER_DATE   "20260209"
++#define DRIVER_DATE   "20260225"
+ #endif
  
- Elements of this project are licensed under various licenses. In particular, the `module` and `library` are licensed
--under GPL v2 and LGPL v2.1 respectively - consult separate `LICENSE` files in subfolders. Remaining files and subfolders (unless
-+under GPL v2 and LGPL v2.1-or-later respectively - consult separate `LICENSE` files in subfolders. Remaining files and subfolders (unless
- a separate `LICENSE` file states otherwise) are licensed under MIT license.
+ #define DRIVER_MAJOR 1
+ #define DRIVER_MINOR 14
+-#define DRIVER_PATCH 14
++#define DRIVER_PATCH 15
  
+ void evdi_platform_remove_all_devices(struct device *device);
+ unsigned int evdi_platform_device_count(struct device *device);
+
+From eb36e4f603b1f3e2e5f71ca962d7892efcb9972e Mon Sep 17 00:00:00 2001
+From: ywaf <52742690+ywaf@users.noreply.github.com>
+Date: Wed, 25 Feb 2026 01:02:51 +1100
+Subject: [PATCH 26/28] fix asahi linux (apple silicone) compile error
+
+---
+ module/evdi_painter.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/module/evdi_painter.c b/module/evdi_painter.c
+index ba320cc7..ca7e7137 100644
+--- a/module/evdi_painter.c
++++ b/module/evdi_painter.c
+@@ -173,7 +173,7 @@ static void collapse_dirty_rects(struct drm_clip_rect *rects, int *count)
+ 	*count = 1;
+ }
  
-diff -urN evdi-a/.travis.yml evdi-b/.travis.yml
---- evdi-a/.travis.yml	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/.travis.yml	1969-12-31 19:00:00.000000000 -0500
-@@ -1,49 +0,0 @@
--dist: xenial
--os: linux
--language: c
--cache: ccache
--
--env:
--  - KVER=4.19
--  - KVER=4.20
--  - KVER=5.0
--  - KVER=5.1
--  - KVER=5.2
--  - KVER=5.3
--  - KVER=5.4
--  - KVER=5.5
--  - KVER=5.6
--  - KVER=5.7
--  - KVER=5.8
--  - KVER=5.9
--  - KVER=5.11
--  - KVER=5.12
--  - KVER=5.13
--  - KVER=5.14
--  - KVER=5.15
--  - KVER=5.16
--  - KVER=5.17
--  - KVER=5.18
--  - KVER=5.19
--  - KVER=6.0
--  - KVER=master
--
--jobs:
--  allow_failures:
--    - env: KVER=master
--  include:
--    - env: StyleCheck
--      script: ./ci/run_style_check
--
--addons:
--  apt:
--    sources:
--      - ubuntu-toolchain-r-test
--    packages:
--      - bc
--      - g++-5
--      - libdrm-dev
--      - libelf-dev
--
--script:
--  - CC=gcc-5 ./ci/build_against_kernel ${KVER}
-diff -urN evdi-a/.vscode/settings.json evdi-b/.vscode/settings.json
---- evdi-a/.vscode/settings.json	2025-08-26 04:31:36.000000000 -0400
-+++ evdi-b/.vscode/settings.json	1969-12-31 19:00:00.000000000 -0500
-@@ -1,13 +0,0 @@
--{
--  "[cpp]": {
--    "editor.formatOnType": false,
--    "editor.formatOnPaste": false,
--    "editor.formatOnSave": false
--  },
--  "[c]": {
--    "editor.formatOnType": false,
--    "editor.formatOnPaste": false,
--    "editor.formatOnSave": false
--  },
--  "C_Cpp.clang_format_style": "file",
--}
+-#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#if (KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)) && defined(CONFIG_X86)
+ static int copy_primary_pixels_on_xe(struct evdi_framebuffer *efb,
+ 			       char __user *buffer,
+ 			       int buf_byte_stride,
+@@ -218,7 +218,7 @@ static int copy_primary_pixels(struct evdi_framebuffer *efb,
+ 
+ 	EVDI_CHECKPT();
+ 
+-#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#if (KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)) && defined(CONFIG_X86)
+ 	if (efb->is_from_xe)
+ 		return copy_primary_pixels_on_xe(efb, buffer, buf_byte_stride, max_x, max_y);
+ #endif
+
+From 4cbe384c823f8058fbccd17079a23226614ceb77 Mon Sep 17 00:00:00 2001
+From: Richard Gieg <richgieg@users.noreply.github.com>
+Date: Sat, 28 Feb 2026 16:36:58 -0800
+Subject: [PATCH 27/28] Fix build on CentOS 9 and 10
+
+---
+ module/Makefile       |  8 ++++++--
+ module/evdi_drm_drv.h |  2 +-
+ module/evdi_fb.c      | 10 +++++-----
+ 3 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/module/Makefile b/module/Makefile
+index bf15ec33..9abb4f8b 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -12,6 +12,10 @@ ifneq (,$(findstring rhel,$(ID_LIKE)))
+ ELFLAG := -DEL$(shell echo $(VERSION_ID) | cut -d. -f1)
+ endif
+ 
++ifneq (,$(findstring centos,$(ID)))
++CENTOSFLAG := -DCENTOS$(VERSION_ID)
++endif
++
+ Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
+ ifeq (,$(findstring 0, $(Raspbian)))
+ RPIFLAG := -DRPI
+@@ -23,7 +27,7 @@ ifneq ($(DKMS_BUILD),)
+ 
+ KERN_DIR := /lib/modules/$(KERNELRELEASE)/build
+ 
+-ccflags-y := -Iinclude/uapi/drm -Iinclude/drm $(ELFLAG) $(RPIFLAG)
++ccflags-y := -Iinclude/uapi/drm -Iinclude/drm $(ELFLAG) $(CENTOSFLAG) $(RPIFLAG)
+ evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
+ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
+ obj-m := evdi.o
+@@ -45,7 +49,7 @@ ifneq ($(KERNELRELEASE),)
+ 
+ # inside kbuild
+ # Note: this can be removed once it is in kernel tree and Kconfig is properly used
+-ccflags-y := -isystem include/uapi/drm $(CFLAGS) $(ELFLAG) $(RPIFLAG)
++ccflags-y := -isystem include/uapi/drm $(CFLAGS) $(ELFLAG) $(CENTOSFLAG) $(RPIFLAG)
+ evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
+ evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
+ CONFIG_DRM_EVDI ?= m
+diff --git a/module/evdi_drm_drv.h b/module/evdi_drm_drv.h
+index 38edbe36..e67fca2c 100644
+--- a/module/evdi_drm_drv.h
++++ b/module/evdi_drm_drv.h
+@@ -102,7 +102,7 @@ long evdi_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 				struct drm_device *dev,
+ 				struct drm_file *file,
+-#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
+ 				const struct drm_format_info *info,
+ #endif
+ 				const struct drm_mode_fb_cmd2 *mode_cmd);
+diff --git a/module/evdi_fb.c b/module/evdi_fb.c
+index a6a2edc7..c13c94ef 100644
+--- a/module/evdi_fb.c
++++ b/module/evdi_fb.c
+@@ -203,20 +203,20 @@ static const struct drm_framebuffer_funcs evdifb_funcs = {
+ static int
+ evdi_framebuffer_init(struct drm_device *dev,
+ 		      struct evdi_framebuffer *efb,
+-#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
+ 		      const struct drm_format_info *info,
+ #endif
+ 		      const struct drm_mode_fb_cmd2 *mode_cmd,
+ 		      struct evdi_gem_object *obj)
+ {
+ 	efb->obj = obj;
+-#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
+ 	if (info == NULL)
+ 		info = drm_get_format_info(dev, mode_cmd->pixel_format,
+ 					   mode_cmd->modifier[0]);
+ #endif
+ 	drm_helper_mode_fill_fb_struct(dev, &efb->base,
+-#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
+ 				       info,
+ #endif
+ 				       mode_cmd);
+@@ -253,7 +253,7 @@ static bool is_xe_gem(struct dma_buf *dmabuf)
+ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 					struct drm_device *dev,
+ 					struct drm_file *file,
+-#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
+ 					const struct drm_format_info *info,
+ #endif
+ 					const struct drm_mode_fb_cmd2 *mode_cmd)
+@@ -289,7 +289,7 @@ struct drm_framebuffer *evdi_fb_user_fb_create(
+ 	efb->base.obj[0] = obj;
+ 
+ 	ret = evdi_framebuffer_init(dev, efb,
+-#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
++#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
+ 				    info,
+ #endif
+ 				    mode_cmd, to_evdi_bo(obj));
+
+From 6ef1a577ef7fd91eb5eb496a332cc61043f7d90a Mon Sep 17 00:00:00 2001
+From: Richard Gieg <richgieg@users.noreply.github.com>
+Date: Sun, 19 Apr 2026 09:47:35 -0700
+Subject: [PATCH 28/28] Ensure no double quotes in CENTOS flag
+
+---
+ module/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/module/Makefile b/module/Makefile
+index 9abb4f8b..589d1e47 100644
+--- a/module/Makefile
++++ b/module/Makefile
+@@ -13,7 +13,7 @@ ELFLAG := -DEL$(shell echo $(VERSION_ID) | cut -d. -f1)
+ endif
+ 
+ ifneq (,$(findstring centos,$(ID)))
+-CENTOSFLAG := -DCENTOS$(VERSION_ID)
++CENTOSFLAG := -DCENTOS$(shell echo $(VERSION_ID) | cut -d. -f1)
+ endif
+ 
+ Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
