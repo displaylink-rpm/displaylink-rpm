@@ -260,6 +260,9 @@ fi
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Wed May 06 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.16-1
+- Update to evdi v1.14.16
+
 * Mon Apr 27 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.15-2
 - Remove patch for changes that are in upstream evdi
 
