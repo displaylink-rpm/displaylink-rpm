@@ -2,9 +2,9 @@
 # Versions
 #
 
-DAEMON_VERSION := 6.2.0-30
+DAEMON_VERSION := 6.3.0-48
 VERSION        := 1.14.16
-RELEASE        := 1
+RELEASE        := 2
 
 #
 # Dependencies
@@ -36,8 +36,8 @@ TARGETS    := $(RPM) $(SRPM)
 
 # Use release found on GitHub instead of what comes in the
 # Displaylink download
-RPM_GITHUB_EVDI := $(ARCH)/displaylink-$(VERSION)-$(RELEASE)-github_evdi.$(ARCH).rpm
-SRPM_GITHUB_EVDI       := displaylink-$(VERSION)-$(RELEASE)-github_evdi.src.rpm
+RPM_GITHUB_EVDI  := $(ARCH)/displaylink-$(VERSION)-$(RELEASE)-github_evdi.$(ARCH).rpm
+SRPM_GITHUB_EVDI := displaylink-$(VERSION)-$(RELEASE)-github_evdi.src.rpm
 
 TARGETS_GITHUB_EVDI := $(RPM_GITHUB_EVDI) $(SRPM_GITHUB_EVDI)
 
@@ -92,7 +92,7 @@ main: $(EVDI_MAIN)
 # Change release version for running on Fedora Rawhide
 rawhide:
 	@echo Checking last upstream commit date...
-	$(MAKE) RELEASE="`$(get_release_version)`.rawhide.`$(get_main_date)`" main github-release
+	$(MAKE) RELEASE="`$(get_release_version)`.rawhide.`$(get_main_date)`" main github-release EXTRA_DEFINES="--define '_rawhide 1'"
 
 clean-rawhide:
 	@echo Checking last upstream commit date...
@@ -126,7 +126,7 @@ $(EVDI_MAIN):
 
 $(DAEMON_PKG):
 	wget --no-verbose -O $(DAEMON_PKG) \
-		"https://www.synaptics.com/sites/default/files/exe_files/2025-09/DisplayLink USB Graphics Software for Ubuntu6.2-EXE.zip"
+		"https://www.synaptics.com/sites/default/files/exe_files/2026-06/DisplayLink USB Graphics Software for Ubuntu6.3-EXE.zip"
 $(EVDI_PKG):
 	wget --no-verbose -O v$(VERSION).tar.gz \
 		https://github.com/DisplayLink/evdi/archive/v$(VERSION).tar.gz
@@ -153,7 +153,7 @@ $(SRPM): $(BUILD_DEPS)
 	rpmbuild -bs $(BUILD_DEFINES) displaylink.spec
 
 $(RPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
-	rpmbuild -bb $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec --target=$(ARCH)
+	rpmbuild -bb $(BUILD_DEFINES) $(BUILD_DEFINES_GITHUB_EVDI) $(EXTRA_DEFINES) displaylink.spec --target=$(ARCH)
 
 $(SRPM_GITHUB_EVDI): $(BUILD_DEPS_GITHUB_EVDI)
-	rpmbuild -bs $(BUILD_DEFINES)$(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec
+	rpmbuild -bs $(BUILD_DEFINES) $(BUILD_DEFINES_GITHUB_EVDI) displaylink.spec

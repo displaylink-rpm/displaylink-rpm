@@ -1,6 +1,6 @@
-%{!?_daemon_version:%global _daemon_version 6.2.0-30}
+%{!?_daemon_version:%global _daemon_version 6.3.0-48}
 %{!?_version:%global _version 1.14.16}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -41,6 +41,7 @@ Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
 Patch0:   update-bundled-evdi-to-latest-release.patch
+Patch1:   patches-since-last-release.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -97,6 +98,10 @@ gzip -dc evdi.tar.gz | tar -xvvf -
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
+%endif
+
+%if !0%{?_rawhide}
+%patch -P 1 -p1
 %endif
 
 sed -i 's/\r//' README.md
@@ -170,14 +175,19 @@ chmod +x %{buildroot}%{_libexecdir}/%{name}/udev.sh
 
 %post
 %systemd_post displaylink-driver.service
-%{_sbindir}/dkms add evdi/%{version} --rpm_safe_upgrade >> %{logfile} 2>&1
-%{_sbindir}/dkms build evdi/%{version} >> %{logfile} 2>&1
-%{_sbindir}/dkms install evdi/%{version} >> %{logfile} 2>&1
+%{_sbindir}/dkms add evdi/%{version} --rpm_safe_upgrade >> %{logfile} 2>&1 || \
+  { echo "WARNING: DKMS add failed for evdi/%{version}. Check %{logfile} for details." >&2; }
+%{_sbindir}/dkms build evdi/%{version} >> %{logfile} 2>&1 || \
+  { echo "WARNING: DKMS build failed for evdi/%{version}. Check %{logfile} for details." >&2; }
+%{_sbindir}/dkms install evdi/%{version} >> %{logfile} 2>&1 || \
+  { echo "WARNING: DKMS install failed for evdi/%{version}. Check %{logfile} for details." >&2; }
 
 # Trigger udev if devices are connected
-%{_bindir}/grep -lw 17e9 /sys/bus/usb/devices/*/idVendor | while IFS= read -r device; do
-  %{_bindir}/udevadm trigger --action=add "$(dirname "$device")"
-done
+if [ -d /sys/bus/usb/devices ]; then
+  %{_bindir}/grep -lw 17e9 /sys/bus/usb/devices/*/idVendor | while IFS= read -r device; do
+    %{_bindir}/udevadm trigger --action=add "$(dirname "$device")"
+  done
+fi
 
 # Gnome/Mutter - wait for primary GPU
 drm_deps=$(sed -n '/^drm_[[:alpha:]]*_helper/p' /proc/modules | awk '{print $4}' | tr ',' '\n' | sort -u | tr '\n' ' ')
@@ -186,7 +196,9 @@ if [[ -n $drm_deps ]]; then
   echo -e "\nsoftdep evdi pre: $drm_deps" >> %{_sysconfdir}/modprobe.d/evdi.conf
 fi
 
-%{_bindir}/systemctl start displaylink-driver.service
+if [ -d /run/systemd/system ]; then
+  %{_bindir}/systemctl start displaylink-driver.service
+fi
 
 %files
 %license LICENSE
@@ -254,12 +266,19 @@ fi
 
 %preun
 %systemd_preun displaylink-driver.service
-%{_sbindir}/dkms remove evdi/%{version} --all --rpm_safe_upgrade >> %{logfile}
+%{_sbindir}/dkms remove evdi/%{version} --all --rpm_safe_upgrade >> %{logfile} 2>&1 || \
+  { echo "WARNING: DKMS remove failed for evdi/%{version}. Module may not have been built. Check %{logfile} for details." >&2; }
 
 %postun
 %systemd_postun_with_restart displaylink-driver.service
 
 %changelog
+* Thu Jun 18 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.16-2
+- Update to new DisplayLink 6.3.0 package
+- Add patches committed upstream for EL9 and EL10 builds
+- Add some helpful messages around post install and pre-uninstall
+- Add some environmental checks during post install
+
 * Wed May 06 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.16-1
 - Update to evdi v1.14.16
 
