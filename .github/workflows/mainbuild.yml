@@ -38,7 +38,7 @@ jobs:
         image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Specify Build Target
         run: |
@@ -84,7 +84,7 @@ jobs:
         image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Specify Build Target
         run: |

@@ -39,7 +39,7 @@ jobs:
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Make sure awk is present
         run: |
@@ -124,7 +124,7 @@ jobs:
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Make sure awk is present
         run: |

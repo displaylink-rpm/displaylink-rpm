@@ -14,7 +14,7 @@ jobs:
     container: 
       image: quay.io/rockylinux/rockylinux:9
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Specify Build Target
         run: |
           echo "SPECIFICTARGET=github-release" >> $GITHUB_ENV
@@ -54,7 +54,7 @@ jobs:
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Specify Build Target
         run: |
@@ -100,7 +100,7 @@ jobs:
     container: 
       image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Specify Build Target
         run: |
@@ -127,7 +127,7 @@ jobs:
       image: quay.io/rockylinux/rockylinux:9
       options: --privileged
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Test Mock Build From Spec
         run: |
           echo "Install Mock"
