@@ -12,9 +12,6 @@ jobs:
       matrix:
         include:
           - os: fedora
-            version: 42
-            dockernamespace: quay.io/fedora/fedora
-          - os: fedora
             version: 43
             dockernamespace: quay.io/fedora/fedora
           - os: fedora
@@ -99,9 +96,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: fedora
-            version: 42
-            dockernamespace: quay.io/fedora/fedora
           - os: fedora
             version: 43
             dockernamespace: quay.io/fedora/fedora
