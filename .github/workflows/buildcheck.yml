@@ -47,15 +47,24 @@ jobs:
           - runner: ubuntu-24.04-arm
             arch: aarch64
     runs-on: ${{ matrix.runner }}
-    container:
-      image: quay.io/rockylinux/rockylinux:9
     steps:
       - uses: actions/checkout@v7
 
       - name: Test Mock Build From Spec
         run: |
+          cat > /tmp/mock_build.sh << 'EOF'
+          #!/bin/bash
+          set -e
           dnf -y install epel-release
           dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
           usermod -a -G mock root
           make srpm-github
-          mock -r rocky+epel-9-${{ matrix.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."
+          mock -r rocky+epel-9-${MOCK_ARCH} --define="_github 1" --spec="displaylink.spec" --sources="."
+          EOF
+          docker run --rm --privileged \
+            -v "${{ github.workspace }}":"${{ github.workspace }}" \
+            -v /tmp/mock_build.sh:/tmp/mock_build.sh \
+            -w "${{ github.workspace }}" \
+            -e MOCK_ARCH="${{ matrix.arch }}" \
+            quay.io/rockylinux/rockylinux:9 \
+            bash /tmp/mock_build.sh
