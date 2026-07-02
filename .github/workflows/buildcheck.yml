@@ -55,17 +55,21 @@ jobs:
 
       - name: Test Mock Build From Spec
         run: |
+          cat > /tmp/mock_build.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "Install Mock"
+          dnf -y install epel-release
+          dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
+          echo "Get source files"
+          make srpm-github
+          echo "Run mock build"
+          sg mock -c "mock -r rocky+epel-9-${MOCK_ARCH} --define='_github 1' --spec='displaylink.spec' --sources='.'"
+          EOF
           docker run --rm --privileged \
             -v "${{ github.workspace }}":"${{ github.workspace }}" \
+            -v /tmp/mock_build.sh:/tmp/mock_build.sh \
             -w "${{ github.workspace }}" \
+            -e MOCK_ARCH="${{ matrix.runs-on-os.arch }}" \
             quay.io/rockylinux/rockylinux:9 \
-            bash -c '
-              set -e
-              echo "Install Mock"
-              dnf -y install epel-release
-              dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
-              echo "Get source files"
-              make srpm-github
-              echo "Run mock build"
-              mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."
-            '
+            bash /tmp/mock_build.sh
