@@ -47,18 +47,25 @@ jobs:
           - runner: ubuntu-24.04-arm
             arch: aarch64
     runs-on: ${{ matrix.runs-on-os.runner }}
-    container:
-      image: quay.io/rockylinux/rockylinux:9
-      # apparmor=unconfined needed on Ubuntu 24.04+ to allow mock chroot builds
-      options: --privileged --security-opt apparmor=unconfined
     steps:
       - uses: actions/checkout@v7
+
+      - name: Configure kernel for mock
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - name: Test Mock Build From Spec
         run: |
-          echo "Install Mock"
-          dnf -y install epel-release
-          dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
-          echo "Get source files"
-          make srpm-github
-          echo "Run mock build"
-          mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."
+          docker run --rm --privileged \
+            -v "${{ github.workspace }}":"${{ github.workspace }}" \
+            -w "${{ github.workspace }}" \
+            quay.io/rockylinux/rockylinux:9 \
+            bash -c '
+              set -e
+              echo "Install Mock"
+              dnf -y install epel-release
+              dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
+              echo "Get source files"
+              make srpm-github
+              echo "Run mock build"
+              mock -r rocky+epel-9-${{ matrix.runs-on-os.arch }} --define="_github 1" --spec="displaylink.spec" --sources="."
+            '
