@@ -1,84 +1,1535 @@
-diff -urN tmp-a/ci/deb_config tmp-b/ci/deb_config
---- tmp-a/ci/deb_config	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/ci/deb_config	2026-04-28 05:33:57.000000000 -0400
+diff -urN evdi-b/ci/build_against_kernel evdi-a/ci/build_against_kernel
+--- evdi-b/ci/build_against_kernel	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/ci/build_against_kernel	2026-06-25 05:34:01.000000000 -0400
+@@ -4,6 +4,17 @@
+ set -e
+ set -u
+ 
++evdi_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
++
++linux_dir()
++{
++  if [ -d "/usr/src/linux" ]; then
++    echo "/usr/src/linux"
++  else
++    echo "$TMP"/linux
++  fi
++}
++
+ usage() {
+   local bold=
+   bold=$(tput bold)
+@@ -90,11 +101,9 @@
+ get_supported_linux_versions() {
+   set +e
+   local repo_dir
+-  repo_dir="$(pwd)/$TMP/linux"
++  repo_dir="$(linux_dir)"
+   local CC="${CC:-gcc}"
+-  mkdir -p "$TMP"
+-  (cd "$TMP"
+-  prepare_repo_sources "origin/master" "${CC}" 1>&2 2>/dev/null)
++  prepare_repo_sources "origin/master" "${CC}" 1>&2 2>/dev/null
+ 
+   (cd "$repo_dir"
+       git fetch --tags 1>&2 2>/dev/null
+@@ -107,12 +116,10 @@
+ 
+ get_last_linux_rc_tag() {
+   local repo_dir
+-  repo_dir="$(pwd)/$TMP/linux"
++  repo_dir="$(linux_dir)"
+   local CC="${CC:-gcc}"
+-  mkdir -p "$TMP"
+ 
+-  (cd "$TMP"
+-  prepare_repo_sources "origin/master" "${CC}" 1>&2 2>/dev/null)
++  prepare_repo_sources "origin/master" "${CC}" 1>&2 2>/dev/null
+ 
+   (cd "$repo_dir"
+       git fetch --tags
+@@ -149,30 +156,38 @@
+ 
+ clone_linux()
+ {
+-  local linux_mirror="https://oauth2:glpat-jeZZawHtkoZ3xLHWGCJQ@gitlab/ppd_posix/linux.git"
+-  if curl -k --output /dev/null --silent -m 5 --head --fail "$linux_mirror"; then
+-    git -c http.sslVerify=false clone "$linux_mirror"
+-    (cd linux; git config http.sslVerify false)
++  (
++  local parent_dir
++  parent_dir="$(dirname "$(linux_dir)")"
++  mkdir -p "$parent_dir"
++  cd "$parent_dir"
++  (
++  # shellcheck disable=SC1091
++  . /etc/os-release
++  if [[ "${ID}" == "centos" ]]; then
++    git clone https://gitlab.com/redhat/centos-stream/src/kernel/centos-stream-"${VERSION_ID}".git linux
+   else
+     git clone https://github.com/torvalds/linux
+   fi
++  )
++  )
+ }
+ 
+ prepare_repo_sources() { # PACKAGE CC
+   local PACKAGE="${1}"
+   local CC="${2}"
+   local SRC_DIR=
+-  SRC_DIR="$(pwd)/linux"
++  SRC_DIR="$(linux_dir)"
+ 
+   echo "Package = $PACKAGE"
+   echo "CC=$CC"
+   echo "SRC_DIR = $SRC_DIR"
+ 
+-  if [ ! -e linux ]; then
++  if [ ! -d "$(linux_dir)" ]; then
+     clone_linux
+   fi
+ 
+-  (cd linux
++  (cd "$(linux_dir)"
+   git fetch
+   git fetch --tags
+   git clean -fdx
+@@ -182,42 +197,23 @@
+ }
+ 
+ prepare_sources() { ( # PACKAGE SOURCES CC
+-  if [ ! -d "${TMP}" ]; then
+-    mkdir "${TMP}"
+-  fi
+-
+-  cd "${TMP}"
+-
+   if [[ ${MODE} == REPO* ]]; then
+     prepare_repo_sources "${1}" "${3}"
+   else
++    mkdir -p "$TMP"
++    cd "$TMP"
+     prepare_tar_gz_sources "${1}" "${2}" "${3}"
+   fi
+ ) }
+ 
+-increment_kernel_version()
+-{
+-  (cd "$1"
+-  REGEX="\(VERSION *= *\)\([0-9]\+\)"
+-
+-  version=$(sed -ne "s/${REGEX}/\2/p" Makefile | head -1)
+-  ((version++))
+-
+-  sed -ie "s/${REGEX}/\1${version}/" Makefile
+-  )
+-}
+-
+ prepare_kernel() { ( # SRC_DIR CC
+   cd "${1}"
+-  if [[ "${KVER}" == "master" ]] ; then
+-    increment_kernel_version "${1}"
+-  fi
+ 
+   make olddefconfig CC="${2}" --jobs="${JOBS}"
+   make prepare CC="${2}" --jobs="${JOBS}"
+   make modules_prepare CC="${2}" --jobs="${JOBS}"
+ 
+-  if [[ "${KVER}" != "master" ]] ; then 
++  if [[ "${KVER}" != "master" ]] && [[ "${KVER}" != "main" ]] ; then
+     if [[ "${KVER:0:1}" -lt "5" ]]; then
+       make scripts CC="${2}" --jobs="${JOBS}"
+     fi
+@@ -228,7 +224,8 @@
+   local KVER=${1}
+   local CC="${CC:-gcc}"
+ 
+-  local HEADER="# Running ${MODE} --jobs=${JOBS} build for ${KVER} in ${TMP}"
++  local HEADER
++  HEADER="# Running ${MODE} --jobs=${JOBS} build for ${KVER} in $(linux_dir)"
+ 
+   echo ""
+   echo "${HEADER//?/#}"
+@@ -236,19 +233,23 @@
+   echo ""
+ 
+   local src_dir
+-  local KTAG=v${KVER}
++  local KTAG=${KVER}
+   local extra_cflags="-DCONFIG_DRM_TTM_HELPER"
+   if [ "${KVER}" == "master" ]; then
+-    KTAG="origin/master"
++    [[ ${MODE} == REPO* ]] && KTAG="origin/master"
++  elif [ "${KVER}" == "main" ]; then
++    [[ ${MODE} == REPO* ]] && KTAG="origin/main"
+   else
+     KTAG="v$KVER"
+   fi
++
+   prepare_sources "$KTAG" "linux-$KVER" "${CC}"
+-  src_dir="$(pwd)/${TMP}/linux-$KVER"
+   if [[ ${MODE} == REPO* ]]; then
+-    src_dir="$(pwd)/${TMP}/linux"
++    src_dir="$(linux_dir)"
++  else
++    src_dir="$(cd "$TMP" && pwd)/linux-$KVER"
+   fi
+-  if [[ "${KVER}" != "master" ]] ; then
++  if [[ "${KVER}" != "master" ]] && [[ "${KVER}" != "main" ]]; then
+     [[ ${KVER:0:1} -lt "5" ]] && extra_cflags="-Wno-discarded-qualifiers"
+     [[ ${KVER:0:1} == "5" ]] && [[ ${KVER:2:2} -lt "6" ]] && extra_cflags="-Wno-discarded-qualifiers"
+   fi
+@@ -258,7 +259,7 @@
+ 
+ MODE="CLEAN"
+ JOBS="1"
+-TMP="tmp"
++TMP=$evdi_dir/tmp
+ while [[ $# -gt 0 ]]
+ do
+   case ${1} in
+diff -urN evdi-b/ci/deb_config evdi-a/ci/deb_config
+--- evdi-b/ci/deb_config	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/ci/deb_config	2026-06-25 05:34:01.000000000 -0400
 @@ -8,7 +8,7 @@
  evdi_maintainer='Synaptics Technical Support <technical-enquiries@synaptics.com>'
  
  # shellcheck disable=SC2034
 -evdi_version='1.14.15'
-+evdi_version='1.14.16'
++evdi_version='1.15.0'
  
  # shellcheck disable=SC2034
  evdi_description="Extensible Virtual Display Interface (EVDI) is a Linux® kernel module that enables management of multiple screens.
-diff -urN tmp-a/library/evdi_lib.h tmp-b/library/evdi_lib.h
---- tmp-a/library/evdi_lib.h	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/library/evdi_lib.h	2026-04-28 05:33:57.000000000 -0400
-@@ -15,7 +15,7 @@
+diff -urN evdi-b/ci/run_kunit evdi-a/ci/run_kunit
+--- evdi-b/ci/run_kunit	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/ci/run_kunit	2026-06-25 05:34:01.000000000 -0400
+@@ -4,27 +4,33 @@
+ set -e
+ set -u
+ 
+-clone_linux()
++linux_dir()
+ {
+-  echo "Clone linux repository"
+-  local linux_mirror="https://oauth2:glpat-jeZZawHtkoZ3xLHWGCJQ@gitlab/ppd_posix/linux.git"
+-  if curl -k --output /dev/null --silent -m 5 --head --fail "$linux_mirror"; then
+-    git -c http.sslVerify=false clone --depth 1 "$linux_mirror"
+-    (cd linux; git config http.sslVerify false)
++  if [ -d "/usr/src/linux" ]; then
++    echo "/usr/src/linux"
+   else
+-    git clone --depth 1 https://github.com/torvalds/linux
++    EVDI_REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.."; pwd)
++    mkdir -p "$EVDI_REPO_DIR/tmp"
++    echo "$EVDI_REPO_DIR/tmp/linux"
+   fi
+ }
+ 
+-increment_kernel_version()
++clone_linux()
+ {
+-  (cd "$1"
+-  REGEX="\(VERSION *= *\)\([0-9]\+\)"
+-
+-  version=$(sed -ne "s/${REGEX}/\2/p" Makefile | head -1)
+-  ((version++))
+-
+-  sed -ie "s/${REGEX}/\1${version}/" Makefile
++  (
++  local parent_dir
++  parent_dir="$(dirname "$(linux_dir)")"
++  mkdir -p "$parent_dir"
++  cd "$parent_dir"
++  (
++  # shellcheck disable=SC1091
++  . /etc/os-release
++  if [[ "${ID}" == "centos" ]]; then
++    git clone https://gitlab.com/redhat/centos-stream/src/kernel/centos-stream-"${VERSION_ID}".git linux
++  else
++    git clone https://github.com/torvalds/linux
++  fi
++  )
+   )
+ }
+ 
+@@ -36,10 +42,6 @@
+   [ -f "$LINUX_DIR/drivers/gpu/drm/evdi/Kconfig" ] && return
+ 
+   (cd "$LINUX_DIR"
+-  git restore Makefile)
+-  increment_kernel_version "$LINUX_DIR"
+-
+-  (cd "$LINUX_DIR"
+   ln -s -T "${EVDI_REPO_DIR}"/module drivers/gpu/drm/evdi
+   echo -e "\nsource \"drivers/gpu/drm/evdi/Kconfig\"" >> drivers/gpu/drm/Kconfig
+   echo "obj-\$(CONFIG_DRM_EVDI) += evdi/" >> drivers/gpu/drm/Makefile
+@@ -49,9 +51,8 @@
+ 
+ export ARCH=x86_64 # or um
+ EVDI_REPO_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.."; pwd)
+-LINUX_DIR=$EVDI_REPO_DIR/tmp/linux
+-mkdir -p "$EVDI_REPO_DIR/tmp"
+-[ -d "${EVDI_REPO_DIR}"/tmp/linux ] || (cd "$EVDI_REPO_DIR/tmp"; clone_linux)
++LINUX_DIR="$(linux_dir)"
++[ -d "${LINUX_DIR}" ] || clone_linux
+ 
+ patch_linux_with_evdi_module "$EVDI_REPO_DIR" "$LINUX_DIR"
+ 
+diff -urN evdi-b/.devcontainer/centos-10/devcontainer.json evdi-a/.devcontainer/centos-10/devcontainer.json
+--- evdi-b/.devcontainer/centos-10/devcontainer.json	1969-12-31 19:00:00.000000000 -0500
++++ evdi-a/.devcontainer/centos-10/devcontainer.json	2026-06-25 05:34:01.000000000 -0400
+@@ -0,0 +1,21 @@
++{
++  "name": "Evdi centos 10 dev-container",
++  "image": "artifactory.cam.displaylink.com:6001/swt/evdi-centos-10:1.0",
++  //"build": {
++  // "dockerfile": "Dockerfile"
++  //},
++  "remoteUser": "vscode",
++  "features": {
++    "ghcr.io/devcontainers/features/common-utils:2": {
++      "installZsh": "false",
++      "username": "vscode",
++      "userUid": "automatic",
++      "userGid": "automatic",
++      "upgradePackages": "false"
++    }
++  },
++  "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind,consistency=cached",
++  "mounts": [
++    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached"
++  ]
++}
+diff -urN evdi-b/.devcontainer/centos-10/Dockerfile evdi-a/.devcontainer/centos-10/Dockerfile
+--- evdi-b/.devcontainer/centos-10/Dockerfile	1969-12-31 19:00:00.000000000 -0500
++++ evdi-a/.devcontainer/centos-10/Dockerfile	2026-06-25 05:34:01.000000000 -0400
+@@ -0,0 +1,26 @@
++# Copyright (c) 2026 DisplayLink (UK) Ltd.
++FROM quay.io/centos/centos:stream10
++MAINTAINER Synaptics Technical Support <technical-enquiries@synaptics.com>
++
++RUN dnf install -y epel-release && dnf clean all
++
++# Install developer convenience tools (vim, tig, kmod, dkms from EPEL)
++RUN dnf install -y make git vim tig kmod dkms && dnf clean all
++
++# Install linux kernel build dependencies
++RUN dnf install -y bc bison flex elfutils-libelf-devel openssl-devel && dnf clean all
++
++# C++ gcc and gcc crosscompilers
++RUN dnf install -y gcc gcc-c++ && dnf clean all
++
++RUN dnf install -y gawk diffutils dwarves elfutils-libelf gcc kernel kernel-devel make openssl patch crypto-policies-scripts && dnf clean all
++RUN update-crypto-policies --set LEGACY
++
++# Fetch linux source code, make the repo usable by multiple users and mark it safe for Git
++RUN mkdir -p /usr/src && cd /usr/src && git clone -b main https://gitlab.com/redhat/centos-stream/src/kernel/centos-stream-10.git linux && \
++  cd /usr/src/linux && git config core.sharedRepository all && git fetch --tags && \
++  chown -R root:root /usr/src/linux && \
++  chmod -R a+rwX /usr/src/linux && \
++  find /usr/src/linux -type d -exec chmod g+s {} + && \
++  git -C /usr/src/linux config core.sharedRepository all && \
++  git config --system --add safe.directory /usr/src/linux
+diff -urN evdi-b/.devcontainer/centos-9/devcontainer.json evdi-a/.devcontainer/centos-9/devcontainer.json
+--- evdi-b/.devcontainer/centos-9/devcontainer.json	1969-12-31 19:00:00.000000000 -0500
++++ evdi-a/.devcontainer/centos-9/devcontainer.json	2026-06-25 05:34:01.000000000 -0400
+@@ -0,0 +1,21 @@
++{
++  "name": "Evdi centos 9 dev-container",
++  "image": "artifactory.cam.displaylink.com:6001/swt/evdi-centos-9:1.0",
++  //"build": {
++  // "dockerfile": "Dockerfile"
++  //},
++  "remoteUser": "vscode",
++  "features": {
++    "ghcr.io/devcontainers/features/common-utils:2": {
++      "installZsh": "false",
++      "username": "vscode",
++      "userUid": "automatic",
++      "userGid": "automatic",
++      "upgradePackages": "false"
++    }
++  },
++  "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind,consistency=cached",
++  "mounts": [
++    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached"
++  ]
++}
+diff -urN evdi-b/.devcontainer/centos-9/Dockerfile evdi-a/.devcontainer/centos-9/Dockerfile
+--- evdi-b/.devcontainer/centos-9/Dockerfile	1969-12-31 19:00:00.000000000 -0500
++++ evdi-a/.devcontainer/centos-9/Dockerfile	2026-06-25 05:34:01.000000000 -0400
+@@ -0,0 +1,26 @@
++# Copyright (c) 2026 DisplayLink (UK) Ltd.
++FROM quay.io/centos/centos:stream9
++MAINTAINER Synaptics Technical Support <technical-enquiries@synaptics.com>
++
++RUN dnf install -y epel-release && dnf clean all
++
++# Install developer convenience tools (vim, tig, kmod, dkms from EPEL)
++RUN dnf install -y make git vim tig kmod dkms && dnf clean all
++
++# Install linux kernel build dependencies
++RUN dnf install -y bc bison flex elfutils-libelf-devel openssl-devel && dnf clean all
++
++# C++ gcc and gcc crosscompilers
++RUN dnf install -y gcc gcc-c++ && dnf clean all
++
++RUN dnf install -y gawk diffutils dwarves elfutils-libelf gcc kernel kernel-devel make openssl patch crypto-policies-scripts && dnf clean all
++RUN update-crypto-policies --set LEGACY
++
++# Fetch linux source code, make the repo usable by multiple users and mark it safe for Git
++RUN mkdir -p /usr/src && cd /usr/src && git clone -b main https://gitlab.com/redhat/centos-stream/src/kernel/centos-stream-9.git linux && \
++  cd /usr/src/linux && git config core.sharedRepository all && git fetch --tags && \
++  chown -R root:root /usr/src/linux && \
++  chmod -R a+rwX /usr/src/linux && \
++  find /usr/src/linux -type d -exec chmod g+s {} + && \
++  git -C /usr/src/linux config core.sharedRepository all && \
++  git config --system --add safe.directory /usr/src/linux
+diff -urN evdi-b/.devcontainer/debian/devcontainer.json evdi-a/.devcontainer/debian/devcontainer.json
+--- evdi-b/.devcontainer/debian/devcontainer.json	1969-12-31 19:00:00.000000000 -0500
++++ evdi-a/.devcontainer/debian/devcontainer.json	2026-06-25 05:34:01.000000000 -0400
+@@ -0,0 +1,35 @@
++{
++  "name": "Evdi debian dev-container",
++  "image": "artifactory.cam.displaylink.com:6001/swt/evdi:1.0",
++  //"build": {
++  //  "dockerfile": "../../Dockerfile"
++  //},
++  "remoteUser": "vscode",
++  "features": {
++    "ghcr.io/devcontainers/features/common-utils:2": {
++      "installZsh": "false",
++      "username": "vscode",
++      "userUid": "automatic",
++      "userGid": "automatic",
++      "upgradePackages": "false"
++    },
++    "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
++      "packages": "vim, tig, kmod, dkms"
++    }
++  },
++  "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind,consistency=cached",
++  "mounts": [
++    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached"
++    ],
++
++  "customizations": {
++    "vscode": {
++      "settings": {},
++      "extensions": [
++        "ms-python.python",
++        "ms-python.debugpy",
++        "ms-vscode.cmake-tools"
++      ]
++    }
++  }
++}
+diff -urN evdi-b/Dockerfile evdi-a/Dockerfile
+--- evdi-b/Dockerfile	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/Dockerfile	2026-06-25 05:34:01.000000000 -0400
+@@ -1,5 +1,5 @@
+ # Copyright (c) 2022 DisplayLink (UK) Ltd.
+-FROM debian:bullseye
++FROM debian:bullseye-slim
+ MAINTAINER Synaptics Technical Support <technical-enquiries@synaptics.com>
+ 
+ # Install basic tools
+@@ -14,10 +14,11 @@
+ 	shellcheck \
+ 	pkg-config \
+ 	qemu-system-x86 \
+-	wget
++	wget && apt-get clean
+ 
+ # Install java for Synopsys detect
+-RUN apt-get update && apt-get install -y default-jre default-jdk
++RUN apt-get update && apt-get install -y default-jre default-jdk && apt-get clean
++
+ ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
+ 
+ RUN dpkg --add-architecture i386
+@@ -25,25 +26,38 @@
+ RUN dpkg --add-architecture arm64
+ 
+ # Install linux kernel build dependencies
+-RUN apt-get update && apt-get install -y bc bison flex libelf-dev libssl-dev
++RUN apt-get update && apt-get install -y bc bison flex libelf-dev libssl-dev && apt-get clean
++
+ 
+ # Install libevdi dependencies
+-RUN apt-get update && apt-get install -y libdrm-dev libc6-dev
++RUN apt-get update && apt-get install -y libdrm-dev libc6-dev && apt-get clean
++
+ 
+ # C++ gcc and gcc crossompilers
+-RUN apt-get update && apt-get install -y gcc g++
++RUN apt-get update && apt-get install -y gcc g++ && apt-get clean
+ RUN apt-get update \
+- && apt-get install -y build-essential gcc-multilib g++-multilib
+-RUN apt-get update && apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+-RUN apt-get update && apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
++ && apt-get install -y build-essential gcc-multilib g++-multilib && apt-get clean
++RUN apt-get update && apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf && apt-get clean
++RUN apt-get update && apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu && apt-get clean
++
+ 
+ # Dependencies for pybind
+-RUN apt-get update && apt-get install -y python3 libpython3-dev python3-pip
++RUN apt-get update && apt-get install -y python3 libpython3-dev python3-pip && apt-get clean
+ RUN pip3 install pybind11
+ 
+ # needed to generate the compile_commands.json
+-run apt-get update && apt-get install -y bear
++run apt-get update && apt-get install -y bear && apt-get clean
+ 
+ # Install SonarQube utils
+-RUN cd /tmp && curl -ksSLo sonar-scanner-cli.zip https://artifactory:443/artifactory/third-party-tools/SonarQube/sonar-scanner-cli-linux.zip
++RUN cd /tmp && curl -ksSLo sonar-scanner-cli.zip https://artifactory.cam.displaylink.com:443/artifactory/third-party-tools/SonarQube/sonar-scanner-cli-linux.zip
+ RUN unzip -o /tmp/sonar-scanner-cli.zip -d /tmp && cp -r /tmp/sonar-scanner-*-linux/* /usr/local/ && chmod a+x /usr/local/bin/sonar-scanner
++
++# Fetch linux source code, make the repo usable by multiple users and mark it safe for Git
++RUN mkdir -p /usr/src && cd /usr/src && git clone -b master https://github.com/torvalds/linux.git && \
++  cd /usr/src/linux && git config core.sharedRepository all && git fetch --tags && \
++  chown -R root:root /usr/src/linux && \
++  chmod -R a+rwX /usr/src/linux && \
++  find /usr/src/linux -type d -exec chmod g+s {} + && \
++  git -C /usr/src/linux config core.sharedRepository all && \
++  git config --system --add safe.directory /usr/src/linux
++
+diff -urN evdi-b/.gitignore evdi-a/.gitignore
+--- evdi-b/.gitignore	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/.gitignore	2026-06-25 05:34:01.000000000 -0400
+@@ -13,6 +13,8 @@
+ module/built-in.a
+ module/evdi.mod
+ module/evdi.mod.c
++module/evdi_detect.h
++module/evdi_detect.h.tmp
+ 
+ site/
+ tmp/
+diff -urN evdi-b/Jenkinsfile evdi-a/Jenkinsfile
+--- evdi-b/Jenkinsfile	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/Jenkinsfile	2026-06-25 05:34:01.000000000 -0400
+@@ -1,8 +1,8 @@
+ // Copyright (c) 2022 DisplayLink (UK) Ltd.
+ pipeline {
+     agent {
+-        dockerfile {
+-            filename 'Dockerfile'
++        docker {
++            image "swt/evdi:1.0"
+             label 'linux && big && docker'
+         }
+     }
+@@ -109,7 +109,6 @@
+         stage ('Run KUnit tests') {
+             steps {
+                 sh '''#!/usr/bin/env bash
+-                [ -d tmp/linux ] && (cd tmp/linux; git checkout -f master; git reset --hard origin/master)
+                 ./ci/run_kunit'''
+             }
+         }
+diff -urN evdi-b/Jenkinsfile_linux_master evdi-a/Jenkinsfile_linux_master
+--- evdi-b/Jenkinsfile_linux_master	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/Jenkinsfile_linux_master	2026-06-25 05:34:01.000000000 -0400
+@@ -1,39 +1,132 @@
+ // Copyright (c) 2022 DisplayLink (UK) Ltd.
+ pipeline {
+     agent {
+-        dockerfile {
+-            filename 'src/Dockerfile'
+-            label 'linux && big && docker'
+-        }
++        label 'linux && big && docker'
+     }
+     stages {
+-        stage ('Generate stages') {
++        stage ('Prepare sources') {
+             steps {
+                 dir('src') {
+                     script {
+                      sh '''#!/usr/bin/env bash
+                        git remote add github "https://github.com/DisplayLink/evdi.git"
+                        git fetch github
+-                     '''
+-
+-                      def list = [ "origin/main", "github/main" ]
+-                      for(int i=0; i < list.size(); i++) {
+-                        def branchName = list[i];
+-                        stage(branchName) {
+-                            withEnv(["STAGE_BRANCH=$branchName"]) {
+-                            sh '''#!/usr/bin/env bash
+-                              set -e
+-                              git checkout ${STAGE_BRANCH}
+-                              ./ci/build_against_kernel --repo-ci master
+-                              ./ci/build_against_kernel --repo-ci rc
+-                              ./ci/build_against_kernel --repo-ci all
+-                              '''
+-                            }
+-                        }
+-                      }
++                       '''
+                     }
+                 }
+             }
+         }
++        stage ('Validate vanilla kernel against origin/main') {
++            agent {
++                docker {
++                    image "swt/evdi:1.0"
++                    label 'linux && big && docker'
++                    reuseNode true
++                }
++            }
++            steps {
++                dir('src') {
++                    sh '''#!/usr/bin/env bash
++                        set -e
++                        git checkout origin/main
++                        ./ci/build_against_kernel --repo-ci master
++                        ./ci/build_against_kernel --repo-ci rc
++                        ./ci/build_against_kernel --repo-ci all
++                        '''
++                }
++            }
++        }
++        stage ('Validate CentOS 10 kernel against origin/main') {
++            agent {
++                docker {
++                    image "swt/evdi-centos-10:1.0"
++                    label 'linux && big && docker'
++                    reuseNode true
++                }
++            }
++            steps {
++                dir('src') {
++                    sh '''#!/usr/bin/env bash
++                        set -e
++                        git checkout origin/main
++                        ./ci/build_against_kernel --repo-ci main
++                        '''
++                }
++            }
++        }
++        stage ('Validate CentOS 9 kernel against origin/main') {
++            agent {
++                docker {
++                    image "swt/evdi-centos-9:1.0"
++                    label 'linux && big && docker'
++                    reuseNode true
++                }
++            }
++            steps {
++                dir('src') {
++                    sh '''#!/usr/bin/env bash
++                        set -e
++                        git checkout origin/main
++                        ./ci/build_against_kernel --repo-ci main
++                        '''
++                }
++            }
++        }
++        stage ('Validate vanilla kernel against github/main') {
++            agent {
++                docker {
++                    image "swt/evdi:1.0"
++                    label 'linux && big && docker'
++                    reuseNode true
++                }
++            }
++            steps {
++                dir('src') {
++                    sh '''#!/usr/bin/env bash
++                        set -e
++                        git checkout github/main
++                        ./ci/build_against_kernel --repo-ci master
++                        ./ci/build_against_kernel --repo-ci rc
++                        ./ci/build_against_kernel --repo-ci all
++                        '''
++                }
++            }
++        }
++        stage ('Validate CentOS 10 kernel against github/main') {
++            agent {
++                docker {
++                    image "swt/evdi-centos-10:1.0"
++                    label 'linux && big && docker'
++                    reuseNode true
++                }
++            }
++            steps {
++                dir('src') {
++                    sh '''#!/usr/bin/env bash
++                        set -e
++                        git checkout github/main
++                        ./ci/build_against_kernel --repo-ci main
++                        '''
++                }
++            }
++        }
++        stage ('Validate CentOS 9 kernel against github/main') {
++            agent {
++                docker {
++                    image "swt/evdi-centos-9:1.0"
++                    label 'linux && big && docker'
++                    reuseNode true
++                }
++            }
++            steps {
++                dir('src') {
++                    sh '''#!/usr/bin/env bash
++                        set -e
++                        git checkout github/main
++                        ./ci/build_against_kernel --repo-ci main
++                        '''
++                }
++            }
++        }
+     }
+ }
+diff -urN evdi-b/library/evdi_lib.h evdi-a/library/evdi_lib.h
+--- evdi-b/library/evdi_lib.h	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/library/evdi_lib.h	2026-06-25 05:34:01.000000000 -0400
+@@ -14,8 +14,8 @@
+ #endif
  
  #define LIBEVDI_VERSION_MAJOR 1
- #define LIBEVDI_VERSION_MINOR 14
+-#define LIBEVDI_VERSION_MINOR 14
 -#define LIBEVDI_VERSION_PATCH 15
-+#define LIBEVDI_VERSION_PATCH 16
++#define LIBEVDI_VERSION_MINOR 15
++#define LIBEVDI_VERSION_PATCH 0
  
  struct evdi_lib_version {
  	int version_major;
-diff -urN tmp-a/library/Makefile tmp-b/library/Makefile
---- tmp-a/library/Makefile	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/library/Makefile	2026-04-28 05:33:57.000000000 -0400
+diff -urN evdi-b/library/Makefile evdi-a/library/Makefile
+--- evdi-b/library/Makefile	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/library/Makefile	2026-06-25 05:34:01.000000000 -0400
 @@ -11,7 +11,7 @@
  DEPS = evdi_ioctl.h
  CFLAGS := -I../module -std=gnu99 -fPIC -D_FILE_OFFSET_BITS=64 $(CFLAGS) $$($(PKG_CONFIG) --cflags-only-I libdrm)
  
 -LIBVER := 1.14.15
-+LIBVER := 1.14.16
++LIBVER := 1.15.0
  LIBABI := 1
  
  PREFIX ?= /usr
-diff -urN tmp-a/module/dkms.conf tmp-b/module/dkms.conf
---- tmp-a/module/dkms.conf	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/module/dkms.conf	2026-04-28 05:33:57.000000000 -0400
+diff -urN evdi-b/module/conftest.sh evdi-a/module/conftest.sh
+--- evdi-b/module/conftest.sh	1969-12-31 19:00:00.000000000 -0500
++++ evdi-a/module/conftest.sh	2026-06-25 05:34:01.000000000 -0400
+@@ -0,0 +1,401 @@
++#!/bin/sh
++#
++# Copyright (c) 2026 DisplayLink (UK) Ltd.
++#
++# This file is subject to the terms and conditions of the GNU General Public
++# License v2. See the file COPYING in the main directory of this archive for
++# more details.
++#
++# Compile-time kernel feature detection for the evdi module.
++#
++# To support a new kernel API change, add a compile_test block below and use
++# the resulting EVDI_HAVE_* macro in the source. Never add another distro flag.
++#
++# Usage: conftest.sh "<CC>" "<CFLAGS>" <output-header>
++
++set -u
++
++CC="$1"
++OUT="$2"
++shift 2
++
++# The kernel cflags are passed as separate arguments (unquoted in the Makefile
++# recipe) so the shell tokenises them honouring kbuild's own quoting -- e.g. on
++# arm64 -DARM64_ASM_ARCH='"armv8.5-a"'. Wrapping them in one quoted argument
++# would let that embedded " break the quoting and corrupt every probe. We
++# requote each one here so it can be replayed verbatim through eval.
++requote() {
++	for _a in "$@"; do
++		printf "'"
++		printf '%s' "$_a" | sed "s/'/'\\\\''/g"
++		printf "' "
++	done
++}
++CFLAGS=$(requote "$@")
++
++WORKDIR="$(mktemp -d)"
++trap 'rm -rf "$WORKDIR"' EXIT
++SRC="$WORKDIR/conftest.c"
++
++# compile_test <MACRO>  (snippet read from stdin)
++#
++# Defines <MACRO> to 1 if the snippet compiles cleanly against the kernel
++# headers, otherwise emits a comment so the generated header is self-documenting.
++# -fsyntax-only does a full parse + typecheck (no codegen): it catches missing
++# headers, unknown struct members, wrong argument counts and -- together with
++# -Werror=implicit-function-declaration -- calls to functions that do not exist.
++compile_test() {
++	macro="$1"
++	cat > "$SRC"
++	# CFLAGS comes from the kernel build and can contain -D options whose
++	# values carry embedded shell quoting (e.g. on arm64
++	# -DARM64_ASM_ARCH='"armv8.5-a"'). Re-parse via eval so that quoting is
++	# honoured exactly as kbuild intended; expanding $CFLAGS unquoted would
++	# mangle it and break every probe on such architectures.
++	if eval "$CC $CFLAGS -Werror=implicit-function-declaration \
++	         -Werror=incompatible-pointer-types \
++	         -fsyntax-only $SRC" >/dev/null 2>&1; then
++		printf '#define %s 1\n' "$macro" >> "$OUT"
++	else
++		printf '/* %s not detected */\n' "$macro" >> "$OUT"
++	fi
++}
++
++{
++	echo "/* Automatically generated by conftest.sh -- do not edit. */"
++	echo "#ifndef EVDI_DETECT_H"
++	echo "#define EVDI_DETECT_H"
++} > "$OUT"
++
++# ---------------------------------------------------------------------------
++# Feature probes
++# ---------------------------------------------------------------------------
++
++# <drm/drmP.h> was removed in 5.5. Present only on old kernels.
++compile_test EVDI_HAVE_DRMP_H <<'EOF'
++#include <drm/drmP.h>
++static void conftest(void) { }
++EOF
++
++# <linux/minmax.h> arrived in 5.10.
++compile_test EVDI_HAVE_MINMAX_H <<'EOF'
++#include <linux/minmax.h>
++static void conftest(void) { }
++EOF
++
++# <drm/drm_gem_ttm_helper.h> arrived in 5.5.
++compile_test EVDI_HAVE_DRM_GEM_TTM_HELPER_H <<'EOF'
++#include <drm/drm_gem_ttm_helper.h>
++static void conftest(void) { }
++EOF
++
++# <drm/drm_damage_helper.h> arrived in 5.0.
++compile_test EVDI_HAVE_DRM_DAMAGE_HELPER_H <<'EOF'
++#include <drm/drm_damage_helper.h>
++static void conftest(void) { }
++EOF
++
++# drm_atomic_helper_dirtyfb() and <drm/drm_damage_helper.h> arrived in 5.0.
++compile_test EVDI_HAVE_ATOMIC_DIRTYFB <<'EOF'
++#include <drm/drm_framebuffer.h>
++#include <drm/drm_damage_helper.h>
++void *conftest = (void *)&drm_atomic_helper_dirtyfb;
++EOF
++
++# drm_gem_object_put_unlocked() was folded into drm_gem_object_put() in 5.9.
++# Present only on old kernels.
++compile_test EVDI_HAVE_GEM_OBJECT_PUT_UNLOCKED <<'EOF'
++#include <drm/drm_gem.h>
++static void conftest(struct drm_gem_object *obj) { drm_gem_object_put_unlocked(obj); }
++EOF
++
++# kzalloc_obj() became a kernel-provided helper in 6.20; before that evdi
++# defines its own fallback.
++compile_test EVDI_HAVE_KZALLOC_OBJ <<'EOF'
++#include <linux/slab.h>
++static void conftest(void) { int *p = kzalloc_obj(*p, 0); (void)p; }
++EOF
++
++# The atomic helper callbacks switched to taking a struct drm_atomic_state *:
++# the CRTC callbacks (.atomic_flush) in 5.11, the plane callbacks
++# (.atomic_update) in 5.13. Detected via the vtable field signatures (some
++# vendor/RPi kernels backport these independently).
++compile_test EVDI_HAVE_CRTC_ATOMIC_STATE_ARG <<'EOF'
++#include <drm/drm_modeset_helper_vtables.h>
++static void conftest_flush(struct drm_crtc *c, struct drm_atomic_state *s) { }
++struct drm_crtc_helper_funcs conftest = { .atomic_flush = conftest_flush };
++EOF
++
++# The atomic helper callbacks switched to taking a struct drm_atomic_commit *:
++# the CRTC callbacks (.atomic_flush) in 7.2
++compile_test EVDI_HAVE_CRTC_ATOMIC_COMMIT_ARG <<'EOF'
++#include <drm/drm_modeset_helper_vtables.h>
++static void conftest_flush(struct drm_crtc *c, struct drm_atomic_commit *s) { }
++struct drm_crtc_helper_funcs conftest = { .atomic_flush = conftest_flush };
++EOF
++
++compile_test EVDI_HAVE_PLANE_ATOMIC_STATE_ARG <<'EOF'
++#include <drm/drm_modeset_helper_vtables.h>
++static void conftest_update(struct drm_plane *p, struct drm_atomic_state *s) { }
++struct drm_plane_helper_funcs conftest = { .atomic_update = conftest_update };
++EOF
++
++
++# drm_gem_plane_helper_prepare_fb() (in <drm/drm_gem_atomic_helper.h>) replaced
++# drm_gem_fb_prepare_fb in 5.13.
++compile_test EVDI_HAVE_DRM_GEM_PLANE_HELPER_PREPARE_FB <<'EOF'
++#include <drm/drm_gem_atomic_helper.h>
++void *conftest = (void *)&drm_gem_plane_helper_prepare_fb;
++EOF
++
++# drm_mode_config_funcs lost its .output_poll_changed member in 6.12.
++compile_test EVDI_HAVE_OUTPUT_POLL_CHANGED <<'EOF'
++#include <drm/drm_mode_config.h>
++static void conftest(struct drm_mode_config_funcs *f) { f->output_poll_changed = (void *)0; }
++EOF
++
++# DRIVER_PRIME feature flag was removed in 5.4 (PRIME is always available now).
++compile_test EVDI_HAVE_DRIVER_PRIME <<'EOF'
++#include <drm/drm_drv.h>
++static unsigned int conftest(void) { return DRIVER_PRIME; }
++EOF
++
++# drmm_add_action_or_reset() / <drm/drm_managed.h> arrived in 5.8 (managed
++# device cleanup); before it the release callback is invoked by hand.
++compile_test EVDI_HAVE_DRMM_ADD_ACTION <<'EOF'
++#include <drm/drm_managed.h>
++static void conftest_cb(struct drm_device *dev, void *p) { }
++static void conftest(struct drm_device *dev) { (void)drmm_add_action_or_reset(dev, conftest_cb, NULL); }
++EOF
++
++# DRM_UNLOCKED was removed in 6.8 (all ioctls are unlocked). Present on old kernels.
++compile_test EVDI_HAVE_DRM_UNLOCKED <<'EOF'
++#include <drm/drm_ioctl.h>
++static unsigned int conftest(void) { return DRM_UNLOCKED; }
++EOF
++
++# struct drm_driver lost the GEM/dumb callbacks as they moved to
++# drm_gem_object_funcs: .gem_free_object in 5.9, .dumb_destroy in 5.12.
++compile_test EVDI_HAVE_DRM_DRIVER_GEM_FREE <<'EOF'
++#include <drm/drm_drv.h>
++static void conftest(struct drm_driver *d) { (void)d->gem_free_object; }
++EOF
++compile_test EVDI_HAVE_DRM_DRIVER_DUMB_DESTROY <<'EOF'
++#include <drm/drm_drv.h>
++#include <drm/drm_gem.h>
++struct drm_driver conftest = { .dumb_destroy = drm_gem_dumb_destroy };
++EOF
++
++# In 6.6 drm_gem_prime_fd_to_handle/_handle_to_fd became the implicit defaults,
++# so evdi stopped assigning them. Both helper and field still exist upstream,
++# leaving no removal to detect, so we set them whenever the helper is available
++# (redundant-but-correct where defaulted). REVISIT during EL9/CentOS testing.
++compile_test EVDI_HAVE_GEM_PRIME_FD_TO_HANDLE <<'EOF'
++#include <drm/drm_prime.h>
++static void conftest(struct drm_device *dev, struct drm_file *f, int fd, uint32_t *h)
++{
++	(void)drm_gem_prime_fd_to_handle(dev, f, fd, h);
++}
++EOF
++
++# The drm_mode_ prefix was dropped from these connector helpers in 4.19
++# (drm_mode_connector_update_edid_property -> drm_connector_update_edid_property,
++# and likewise for attach_encoder). Probed separately though they share a release.
++compile_test EVDI_HAVE_DRM_CONNECTOR_UPDATE_EDID <<'EOF'
++#include <drm/drm_connector.h>
++static void conftest(struct drm_connector *c) { (void)drm_connector_update_edid_property(c, NULL); }
++EOF
++compile_test EVDI_HAVE_DRM_CONNECTOR_ATTACH_ENCODER <<'EOF'
++#include <drm/drm_connector.h>
++static void conftest(struct drm_connector *c, struct drm_encoder *e) { (void)drm_connector_attach_encoder(c, e); }
++EOF
++
++# The connector helper .mode_valid callback took a const drm_display_mode * from 6.15.
++compile_test EVDI_HAVE_CONNECTOR_MODE_VALID_CONST <<'EOF'
++#include <drm/drm_modeset_helper_vtables.h>
++static enum drm_mode_status conftest_mv(struct drm_connector *c,
++					const struct drm_display_mode *m) { return MODE_OK; }
++struct drm_connector_helper_funcs conftest = { .mode_valid = conftest_mv };
++EOF
++
++# drm_connector_for_each_possible_encoder() (2-arg form) replaced
++# connector->encoder_ids[] iteration in 5.5.
++compile_test EVDI_HAVE_CONNECTOR_FOR_EACH_ENCODER <<'EOF'
++#include <drm/drm_connector.h>
++#include <drm/drm_encoder.h>
++static void conftest(struct drm_connector *c)
++{
++	struct drm_encoder *e;
++
++	drm_connector_for_each_possible_encoder(c, e) { }
++}
++EOF
++
++# vm_flags_mod() (6.3) is required once vma->vm_flags became immutable. Note
++# some vendor kernels (EL8) reverted this, hence detection over version.
++compile_test EVDI_HAVE_VM_FLAGS_MOD <<'EOF'
++#include <linux/mm.h>
++static void conftest(struct vm_area_struct *vma) { vm_flags_mod(vma, 0, 0); }
++EOF
++
++# dma_buf_vmap_unlocked() / dma_buf_vunmap_unlocked() were added in 6.2.
++compile_test EVDI_HAVE_DMA_BUF_VMAP_UNLOCKED <<'EOF'
++#include <linux/dma-buf.h>
++static void conftest(struct dma_buf *db, struct iosys_map *map)
++{
++	(void)dma_buf_vmap_unlocked(db, map);
++}
++EOF
++
++# for_each_sgtable_page() was added in 5.8 (open-coded via for_each_sg_page
++# before that).
++compile_test EVDI_HAVE_FOR_EACH_SGTABLE_PAGE <<'EOF'
++#include <linux/scatterlist.h>
++static void conftest(struct sg_table *sgt)
++{
++	struct sg_page_iter it;
++
++	for_each_sgtable_page(sgt, &it, 0) { }
++}
++EOF
++
++# drm_prime_sg_to_page_addr_arrays() was renamed drm_prime_sg_to_page_array()
++# in 5.12.
++compile_test EVDI_HAVE_DRM_PRIME_SG_TO_PAGE_ARRAY <<'EOF'
++#include <drm/drm_prime.h>
++static void conftest(struct sg_table *sg, struct page **pages, unsigned int n)
++{
++	(void)drm_prime_sg_to_page_array(sg, pages, n);
++}
++EOF
++
++# <linux/compiler_attributes.h> (4.20) and the fallthrough pseudo-keyword it
++# provides (5.4) -- probed separately because the header predates the macro.
++compile_test EVDI_HAVE_COMPILER_ATTRIBUTES_H <<'EOF'
++#include <linux/compiler_attributes.h>
++static void conftest(void) { }
++EOF
++compile_test EVDI_HAVE_FALLTHROUGH <<'EOF'
++#include <linux/compiler.h>
++static void conftest(int x) { switch (x) { case 0: fallthrough; default: break; } }
++EOF
++
++# MODULE_IMPORT_NS took a bare token until 6.13, when it began requiring a
++# string literal. The bare-token form stops compiling at 6.13, so it is the
++# discriminator; the string form alone tells old (<5.4, macro absent) apart.
++compile_test EVDI_HAVE_MODULE_IMPORT_NS <<'EOF'
++#include <linux/module.h>
++MODULE_IMPORT_NS(DMA_BUF);
++EOF
++compile_test EVDI_HAVE_MODULE_IMPORT_NS_STRING <<'EOF'
++#include <linux/module.h>
++MODULE_IMPORT_NS("DMA_BUF");
++EOF
++
++# <drm/drm_probe_helper.h> was split out in 5.1.
++compile_test EVDI_HAVE_DRM_PROBE_HELPER_H <<'EOF'
++#include <drm/drm_probe_helper.h>
++static void conftest(void) { }
++EOF
++
++# struct drm_device gained a .debugfs_root member in 6.7 (along with
++# debugfs_lookup_and_remove) -- gates the measure_copy debugfs feature.
++compile_test EVDI_HAVE_DRM_DEBUGFS_ROOT <<'EOF'
++#include <drm/drm_device.h>
++static void conftest(struct drm_device *dev) { (void)dev->debugfs_root; }
++EOF
++
++# drm_prime_pages_to_sg() gained a leading struct drm_device * in 5.10. Also
++# used as the marker for the 5.10 DRM line by the cursor-plane num_dirts logic,
++# which has no API surface of its own but shares this exact boundary.
++compile_test EVDI_HAVE_DRM_PRIME_PAGES_TO_SG_DEV <<'EOF'
++#include <drm/drm_prime.h>
++static void conftest(struct drm_device *dev, struct page **pages, unsigned int n)
++{
++	(void)drm_prime_pages_to_sg(dev, pages, n);
++}
++EOF
++
++# struct drm_format_name_buf and drm_get_format_name() were removed in 5.14
++# when the %p4cc printf format took over. Present only on old kernels.
++compile_test EVDI_HAVE_DRM_FORMAT_NAME_BUF <<'EOF'
++#include <drm/drm_fourcc.h>
++struct drm_format_name_buf conftest;
++EOF
++
++# <drm/drm_irq.h> was removed in 5.15. Present only on old kernels.
++compile_test EVDI_HAVE_DRM_IRQ_H <<'EOF'
++#include <drm/drm_irq.h>
++static void conftest(void) { }
++EOF
++
++# The GEM vmap callback moved to a map descriptor: struct dma_buf_map in 5.11,
++# renamed struct iosys_map in 5.18. Either implies the vmap_is_iomem path.
++compile_test EVDI_HAVE_IOSYS_MAP <<'EOF'
++#include <linux/iosys-map.h>
++struct iosys_map conftest;
++EOF
++compile_test EVDI_HAVE_DMA_BUF_MAP <<'EOF'
++#include <linux/dma-buf-map.h>
++struct dma_buf_map conftest;
++EOF
++
++# vm_fault_t was introduced in 4.17 (fault handlers returned int before).
++compile_test EVDI_HAVE_VM_FAULT_T <<'EOF'
++#include <linux/mm.h>
++vm_fault_t conftest;
++EOF
++
++# The platform_driver .remove callback returns void since 6.11 (it returned
++# int before). Detect the actual signature rather than the version -- some
++# vendor kernels (e.g. EL9) backport this independently of the version number.
++compile_test EVDI_HAVE_PLATFORM_REMOVE_VOID <<'EOF'
++#include <linux/platform_device.h>
++static void conftest_remove(struct platform_device *pdev) { }
++struct platform_driver conftest = { .remove = conftest_remove };
++EOF
++
++# struct dev_archdata gained/kept an .iommu member on x86 before 5.9; the
++# Intel-IOMMU dummy-domain workaround only applies where that field exists.
++compile_test EVDI_HAVE_DEV_ARCHDATA_IOMMU <<'EOF'
++#include <linux/platform_device.h>
++static void conftest(struct platform_device *pdev) { pdev->dev.archdata.iommu = (void *)0; }
++EOF
++
++# struct drm_driver lost its .date member in 6.14 (DRIVER_DATE removal).
++# Present only on old kernels.
++compile_test EVDI_HAVE_DRM_DRIVER_DATE <<'EOF'
++#include <drm/drm_drv.h>
++static void conftest(struct drm_driver *drv) { (void)drv->date; }
++EOF
++
++# drm_ioctl_compat_t moved into <drm/drm_ioctl.h> in 5.16. When this is not
++# available the typedef comes from <drm/drmP.h> (<5.5) or the default include
++# chain (5.5-5.15).
++compile_test EVDI_HAVE_DRM_IOCTL_COMPAT_T <<'EOF'
++#include <drm/drm_ioctl.h>
++drm_ioctl_compat_t *conftest;
++EOF
++
++# I2C_CLASS_DDC was removed in 6.8. Note the struct i2c_adapter .class member
++# itself outlived it, so probe the constant the code actually assigns, not the
++# field. Present only on old kernels.
++compile_test EVDI_HAVE_I2C_CLASS_DDC <<'EOF'
++#include <linux/i2c.h>
++static unsigned int conftest(void) { return I2C_CLASS_DDC; }
++EOF
++
++# drm_helper_mode_fill_fb_struct() and the .fb_create hook gained a
++# "const struct drm_format_info *" parameter in 6.17.
++compile_test EVDI_HAVE_FB_FORMAT_INFO <<'EOF'
++#include <drm/drm_crtc.h>
++#include <drm/drm_modeset_helper.h>
++static void conftest(struct drm_device *dev, struct drm_framebuffer *fb,
++	      const struct drm_format_info *info,
++	      const struct drm_mode_fb_cmd2 *mode_cmd)
++{
++	drm_helper_mode_fill_fb_struct(dev, fb, info, mode_cmd);
++}
++EOF
++
++echo "#endif /* EVDI_DETECT_H */" >> "$OUT"
+diff -urN evdi-b/module/dkms.conf evdi-a/module/dkms.conf
+--- evdi-b/module/dkms.conf	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/dkms.conf	2026-06-25 05:34:01.000000000 -0400
 @@ -7,7 +7,7 @@
  #
  
  PACKAGE_NAME="evdi"
 -PACKAGE_VERSION=1.14.15
-+PACKAGE_VERSION=1.14.16
++PACKAGE_VERSION=1.15.0
  AUTOINSTALL=yes
  
  MAKE[0]="make all INCLUDEDIR=/lib/modules/$kernelver/build/include KVERSION=$kernelver DKMS_BUILD=1"
-diff -urN tmp-a/module/dkms_install.sh tmp-b/module/dkms_install.sh
---- tmp-a/module/dkms_install.sh	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/module/dkms_install.sh	2026-04-28 05:33:57.000000000 -0400
+diff -urN evdi-b/module/dkms_install.sh evdi-a/module/dkms_install.sh
+--- evdi-b/module/dkms_install.sh	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/dkms_install.sh	2026-06-25 05:34:01.000000000 -0400
 @@ -2,7 +2,7 @@
  # SPDX-License-Identifier: GPL-2.0-only
  # Copyright (c) 2023 DisplayLink (UK) Ltd.
  
 -evdi_version='1.14.15'
-+evdi_version='1.14.16'
++evdi_version='1.15.0'
  
  EVDI_DIR=$(dirname "${BASH_SOURCE[0]}")
  EVDI_REBOOT_RATIONALE=
-diff -urN tmp-a/module/evdi_drm_drv.h tmp-b/module/evdi_drm_drv.h
---- tmp-a/module/evdi_drm_drv.h	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/module/evdi_drm_drv.h	2026-04-28 05:33:57.000000000 -0400
+diff -urN evdi-b/module/evdi_connector.c evdi-a/module/evdi_connector.c
+--- evdi-b/module/evdi_connector.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_connector.c	2026-06-25 05:34:01.000000000 -0400
+@@ -18,7 +18,7 @@
+ #include <drm/drm_atomic_helper.h>
+ #include "evdi_drm_drv.h"
+ 
+-#if KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_PROBE_HELPER_H
+ #include <drm/drm_probe_helper.h>
+ #endif
+ 
+@@ -36,7 +36,7 @@
+ 	edid = (struct edid *)evdi_painter_get_edid_copy(evdi);
+ 
+ 	if (!edid) {
+-#if KERNEL_VERSION(4, 19, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_CONNECTOR_UPDATE_EDID
+ 		drm_connector_update_edid_property(connector, NULL);
+ #else
+ 		drm_mode_connector_update_edid_property(connector, NULL);
+@@ -44,7 +44,7 @@
+ 		return 0;
+ 	}
+ 
+-#if KERNEL_VERSION(4, 19, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_CONNECTOR_UPDATE_EDID
+ 	ret = drm_connector_update_edid_property(connector, edid);
+ #else
+ 	ret = drm_mode_connector_update_edid_property(connector, edid);
+@@ -78,7 +78,7 @@
+ }
+ 
+ static enum drm_mode_status evdi_mode_valid(struct drm_connector *connector,
+-#if KERNEL_VERSION(6, 15, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
++#ifdef EVDI_HAVE_CONNECTOR_MODE_VALID_CONST
+ 					    const struct drm_display_mode *mode)
+ #else
+ 					    struct drm_display_mode *mode)
+@@ -149,7 +149,7 @@
+ 
+ static struct drm_encoder *evdi_best_encoder(struct drm_connector *connector)
+ {
+-#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_CONNECTOR_FOR_EACH_ENCODER
+ 	struct drm_encoder *encoder;
+ 
+ 	drm_connector_for_each_possible_encoder(connector, encoder) {
+@@ -198,7 +198,7 @@
+ 
+ 	evdi->conn = connector;
+ 
+-#if KERNEL_VERSION(4, 19, 0) <= LINUX_VERSION_CODE  || defined(EL8)
++#ifdef EVDI_HAVE_DRM_CONNECTOR_ATTACH_ENCODER
+ 	drm_connector_attach_encoder(connector, encoder);
+ #else
+ 	drm_mode_connector_attach_encoder(connector, encoder);
+diff -urN evdi-b/module/evdi_cursor.c evdi-a/module/evdi_cursor.c
+--- evdi-b/module/evdi_cursor.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_cursor.c	2026-06-25 05:34:01.000000000 -0400
+@@ -23,8 +23,7 @@
+ #include <linux/mutex.h>
+ #include <linux/version.h>
+ 
+-#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifdef EVDI_HAVE_DRMP_H
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_crtc_helper.h>
+@@ -55,10 +54,10 @@
+ 	if (obj)
+ 		drm_gem_object_get(&obj->base);
+ 	if (cursor->obj)
+-#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-		drm_gem_object_put(&cursor->obj->base);
+-#else
++#ifdef EVDI_HAVE_GEM_OBJECT_PUT_UNLOCKED
+ 		drm_gem_object_put_unlocked(&cursor->obj->base);
++#else
++		drm_gem_object_put(&cursor->obj->base);
+ #endif
+ 
+ 	cursor->obj = obj;
+diff -urN evdi-b/module/evdi_cursor.h evdi-a/module/evdi_cursor.h
+--- evdi-b/module/evdi_cursor.h	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_cursor.h	2026-06-25 05:34:01.000000000 -0400
+@@ -23,8 +23,7 @@
+ 
+ #include <linux/version.h>
+ #include <linux/module.h>
+-#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifdef EVDI_HAVE_DRMP_H
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_crtc.h>
+diff -urN evdi-b/module/evdi_debug.h evdi-a/module/evdi_debug.h
+--- evdi-b/module/evdi_debug.h	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_debug.h	2026-06-25 05:34:01.000000000 -0400
+@@ -56,8 +56,7 @@
+ void evdi_log_process(char *buf, size_t size);
+ 
+ 
+-#if KERNEL_VERSION(6, 20, 0) <= LINUX_VERSION_CODE
+-#else
++#ifndef EVDI_HAVE_KZALLOC_OBJ
+ #define kzalloc_obj(obj, flags) kzalloc(sizeof(typeof(obj)), flags)
+ #endif
+ 
+diff -urN evdi-b/module/evdi_drm_drv.c evdi-a/module/evdi_drm_drv.c
+--- evdi-b/module/evdi_drm_drv.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_drm_drv.c	2026-06-25 05:34:01.000000000 -0400
+@@ -12,19 +12,19 @@
+  */
+ 
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#ifdef EVDI_HAVE_DRM_IOCTL_COMPAT_T
+ #include <drm/drm_ioctl.h>
++#include <linux/idr.h>
+ #include <drm/drm_file.h>
+ #include <drm/drm_drv.h>
+ #include <drm/drm_vblank.h>
+-#elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE
+-#else
++#elif defined(EVDI_HAVE_DRMP_H)
+ #include <drm/drmP.h>
+ #endif
+-#if KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_PROBE_HELPER_H
+ #include <drm/drm_probe_helper.h>
+ #endif
+-#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRMM_ADD_ACTION
+ #include <drm/drm_managed.h>
+ #endif
+ #include <drm/drm_atomic_helper.h>
+@@ -34,10 +34,10 @@
+ #include "evdi_debug.h"
+ #include "evdi_drm.h"
+ 
+-#if KERNEL_VERSION(6, 8, 0) <= LINUX_VERSION_CODE || defined(EL9)
+-#define EVDI_DRM_UNLOCKED 0
+-#else
++#ifdef EVDI_HAVE_DRM_UNLOCKED
+ #define EVDI_DRM_UNLOCKED DRM_UNLOCKED
++#else
++#define EVDI_DRM_UNLOCKED 0
+ #endif
+ 
+ static struct drm_driver driver;
+@@ -50,7 +50,7 @@
+ 	DRM_IOCTL_DEF_DRV(EVDI_ENABLE_CURSOR_EVENTS, evdi_painter_enable_cursor_events_ioctl, EVDI_DRM_UNLOCKED),
+ };
+ 
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
+ #else
+ static const struct vm_operations_struct evdi_gem_vm_ops = {
+ 	.fault = evdi_gem_fault,
+@@ -79,7 +79,7 @@
+ #endif
+ };
+ 
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
+ #else
+ static int evdi_enable_vblank(__always_unused struct drm_device *dev,
+ 			      __always_unused unsigned int pipe)
+@@ -94,33 +94,33 @@
+ #endif
+ 
+ static struct drm_driver driver = {
+-#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	.driver_features = DRIVER_MODESET | DRIVER_GEM | DRIVER_ATOMIC,
+-#else
++#ifdef EVDI_HAVE_DRIVER_PRIME
+ 	.driver_features = DRIVER_MODESET | DRIVER_GEM | DRIVER_PRIME
+ 			 | DRIVER_ATOMIC,
++#else
++	.driver_features = DRIVER_MODESET | DRIVER_GEM | DRIVER_ATOMIC,
+ #endif
+ 
+ 	.open = evdi_driver_open,
+ 	.postclose = evdi_driver_postclose,
+ 
+ 	/* gem hooks */
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#elif KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE
+-	.gem_free_object_unlocked = evdi_gem_free_object,
+-#else
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
++	/* GEM hooks live in drm_gem_object_funcs (5.11+) */
++#elif defined(EVDI_HAVE_DRM_DRIVER_GEM_FREE)
+ 	.gem_free_object = evdi_gem_free_object,
++#else
++	.gem_free_object_unlocked = evdi_gem_free_object,
+ #endif
+ 
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
+ #else
+ 	.gem_vm_ops = &evdi_gem_vm_ops,
+ #endif
+ 
+ 	.dumb_create = evdi_dumb_create,
+ 	.dumb_map_offset = evdi_gem_mmap,
+-#if KERNEL_VERSION(5, 12, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifdef EVDI_HAVE_DRM_DRIVER_DUMB_DESTROY
+ 	.dumb_destroy = drm_gem_dumb_destroy,
+ #endif
+ 
+@@ -130,12 +130,11 @@
+ 	.fops = &evdi_driver_fops,
+ 
+ 	.gem_prime_import = drm_gem_prime_import,
+-#if KERNEL_VERSION(6, 6, 0) <= LINUX_VERSION_CODE || defined(EL9)
+-#else
++#ifdef EVDI_HAVE_GEM_PRIME_FD_TO_HANDLE
+ 	.prime_fd_to_handle = drm_gem_prime_fd_to_handle,
+ 	.prime_handle_to_fd = drm_gem_prime_handle_to_fd,
+ #endif
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
+ #else
+ 	.preclose = evdi_driver_preclose,
+ 	.gem_prime_export = drm_gem_prime_export,
+@@ -147,8 +146,7 @@
+ 
+ 	.name = DRIVER_NAME,
+ 	.desc = DRIVER_DESC,
+-#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+-#else
++#ifdef EVDI_HAVE_DRM_DRIVER_DATE
+ 	.date = DRIVER_DATE,
+ #endif
+ 	.major = DRIVER_MAJOR,
+@@ -198,7 +196,7 @@
+ 		goto err_init;
+ 	drm_kms_helper_poll_init(dev);
+ 
+-#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRMM_ADD_ACTION
+ 	ret = drmm_add_action_or_reset(dev, evdi_drm_device_release_cb, NULL);
+ 	if (ret)
+ 		goto err_init;
+@@ -283,8 +281,7 @@
+ {
+ 	drm_dev_unplug(dev);
+ 	evdi_drm_device_deinit(dev);
+-#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifndef EVDI_HAVE_DRMM_ADD_ACTION
+ 	evdi_drm_device_release_cb(dev, NULL);
+ #endif
+ 	drm_dev_put(dev);
+diff -urN evdi-b/module/evdi_drm_drv.h evdi-a/module/evdi_drm_drv.h
+--- evdi-b/module/evdi_drm_drv.h	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_drm_drv.h	2026-06-25 05:34:01.000000000 -0400
+@@ -18,18 +18,18 @@
+ #include <linux/mutex.h>
+ #include <linux/device.h>
+ #include <linux/i2c.h>
+-#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRMP_H
++#include <drm/drmP.h>
++#else
+ #include <drm/drm_drv.h>
+ #include <drm/drm_fourcc.h>
+ #include <drm/drm_ioctl.h>
+ #include <drm/drm_vblank.h>
+-#else
+-#include <drm/drmP.h>
+ #endif
+-#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+-#include <drm/drm_framebuffer.h>
+-#else
++#ifdef EVDI_HAVE_DRM_IRQ_H
+ #include <drm/drm_irq.h>
++#else
++#include <drm/drm_framebuffer.h>
+ #endif
+ #include <drm/drm_crtc.h>
+ #include <drm/drm_crtc_helper.h>
+@@ -66,7 +66,7 @@
+ 	unsigned int pages_pin_count;
+ 	struct mutex pages_lock;
+ 	void *vmapping;
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
+ 	bool vmap_is_iomem;
+ #endif
+ 	struct sg_table *sg;
 @@ -102,7 +102,7 @@
  struct drm_framebuffer *evdi_fb_user_fb_create(
  				struct drm_device *dev,
  				struct drm_file *file,
 -#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
-+#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
++#ifdef EVDI_HAVE_FB_FORMAT_INFO
  				const struct drm_format_info *info,
  #endif
  				const struct drm_mode_fb_cmd2 *mode_cmd);
-diff -urN tmp-a/module/evdi_fb.c tmp-b/module/evdi_fb.c
---- tmp-a/module/evdi_fb.c	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/module/evdi_fb.c	2026-04-28 05:33:57.000000000 -0400
-@@ -203,20 +203,20 @@
+@@ -128,7 +128,7 @@
+ void evdi_gem_vunmap(struct evdi_gem_object *obj);
+ int evdi_drm_gem_mmap(struct file *filp, struct vm_area_struct *vma);
+ 
+-#if KERNEL_VERSION(4, 17, 0) <= LINUX_VERSION_CODE
++#ifdef EVDI_HAVE_VM_FAULT_T
+ vm_fault_t evdi_gem_fault(struct vm_fault *vmf);
+ #else
+ int evdi_gem_fault(struct vm_fault *vmf);
+diff -urN evdi-b/module/evdi_encoder.c evdi-a/module/evdi_encoder.c
+--- evdi-b/module/evdi_encoder.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_encoder.c	2026-06-25 05:34:01.000000000 -0400
+@@ -12,8 +12,7 @@
+  */
+ 
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifdef EVDI_HAVE_DRMP_H
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_crtc.h>
+diff -urN evdi-b/module/evdi_fb.c evdi-a/module/evdi_fb.c
+--- evdi-b/module/evdi_fb.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_fb.c	2026-06-25 05:34:01.000000000 -0400
+@@ -14,8 +14,7 @@
+ #include <linux/slab.h>
+ #include <linux/dma-buf.h>
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifdef EVDI_HAVE_DRMP_H
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_crtc.h>
+@@ -23,7 +22,7 @@
+ #include <drm/drm_fb_helper.h>
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_print.h>
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_ATOMIC_DIRTYFB
+ #include <drm/drm_damage_helper.h>
+ #endif
+ #include "evdi_drm_drv.h"
+@@ -83,8 +82,7 @@
+ 	return rect;
+ }
+ 
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifndef EVDI_HAVE_ATOMIC_DIRTYFB
+ /*
+  * Function taken from
+  * https://lore.kernel.org/dri-devel/20180905233901.2321-5-drawat@vmware.com/
+@@ -181,10 +179,10 @@
+ 
+ 	EVDI_CHECKPT();
+ 	if (efb->obj)
+-#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-		drm_gem_object_put(&efb->obj->base);
+-#else
++#ifdef EVDI_HAVE_GEM_OBJECT_PUT_UNLOCKED
+ 		drm_gem_object_put_unlocked(&efb->obj->base);
++#else
++		drm_gem_object_put(&efb->obj->base);
+ #endif
+ 	drm_framebuffer_cleanup(fb);
+ 	kfree(efb);
+@@ -193,7 +191,7 @@
+ static const struct drm_framebuffer_funcs evdifb_funcs = {
+ 	.create_handle = evdi_user_framebuffer_create_handle,
+ 	.destroy = evdi_user_framebuffer_destroy,
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_ATOMIC_DIRTYFB
+ 	.dirty = drm_atomic_helper_dirtyfb,
+ #else
+ 	.dirty = evdi_user_framebuffer_dirty,
+@@ -203,20 +201,20 @@
  static int
  evdi_framebuffer_init(struct drm_device *dev,
  		      struct evdi_framebuffer *efb,
 -#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
-+#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
++#ifdef EVDI_HAVE_FB_FORMAT_INFO
  		      const struct drm_format_info *info,
  #endif
  		      const struct drm_mode_fb_cmd2 *mode_cmd,
@@ -86,39 +1537,199 @@ diff -urN tmp-a/module/evdi_fb.c tmp-b/module/evdi_fb.c
  {
  	efb->obj = obj;
 -#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
-+#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
++#ifdef EVDI_HAVE_FB_FORMAT_INFO
  	if (info == NULL)
  		info = drm_get_format_info(dev, mode_cmd->pixel_format,
  					   mode_cmd->modifier[0]);
  #endif
  	drm_helper_mode_fill_fb_struct(dev, &efb->base,
 -#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
-+#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
++#ifdef EVDI_HAVE_FB_FORMAT_INFO
  				       info,
  #endif
  				       mode_cmd);
-@@ -253,7 +253,7 @@
+@@ -253,7 +251,7 @@
  struct drm_framebuffer *evdi_fb_user_fb_create(
  					struct drm_device *dev,
  					struct drm_file *file,
 -#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
-+#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
++#ifdef EVDI_HAVE_FB_FORMAT_INFO
  					const struct drm_format_info *info,
  #endif
  					const struct drm_mode_fb_cmd2 *mode_cmd)
-@@ -289,7 +289,7 @@
+@@ -289,7 +287,7 @@
  	efb->base.obj[0] = obj;
  
  	ret = evdi_framebuffer_init(dev, efb,
 -#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE
-+#if KERNEL_VERSION(6, 17, 0) <= LINUX_VERSION_CODE || defined(CENTOS9) || defined(CENTOS10)
++#ifdef EVDI_HAVE_FB_FORMAT_INFO
  				    info,
  #endif
  				    mode_cmd, to_evdi_bo(obj));
-diff -urN tmp-a/module/evdi_gem.c tmp-b/module/evdi_gem.c
---- tmp-a/module/evdi_gem.c	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/module/evdi_gem.c	2026-04-28 05:33:57.000000000 -0400
-@@ -539,7 +539,7 @@
+diff -urN evdi-b/module/evdi_gem.c evdi-a/module/evdi_gem.c
+--- evdi-b/module/evdi_gem.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_gem.c	2026-06-25 05:34:01.000000000 -0400
+@@ -10,17 +10,20 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
+-#elif KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE
++#if defined(EVDI_HAVE_DMA_BUF_MAP) && !defined(EVDI_HAVE_IOSYS_MAP)
+ #include <linux/dma-buf-map.h>
+ #endif
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#ifdef EVDI_HAVE_DRM_IOCTL_COMPAT_T
++#ifdef EVDI_HAVE_DRM_GEM_TTM_HELPER_H
+ #include <drm/drm_gem_ttm_helper.h>
++#endif
+ #include <drm/drm_prime.h>
++#include <linux/idr.h>
+ #include <drm/drm_file.h>
++#ifdef EVDI_HAVE_MINMAX_H
+ #include <linux/minmax.h>
+-#elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE
+-#else
++#endif
++#elif defined(EVDI_HAVE_DRMP_H)
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_print.h>
+@@ -32,13 +35,13 @@
+ #include <linux/vmalloc.h>
+ 
+ 
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL10)
+-MODULE_IMPORT_NS("DMA_BUF");
+-#elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
++#ifdef EVDI_HAVE_MODULE_IMPORT_NS
+ MODULE_IMPORT_NS(DMA_BUF);
++#elif defined(EVDI_HAVE_MODULE_IMPORT_NS_STRING)
++MODULE_IMPORT_NS("DMA_BUF");
+ #endif
+ 
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
+ static int evdi_prime_pin(struct drm_gem_object *obj);
+ static void evdi_prime_unpin(struct drm_gem_object *obj);
+ 
+@@ -109,7 +112,7 @@
+ 	}
+ 
+ 
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
+ 	obj->base.funcs = &gem_obj_funcs;
+ #endif
+ 
+@@ -141,10 +144,10 @@
+ 		kfree(obj);
+ 		return ret;
+ 	}
+-#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	drm_gem_object_put(&obj->base);
+-#else
++#ifdef EVDI_HAVE_GEM_OBJECT_PUT_UNLOCKED
+ 	drm_gem_object_put_unlocked(&obj->base);
++#else
++	drm_gem_object_put(&obj->base);
+ #endif
+ 	*handle_p = handle;
+ 	return 0;
+@@ -190,8 +193,7 @@
+ 	if (ret)
+ 		return ret;
+ 
+-/* Some VMA modifier function patches present in 6.3 were reverted in EL8 kernels */
+-#if KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE || defined(EL9)
++#ifdef EVDI_HAVE_VM_FLAGS_MOD
+ 	vm_flags_mod(vma, VM_MIXEDMAP, VM_PFNMAP);
+ #else
+ 	vma->vm_flags &= ~VM_PFNMAP;
+@@ -201,7 +203,7 @@
+ 	return ret;
+ }
+ 
+-#if KERNEL_VERSION(4, 17, 0) <= LINUX_VERSION_CODE
++#ifdef EVDI_HAVE_VM_FAULT_T
+ vm_fault_t evdi_gem_fault(struct vm_fault *vmf)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+@@ -292,7 +294,7 @@
+ 		evdi_gem_put_pages(obj);
+ 	mutex_unlock(&obj->pages_lock);
+ }
+-# if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#ifdef EVDI_HAVE_DMA_BUF_VMAP_UNLOCKED
+ #if IS_ENABLED(CONFIG_DRM_TTM_HELPER)
+ static bool is_xe_gem_ttm_object_without_vmap(struct dma_buf *dmabuf)
+ {
+@@ -370,14 +372,14 @@
+ 	int ret;
+ 
+ 	if (evdi_drm_gem_object_use_import_attach(&obj->base)) {
+-#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#ifdef EVDI_HAVE_IOSYS_MAP
+ 		struct iosys_map map = IOSYS_MAP_INIT_VADDR(NULL);
+-#elif KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE
++#elif defined(EVDI_HAVE_DMA_BUF_MAP)
+ 		struct dma_buf_map map = DMA_BUF_MAP_INIT_VADDR(NULL);
+ #endif
+ 
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-# if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
++# ifdef EVDI_HAVE_DMA_BUF_VMAP_UNLOCKED
+ 		ret = evdi_dma_buf_vmap_unlocked(obj->base.import_attach->dmabuf, &map);
+ # else
+ 		ret = dma_buf_vmap(obj->base.import_attach->dmabuf, &map);
+@@ -407,7 +409,7 @@
+ void evdi_gem_vunmap(struct evdi_gem_object *obj)
+ {
+ 	if (evdi_drm_gem_object_use_import_attach(&obj->base)) {
+-#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#ifdef EVDI_HAVE_IOSYS_MAP
+ 		struct iosys_map map = IOSYS_MAP_INIT_VADDR(NULL);
+ 
+ 		if (obj->vmap_is_iomem)
+@@ -415,13 +417,13 @@
+ 		else
+ 			iosys_map_set_vaddr(&map, obj->vmapping);
+ 
+-# if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++# ifdef EVDI_HAVE_DMA_BUF_VMAP_UNLOCKED
+ 		evdi_dma_buf_vunmap_unlocked(obj->base.import_attach->dmabuf, &map);
+ # else
+ 		dma_buf_vunmap(obj->base.import_attach->dmabuf, &map);
+ # endif
+ 
+-#elif KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE
++#elif defined(EVDI_HAVE_DMA_BUF_MAP)
+ 		struct dma_buf_map map;
+ 
+ 		if (obj->vmap_is_iomem)
+@@ -470,7 +472,9 @@
+  * interface, it expects to do MMAP on the drm fd, like normal
+  */
+ int evdi_gem_mmap(struct drm_file *file,
+-		  struct drm_device *dev, uint32_t handle, uint64_t *offset)
++		  __always_unused struct drm_device *dev,
++		  uint32_t handle,
++		  uint64_t *offset)
+ {
+ 	struct evdi_gem_object *gobj;
+ 	struct drm_gem_object *obj;
+@@ -503,8 +507,7 @@
+ 	return ret;
+ }
+ 
+-#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE
+-#else
++#ifndef EVDI_HAVE_FOR_EACH_SGTABLE_PAGE
+ #define for_each_sgtable_page(sgt, piter, pgoffset)	\
+ 	for_each_sg_page(sgt->sgl, piter, sgt->orig_nents, pgoffset)
+ #endif
+@@ -539,7 +542,7 @@
  
  	npages = DIV_ROUND_UP(attach->dmabuf->size, PAGE_SIZE);
  	npages_sg = evdi_get_sg_table_pages_num(sg);
@@ -127,19 +1738,332 @@ diff -urN tmp-a/module/evdi_gem.c tmp-b/module/evdi_gem.c
  	DRM_DEBUG_PRIME("Importing %d pages\n", npages);
  	obj->pages = kvmalloc_array(npages, sizeof(struct page *), GFP_KERNEL);
  	if (!obj->pages) {
-diff -urN tmp-a/module/evdi_painter.c tmp-b/module/evdi_painter.c
---- tmp-a/module/evdi_painter.c	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/module/evdi_painter.c	2026-04-28 05:33:57.000000000 -0400
-@@ -173,7 +173,7 @@
+@@ -547,7 +550,7 @@
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-#if KERNEL_VERSION(5, 12, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_PRIME_SG_TO_PAGE_ARRAY
+ 	drm_prime_sg_to_page_array(sg, obj->pages, npages);
+ #else
+ 	drm_prime_sg_to_page_addr_arrays(sg, obj->pages, NULL, npages);
+@@ -557,7 +560,7 @@
+ 	return &obj->base;
+ }
+ 
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_IOSYS_MAP) || defined(EVDI_HAVE_DMA_BUF_MAP)
+ static int evdi_prime_pin(struct drm_gem_object *obj)
+ {
+ 	struct evdi_gem_object *bo = to_evdi_bo(obj);
+@@ -577,7 +580,7 @@
+ {
+ 	struct evdi_gem_object *bo = to_evdi_bo(obj);
+ 
+-#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_PRIME_PAGES_TO_SG_DEV
+ 	return drm_prime_pages_to_sg(obj->dev, bo->pages, bo->base.size >> PAGE_SHIFT);
+ #else
+ 	return drm_prime_pages_to_sg(bo->pages, bo->base.size >> PAGE_SHIFT);
+diff -urN evdi-b/module/evdi_i2c.c evdi-a/module/evdi_i2c.c
+--- evdi-b/module/evdi_i2c.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_i2c.c	2026-06-25 05:34:01.000000000 -0400
+@@ -40,8 +40,7 @@
+ 	void *ddev)
+ {
+ 	adapter->owner  = THIS_MODULE;
+-#if KERNEL_VERSION(6, 8, 0) <= LINUX_VERSION_CODE || defined(EL9)
+-#else
++#ifdef EVDI_HAVE_I2C_CLASS_DDC
+ 	adapter->class  = I2C_CLASS_DDC;
+ #endif
+ 	adapter->algo   = &dli2c_algorithm;
+diff -urN evdi-b/module/evdi_ioc32.c evdi-a/module/evdi_ioc32.c
+--- evdi-b/module/evdi_ioc32.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_ioc32.c	2026-06-25 05:34:01.000000000 -0400
+@@ -22,10 +22,9 @@
+ #include <linux/compat.h>
+ 
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#ifdef EVDI_HAVE_DRM_IOCTL_COMPAT_T
+ #include <drm/drm_ioctl.h>
+-#elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE
+-#else
++#elif defined(EVDI_HAVE_DRMP_H)
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_edid.h>
+diff -urN evdi-b/module/evdi_modeset.c evdi-a/module/evdi_modeset.c
+--- evdi-b/module/evdi_modeset.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_modeset.c	2026-06-25 05:34:01.000000000 -0400
+@@ -12,10 +12,12 @@
+  */
+ 
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#ifdef EVDI_HAVE_DRM_IOCTL_COMPAT_T
+ #include <drm/drm_vblank.h>
++#ifdef EVDI_HAVE_DRM_DAMAGE_HELPER_H
+ #include <drm/drm_damage_helper.h>
+-#elif KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE
++#endif
++#elif defined(EVDI_HAVE_ATOMIC_DIRTYFB)
+ #include <drm/drm_damage_helper.h>
+ #else
+ #include <drm/drmP.h>
+@@ -29,7 +31,7 @@
+ #include "evdi_drm_drv.h"
+ #include "evdi_cursor.h"
+ #include "evdi_params.h"
+-#if KERNEL_VERSION(5, 13, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_GEM_PLANE_HELPER_PREPARE_FB
+ #include <drm/drm_gem_atomic_helper.h>
+ #else
+ #include <drm/drm_gem_framebuffer_helper.h>
+@@ -65,14 +67,17 @@
+ 
+ static void evdi_crtc_atomic_flush(
+ 	struct drm_crtc *crtc
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(RPI) || defined(EL8)
++#ifdef EVDI_HAVE_CRTC_ATOMIC_COMMIT_ARG
++	, struct drm_atomic_commit *state
++#elif defined(EVDI_HAVE_CRTC_ATOMIC_STATE_ARG)
+ 	, struct drm_atomic_state *state
+ #else
+ 	, __always_unused struct drm_crtc_state *old_state
+ #endif
+ 	)
+ {
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(RPI) || defined(EL8)
++
++#if defined(EVDI_HAVE_CRTC_ATOMIC_STATE_ARG) || defined(EVDI_HAVE_CRTC_ATOMIC_COMMIT_ARG)
+ 	struct drm_crtc_state *crtc_state = drm_atomic_get_new_crtc_state(state, crtc);
+ #else
+ 	struct drm_crtc_state *crtc_state = crtc->state;
+@@ -94,7 +99,7 @@
+ 	crtc_state->event = NULL;
+ }
+ 
+-#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_PRIME_PAGES_TO_SG_DEV
+ #else
+ static void evdi_mark_full_screen_dirty(struct evdi_device *evdi)
+ {
+@@ -144,10 +149,10 @@
+ 	evdi_cursor_set(evdi->cursor,
+ 			eobj, width, height, hot_x, hot_y,
+ 			format, stride);
+-	#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	drm_gem_object_put(obj);
+-	#else
++	#ifdef EVDI_HAVE_GEM_OBJECT_PUT_UNLOCKED
+ 	drm_gem_object_put_unlocked(obj);
++	#else
++	drm_gem_object_put(obj);
+ 	#endif
+ 
+ 	/*
+@@ -187,7 +192,7 @@
+ 	.disable        = evdi_crtc_disable
+ };
+ 
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(RPI) || defined(EL8)
++#ifdef EVDI_HAVE_CRTC_ATOMIC_STATE_ARG
+ static int evdi_enable_vblank(__always_unused struct drm_crtc *crtc)
+ {
+ 	return 1;
+@@ -206,26 +211,28 @@
+ 	.atomic_duplicate_state = drm_atomic_helper_crtc_duplicate_state,
+ 	.atomic_destroy_state   = drm_atomic_helper_crtc_destroy_state,
+ 
+-#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_PRIME_PAGES_TO_SG_DEV
+ #else
+ 	.cursor_set2            = evdi_crtc_cursor_set,
+ 	.cursor_move            = evdi_crtc_cursor_move,
+ #endif
+-#if KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE || defined(RPI) || defined(EL8)
++#ifdef EVDI_HAVE_CRTC_ATOMIC_STATE_ARG
+ 	.enable_vblank          = evdi_enable_vblank,
+ 	.disable_vblank         = evdi_disable_vblank,
+ #endif
+ };
+ 
+ static void evdi_plane_atomic_update(struct drm_plane *plane,
+-#if KERNEL_VERSION(5, 13, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_CRTC_ATOMIC_COMMIT_ARG
++				     struct drm_atomic_commit *atom_state
++#elif defined(EVDI_HAVE_PLANE_ATOMIC_STATE_ARG)
+ 				     struct drm_atomic_state *atom_state
+ #else
+ 				     struct drm_plane_state *old_state
+ #endif
+ 		)
+ {
+-#if KERNEL_VERSION(5, 13, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_PLANE_ATOMIC_STATE_ARG) || defined(EVDI_HAVE_CRTC_ATOMIC_COMMIT_ARG)
+ 	struct drm_plane_state *old_state = drm_atomic_get_old_plane_state(atom_state, plane);
+ #else
+ #endif
+@@ -234,7 +241,7 @@
+ 	struct evdi_painter *painter;
+ 	struct drm_crtc *crtc;
+ 
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_ATOMIC_DIRTYFB
+ 	struct drm_atomic_helper_damage_iter iter;
+ 	struct drm_rect rect;
+ 	struct drm_clip_rect clip_rect;
+@@ -282,7 +289,7 @@
+ 
+ 			evdi_painter_set_scanout_buffer(painter, efb);
+ 
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_ATOMIC_DIRTYFB
+ 			state->visible = true;
+ 			state->src.x1 = 0;
+ 			state->src.y1 = 0;
+@@ -316,14 +323,16 @@
+ }
+ 
+ static void evdi_cursor_atomic_update(struct drm_plane *plane,
+-#if KERNEL_VERSION(5, 13, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_CRTC_ATOMIC_COMMIT_ARG
++				     struct drm_atomic_commit *atom_state
++#elif defined(EVDI_HAVE_PLANE_ATOMIC_STATE_ARG)
+ 				     struct drm_atomic_state *atom_state
+ #else
+ 				     struct drm_plane_state *old_state
+ #endif
+ 		)
+ {
+-#if KERNEL_VERSION(5, 13, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#if defined(EVDI_HAVE_PLANE_ATOMIC_STATE_ARG) || defined(EVDI_HAVE_CRTC_ATOMIC_COMMIT_ARG)
+ 	struct drm_plane_state *old_state = drm_atomic_get_old_plane_state(atom_state, plane);
+ 
+ #else
+@@ -391,7 +400,7 @@
+ 
+ static const struct drm_plane_helper_funcs evdi_plane_helper_funcs = {
+ 	.atomic_update = evdi_plane_atomic_update,
+-#if KERNEL_VERSION(5, 13, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_GEM_PLANE_HELPER_PREPARE_FB
+ 	.prepare_fb = drm_gem_plane_helper_prepare_fb
+ #else
+ 	.prepare_fb = drm_gem_fb_prepare_fb
+@@ -400,7 +409,7 @@
+ 
+ static const struct drm_plane_helper_funcs evdi_cursor_helper_funcs = {
+ 	.atomic_update = evdi_cursor_atomic_update,
+-#if KERNEL_VERSION(5, 13, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_GEM_PLANE_HELPER_PREPARE_FB
+ 	.prepare_fb = drm_gem_plane_helper_prepare_fb
+ #else
+ 	.prepare_fb = drm_gem_fb_prepare_fb
+@@ -476,12 +485,12 @@
+ 	primary_plane = evdi_create_plane(dev, DRM_PLANE_TYPE_PRIMARY,
+ 					  &evdi_plane_helper_funcs);
+ 
+-#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_PRIME_PAGES_TO_SG_DEV
+ 	cursor_plane = evdi_create_plane(dev, DRM_PLANE_TYPE_CURSOR,
+ 						&evdi_cursor_helper_funcs);
+ #endif
+ 
+-#if KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_ATOMIC_DIRTYFB
+ 	drm_plane_enable_fb_damage_clips(primary_plane);
+ #endif
+ 
+@@ -499,8 +508,7 @@
+ 
+ static const struct drm_mode_config_funcs evdi_mode_funcs = {
+ 	.fb_create = evdi_fb_user_fb_create,
+-#if KERNEL_VERSION(6, 11, 0) < LINUX_VERSION_CODE || defined(EL9)
+-#else
++#ifdef EVDI_HAVE_OUTPUT_POLL_CHANGED
+ 	.output_poll_changed = NULL,
+ #endif
+ 	.atomic_commit = drm_atomic_helper_commit,
+@@ -537,8 +545,7 @@
+ 
+ void evdi_modeset_cleanup(__maybe_unused struct drm_device *dev)
+ {
+-#if KERNEL_VERSION(5, 8, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifndef EVDI_HAVE_DRMM_ADD_ACTION
+ 	drm_mode_config_cleanup(dev);
+ #endif
+ }
+diff -urN evdi-b/module/evdi_painter.c evdi-a/module/evdi_painter.c
+--- evdi-b/module/evdi_painter.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_painter.c	2026-06-25 05:34:01.000000000 -0400
+@@ -10,13 +10,13 @@
+ #include "linux/thread_info.h"
+ #include "linux/mm.h"
+ #include <linux/version.h>
+-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
++#ifdef EVDI_HAVE_DRM_IOCTL_COMPAT_T
++#include <linux/idr.h>
+ #include <drm/drm_file.h>
+ #include <drm/drm_vblank.h>
+ #include <drm/drm_ioctl.h>
+ #include <drm/drm_gem_framebuffer_helper.h>
+-#elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE
+-#else
++#elif defined(EVDI_HAVE_DRMP_H)
+ #include <drm/drmP.h>
+ #endif
+ #include <drm/drm_edid.h>
+@@ -35,18 +35,22 @@
+ #include <linux/dma-buf.h>
+ #include <linux/vt_kern.h>
+ #include <linux/vmalloc.h>
+-#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_COMPILER_ATTRIBUTES_H
+ #include <linux/compiler_attributes.h>
+ #endif
+ 
+-/* Import of DMA_BUF namespace was reverted in EL8 */
+-#if KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+-MODULE_IMPORT_NS("DMA_BUF");
+-#elif KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
++/*
++ * MODULE_IMPORT_NS requires a string literal since 6.13; before that it took a
++ * bare token. The bare-token probe stops compiling exactly at 6.13, so prefer
++ * it; fall back to the string form for the macro's earlier (token) era.
++ */
++#ifdef EVDI_HAVE_MODULE_IMPORT_NS
+ MODULE_IMPORT_NS(DMA_BUF);
++#elif defined(EVDI_HAVE_MODULE_IMPORT_NS_STRING)
++MODULE_IMPORT_NS("DMA_BUF");
+ #endif
+ 
+-#if KERNEL_VERSION(5, 1, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_DRM_PROBE_HELPER_H
+ #include <drm/drm_probe_helper.h>
+ #endif
+ 
+@@ -117,7 +121,7 @@
+ 	unsigned int ddcci_buffer_length;
+ 	struct notifier_block vt_notifier;
+ 	int fg_console;
+-#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++#ifdef EVDI_HAVE_DRM_DEBUGFS_ROOT
+ 	struct dentry *debugfs_measure_copy;
+ #endif
+ };
+@@ -173,7 +177,7 @@
  	*count = 1;
  }
  
 -#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
-+#if (KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)) && defined(CONFIG_X86)
++#if defined(EVDI_HAVE_IOSYS_MAP) && defined(CONFIG_X86)
  static int copy_primary_pixels_on_xe(struct evdi_framebuffer *efb,
  			       char __user *buffer,
  			       int buf_byte_stride,
-@@ -185,6 +185,9 @@
+@@ -185,6 +189,9 @@
  	const int byte_span = max_x * 4;
  	struct iosys_map dst_mapping = IOSYS_MAP_INIT_VADDR(vmalloc(max_x * 4));
  
@@ -149,7 +2073,7 @@ diff -urN tmp-a/module/evdi_painter.c tmp-b/module/evdi_painter.c
  	for (y = 0; y < max_y; ++y) {
  		const int src_offset = fb->offsets[0] + fb->pitches[0] * y;
  		struct iosys_map src_mapping = IOSYS_MAP_INIT_VADDR((char *)efb->obj->vmapping + src_offset);
-@@ -193,8 +196,10 @@
+@@ -193,8 +200,10 @@
  
  		drm_clflush_virt_range(src_mapping.vaddr, byte_span);
  		drm_memcpy_from_wc(&dst_mapping, &src_mapping, byte_span);
@@ -161,71 +2085,268 @@ diff -urN tmp-a/module/evdi_painter.c tmp-b/module/evdi_painter.c
  
  		src_mapping.vaddr += fb->pitches[0];
  		dst += buf_byte_stride;
-@@ -218,7 +223,7 @@
+@@ -218,7 +227,7 @@
  
  	EVDI_CHECKPT();
  
 -#if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
-+#if (KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)) && defined(CONFIG_X86)
++#if defined(EVDI_HAVE_IOSYS_MAP) && defined(CONFIG_X86)
  	if (efb->is_from_xe)
  		return copy_primary_pixels_on_xe(efb, buffer, buf_byte_stride, max_x, max_y);
  #endif
-diff -urN tmp-a/module/evdi_platform_drv.h tmp-b/module/evdi_platform_drv.h
---- tmp-a/module/evdi_platform_drv.h	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/module/evdi_platform_drv.h	2026-04-28 05:33:57.000000000 -0400
-@@ -29,12 +29,12 @@
- #define DRIVER_DESC   "Extensible Virtual Display Interface"
- #if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+@@ -737,7 +746,10 @@
+ 	EVDI_CHECKPT();
+ 	if (painter) {
+ 		painter_lock(painter);
+-#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE || defined(EL8)
++/* Cursor-plane behaviour from the 5.10 DRM line; no API of its own, so it is
++ * keyed to the same boundary as the drm_prime_pages_to_sg() signature change.
++ */
++#ifdef EVDI_HAVE_DRM_PRIME_PAGES_TO_SG_DEV
+ 		if (painter->was_update_requested && painter->num_dirts) {
  #else
+ 		if (painter->was_update_requested) {
+@@ -769,9 +781,8 @@
+ 	switch (mode) {
+ 	case DRM_MODE_DPMS_ON:
+ 		painter->fg_console = fg_console;
+-#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE || defined(EL8)
++#ifdef EVDI_HAVE_FALLTHROUGH
+ 		fallthrough;
+-#else
+ #endif
+ 	case DRM_MODE_DPMS_STANDBY:
+ 	case DRM_MODE_DPMS_SUSPEND:
+@@ -789,13 +800,13 @@
+ static void evdi_log_pixel_format(uint32_t pixel_format,
+ 		char *buf, size_t size)
+ {
+-#if KERNEL_VERSION(5, 14, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-	snprintf(buf, size, "pixel format %p4cc", &pixel_format);
+-#else
++#ifdef EVDI_HAVE_DRM_FORMAT_NAME_BUF
+ 	struct drm_format_name_buf format_name;
+ 
+ 	drm_get_format_name(pixel_format, &format_name);
+ 	snprintf(buf, size, "pixel format %s", format_name.str);
++#else
++	snprintf(buf, size, "pixel format %p4cc", &pixel_format);
+ #endif
+ }
+ 
+@@ -1261,7 +1272,7 @@
+ 	EVDI_TEST_HOOK(evdi_testhook_painter_vt_register(&painter->vt_notifier));
+ }
+ 
+-#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++#ifdef EVDI_HAVE_DRM_DEBUGFS_ROOT
+ static int evdi_painter_debugfs_measure_copy_fb(void *data, u64 val)
+ {
+ 	struct evdi_painter *painter = (struct evdi_painter *)data;
+@@ -1325,7 +1336,7 @@
+ 		dev->painter->vblank = NULL;
+ 		dev->painter->drm_device = dev->ddev;
+ 		evdi_painter_register_to_vt(dev->painter);
+-#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++#ifdef EVDI_HAVE_DRM_DEBUGFS_ROOT
+ 		dev->painter->debugfs_measure_copy = debugfs_create_file("measure_copy_fb", 0400, dev->ddev->debugfs_root, dev->painter, &evdi_painter_debug_test_ops);
+ #endif
+ 
+@@ -1347,7 +1358,7 @@
+ 	}
+ 
+ 	painter_lock(painter);
+-#if KERNEL_VERSION(6, 7, 0) <= LINUX_VERSION_CODE
++#ifdef EVDI_HAVE_DRM_DEBUGFS_ROOT
+ 	debugfs_lookup_and_remove("measure_copy_fb", painter->drm_device->debugfs_root);
+ #endif
+ 	evdi_painter_unregister_from_vt(painter);
+diff -urN evdi-b/module/evdi_platform_dev.c evdi-a/module/evdi_platform_dev.c
+--- evdi-b/module/evdi_platform_dev.c	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_platform_dev.c	2026-06-25 05:34:01.000000000 -0400
+@@ -62,8 +62,7 @@
+ 	data = kzalloc_obj(*data, GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+-#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+-#else
++#ifdef EVDI_HAVE_DEV_ARCHDATA_IOMMU
+ 	#if IS_ENABLED(CONFIG_IOMMU_API) && defined(CONFIG_INTEL_IOMMU)
+ 	/* Intel-IOMMU workaround: platform-bus unsupported, force ID-mapping */
+ 	#define INTEL_IOMMU_DUMMY_DOMAIN                ((void *)-1)
+@@ -85,8 +84,7 @@
+ 	return PTR_ERR_OR_ZERO(dev);
+ }
+ 
+-/* EL9 kernel removed the callback that was returning void. Do not use for EL9 */
+-#if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
++#ifdef EVDI_HAVE_PLATFORM_REMOVE_VOID
+ void evdi_platform_device_remove(struct platform_device *pdev)
+ #else
+ int evdi_platform_device_remove(struct platform_device *pdev)
+@@ -98,9 +96,7 @@
+ 
+ 	evdi_drm_device_remove(data->drm_dev);
+ 	kfree(data);
+-/* Need to return int for EL9 kernels */
+-#if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
+-#else
++#ifndef EVDI_HAVE_PLATFORM_REMOVE_VOID
+ 	return 0;
+ #endif
+ }
+diff -urN evdi-b/module/evdi_platform_dev.h evdi-a/module/evdi_platform_dev.h
+--- evdi-b/module/evdi_platform_dev.h	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_platform_dev.h	2026-06-25 05:34:01.000000000 -0400
+@@ -32,8 +32,7 @@
+ void evdi_platform_dev_destroy(struct platform_device *dev);
+ 
+ int evdi_platform_device_probe(struct platform_device *pdev);
+-/* EL9 kernel removed the callback that was returning void. Do not use for EL9  */
+-#if KERNEL_VERSION(6, 11, 0) <= LINUX_VERSION_CODE
++#ifdef EVDI_HAVE_PLATFORM_REMOVE_VOID
+ void evdi_platform_device_remove(struct platform_device *pdev);
+ #else
+ int evdi_platform_device_remove(struct platform_device *pdev);
+diff -urN evdi-b/module/evdi_platform_drv.h evdi-a/module/evdi_platform_drv.h
+--- evdi-b/module/evdi_platform_drv.h	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/evdi_platform_drv.h	2026-06-25 05:34:01.000000000 -0400
+@@ -27,14 +27,13 @@
+ 
+ #define DRIVER_NAME   "evdi"
+ #define DRIVER_DESC   "Extensible Virtual Display Interface"
+-#if KERNEL_VERSION(6, 14, 0) <= LINUX_VERSION_CODE || defined(EL9) || defined(EL10)
+-#else
 -#define DRIVER_DATE   "20260225"
-+#define DRIVER_DATE   "20260428"
++#ifdef EVDI_HAVE_DRM_DRIVER_DATE
++#define DRIVER_DATE   "20260625"
  #endif
  
  #define DRIVER_MAJOR 1
- #define DRIVER_MINOR 14
+-#define DRIVER_MINOR 14
 -#define DRIVER_PATCH 15
-+#define DRIVER_PATCH 16
++#define DRIVER_MINOR 15
++#define DRIVER_PATCH 0
  
  void evdi_platform_remove_all_devices(struct device *device);
  unsigned int evdi_platform_device_count(struct device *device);
-diff -urN tmp-a/module/Makefile tmp-b/module/Makefile
---- tmp-a/module/Makefile	2026-02-25 02:24:01.000000000 -0500
-+++ tmp-b/module/Makefile	2026-04-28 05:33:57.000000000 -0400
-@@ -12,6 +12,10 @@
- ELFLAG := -DEL$(shell echo $(VERSION_ID) | cut -d. -f1)
- endif
+diff -urN evdi-b/module/Makefile evdi-a/module/Makefile
+--- evdi-b/module/Makefile	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/module/Makefile	2026-06-25 05:34:01.000000000 -0400
+@@ -6,16 +6,28 @@
+ # more details.
+ #
  
-+ifneq (,$(findstring centos,$(ID)))
-+CENTOSFLAG := -DCENTOS$(shell echo $(VERSION_ID) | cut -d. -f1)
-+endif
-+
- Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
- ifeq (,$(findstring 0, $(Raspbian)))
- RPIFLAG := -DRPI
-@@ -23,7 +27,7 @@
+-include /etc/os-release
+-
+-ifneq (,$(findstring rhel,$(ID_LIKE)))
+-ELFLAG := -DEL$(shell echo $(VERSION_ID) | cut -d. -f1)
+-endif
+-
+-Raspbian := $(shell grep -Eic 'raspb(erry|ian)' /proc/cpuinfo /etc/os-release 2>/dev/null )
+-ifeq (,$(findstring 0, $(Raspbian)))
+-RPIFLAG := -DRPI
+-endif
++# Kernel API differences are detected at build time by conftest.sh (which
++# test-compiles probes against the target kernel headers) rather than guessed
++# from the distribution. See conftest.sh and the EVDI_HAVE_* macros it emits
++# into the generated evdi_detect.h.
++#
++# Generate evdi_detect.h, force-include it into every object, and make every
++# object depend on it. Used from the kbuild-context branches below, where the
++# kernel compiler ($(CC)) and its include/cflags are available. The header is
++# regenerated each build but only rewritten when its contents change, so
++# incremental builds and kernel switches both behave correctly.
++define evdi_conftest
++ccflags-y += -include $$(obj)/evdi_detect.h
++clean-files := evdi_detect.h evdi_detect.h.tmp
++# Explicit (not pattern) prerequisite: GNU make merges prerequisites from
++# explicit rules with kbuild's own $(obj)/%.o pattern rule, so the header is
++# generated before any object is compiled. Cover the optional COMPAT object too.
++$$(addprefix $$(obj)/, $$(evdi-y) evdi_ioc32.o): $$(obj)/evdi_detect.h
++$$(obj)/evdi_detect.h: $$(src)/conftest.sh FORCE
++	$$(Q)$$(CONFIG_SHELL) $$(src)/conftest.sh "$$(CC)" $$@.tmp \
++		$$(NOSTDINC_FLAGS) $$(LINUXINCLUDE) $$(KBUILD_CPPFLAGS) $$(KBUILD_CFLAGS) -DMODULE
++	$$(Q)cmp -s $$@.tmp $$@ 2>/dev/null && rm -f $$@.tmp || mv $$@.tmp $$@
++endef
+ 
+ ifneq ($(DKMS_BUILD),)
+ 
+@@ -23,10 +35,11 @@
  
  KERN_DIR := /lib/modules/$(KERNELRELEASE)/build
  
 -ccflags-y := -Iinclude/uapi/drm -Iinclude/drm $(ELFLAG) $(RPIFLAG)
-+ccflags-y := -Iinclude/uapi/drm -Iinclude/drm $(ELFLAG) $(CENTOSFLAG) $(RPIFLAG)
++ccflags-y := -Iinclude/uapi/drm -Iinclude/drm
  evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
  evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
  obj-m := evdi.o
-@@ -45,7 +49,7 @@
++$(eval $(call evdi_conftest))
+ 
+ KBUILD_VERBOSE ?= 1
+ 
+@@ -45,12 +58,13 @@
  
  # inside kbuild
  # Note: this can be removed once it is in kernel tree and Kconfig is properly used
 -ccflags-y := -isystem include/uapi/drm $(CFLAGS) $(ELFLAG) $(RPIFLAG)
-+ccflags-y := -isystem include/uapi/drm $(CFLAGS) $(ELFLAG) $(CENTOSFLAG) $(RPIFLAG)
++ccflags-y := -isystem include/uapi/drm $(CFLAGS)
  evdi-y := evdi_platform_drv.o evdi_platform_dev.o evdi_sysfs.o evdi_modeset.o evdi_connector.o evdi_encoder.o evdi_drm_drv.o evdi_fb.o evdi_gem.o evdi_painter.o evdi_params.o evdi_cursor.o evdi_debug.o evdi_i2c.o
  evdi-$(CONFIG_COMPAT) += evdi_ioc32.o
  CONFIG_DRM_EVDI ?= m
-@@ -59,7 +63,7 @@
+ obj-$(CONFIG_DRM_EVDI) := evdi.o
+ obj-y += tests/
++$(eval $(call evdi_conftest))
+ 
+ else
+ 
+@@ -59,7 +73,7 @@
  DKMS ?= dkms
  RM ?= rm
  
 -MODVER=1.14.15
-+MODVER=1.14.16
++MODVER=1.15.0
  
  ifeq ($(KVER),)
  	KVER := $(shell uname -r)
+@@ -83,7 +97,7 @@
+ 	$(MAKE) -C $(KDIR) M=$$PWD
+ 
+ clean:
+-	$(RM) -rf *.o *.a *.ko .tmp* .*.*.cmd Module.symvers evdi.mod.c modules.order
++	$(RM) -rf *.o *.a *.ko .tmp* .*.*.cmd Module.symvers evdi.mod.c modules.order evdi_detect.h evdi_detect.h.tmp
+ 
+ install:
+ 	$(MAKE) -C $(KDIR) M=$$PWD INSTALL_MOD_PATH=$(DESTDIR) INSTALL_MOD_DIR=$(MOD_KERNEL_PATH) modules_install
+diff -urN evdi-b/pyevdi/Card.cpp evdi-a/pyevdi/Card.cpp
+--- evdi-b/pyevdi/Card.cpp	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/pyevdi/Card.cpp	2026-06-25 05:34:01.000000000 -0400
+@@ -1,4 +1,6 @@
+ // Copyright (c) 2022 DisplayLink (UK) Ltd.
++#include <pybind11/detail/common.h>
++
+ #include <sstream>
+ 
+ #include "../library/evdi_lib.h"
+diff -urN evdi-b/pyevdi/PyEvdi.cpp evdi-a/pyevdi/PyEvdi.cpp
+--- evdi-b/pyevdi/PyEvdi.cpp	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/pyevdi/PyEvdi.cpp	2026-06-25 05:34:01.000000000 -0400
+@@ -1,4 +1,6 @@
+ // Copyright (c) 2022 DisplayLink (UK) Ltd.
++#include <pybind11/detail/common.h>
++
+ #include <cstdarg>
+ #include <cstdint>
+ #include <cstdio>
+diff -urN evdi-b/pyevdi/test/test_version.py evdi-a/pyevdi/test/test_version.py
+--- evdi-b/pyevdi/test/test_version.py	2026-02-25 02:24:01.000000000 -0500
++++ evdi-a/pyevdi/test/test_version.py	2026-06-25 05:34:01.000000000 -0400
+@@ -2,7 +2,7 @@
+ import PyEvdi
+ 
+ VERSION_MAJOR = 1
+-VERSION_MINOR = 14
++VERSION_MINOR = 15
+ 
+ def testVersion():
+     assert PyEvdi.version[:-1] == (VERSION_MAJOR, VERSION_MINOR)

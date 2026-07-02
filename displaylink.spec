@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.3.0-48}
-%{!?_version:%global _version 1.14.16}
-%{!?_release:%global _release 2}
+%{!?_version:%global _version 1.15.0}
+%{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -41,7 +41,6 @@ Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
 Patch0:   update-bundled-evdi-to-latest-release.patch
-Patch1:   patches-since-last-release.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -101,7 +100,8 @@ cd evdi-%{version}
 %endif
 
 %if !0%{?_rawhide}
-%patch -P 1 -p1
+# Add any patches here
+
 %endif
 
 sed -i 's/\r//' README.md
@@ -218,6 +218,7 @@ fi
 %{_prefix}/src/evdi-%{version}-%{release}/LICENSE
 %{_prefix}/src/evdi-%{version}-%{release}/Makefile
 %{_prefix}/src/evdi-%{version}-%{release}/README.md
+%{_prefix}/src/evdi-%{version}-%{release}/conftest.sh
 %{_prefix}/src/evdi-%{version}-%{release}/dkms.conf
 %{_prefix}/src/evdi-%{version}-%{release}/dkms_install.sh
 %{_prefix}/src/evdi-%{version}-%{release}/evdi_connector.c
@@ -279,9 +280,10 @@ if [ $1 -eq 0 ]; then
 fi
 
 %changelog
-* Thu Jul 02 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.16-2
+* Thu Jul 02 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.0-1
 - Adjust DKMS to track release and not just version. This will help
   updates to trigger DKMS to handle new releases
+- Update to evdi v1.15.0
 
 * Thu Jun 18 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.16-2
 - Update to new DisplayLink 6.3.0 package
