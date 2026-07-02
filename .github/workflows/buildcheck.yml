@@ -42,14 +42,15 @@ jobs:
     strategy:
       matrix:
         runs-on-os:
-          - runner: ubuntu-22.04
+          - runner: ubuntu-latest
             arch: x86_64
-          - runner: ubuntu-22.04-arm
+          - runner: ubuntu-24.04-arm
             arch: aarch64
     runs-on: ${{ matrix.runs-on-os.runner }}
     container:
       image: quay.io/rockylinux/rockylinux:9
-      options: --privileged
+      # apparmor=unconfined needed on Ubuntu 24.04+ to allow mock chroot builds
+      options: --privileged --security-opt apparmor=unconfined
     steps:
       - uses: actions/checkout@v7
       - name: Test Mock Build From Spec
