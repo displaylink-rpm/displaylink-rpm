@@ -114,7 +114,7 @@ cd evdi-%{version}/library/
 %install
 
 mkdir -p %{buildroot}%{_libexecdir}/%{name}/        \
-  %{buildroot}%{_prefix}/src/evdi-%{version}/       \
+  %{buildroot}%{_prefix}/src/evdi-%{version}-%{release}/       \
   %{buildroot}%{_unitdir}/                          \
   %{buildroot}%{_prefix}/lib/systemd/system-preset/ \
   %{buildroot}%{_prefix}/lib/systemd/system-sleep/  \
@@ -125,12 +125,15 @@ mkdir -p %{buildroot}%{_libexecdir}/%{name}/        \
   %{buildroot}%{_localstatedir}/log/%{name}/
 
 # Kernel driver sources
-pushd %{buildroot}%{_prefix}/src/evdi-%{version} ;  \
+pushd %{buildroot}%{_prefix}/src/evdi-%{version}-%{release} ;  \
 cp -a $OLDPWD/evdi-%{version}/module/* . ; \
 popd
 
 # Turn off weak modules symlink being added for dkms build of evdi
-echo "NO_WEAK_MODULES=yes" >> %{buildroot}%{_prefix}/src/evdi-%{version}/dkms.conf
+echo "NO_WEAK_MODULES=yes" >> %{buildroot}%{_prefix}/src/evdi-%{version}-%{release}/dkms.conf
+
+sed -i "s/PACKAGE_VERSION=.*/PACKAGE_VERSION=\"%{version}-%{release}\"/" \
+    %{buildroot}%{_prefix}/src/evdi-%{version}-%{release}/dkms.conf
 
 # Library
 cp -a evdi-%{version}/library/libevdi.so.%{version} %{buildroot}%{_libexecdir}/%{name}/
@@ -175,12 +178,12 @@ chmod +x %{buildroot}%{_libexecdir}/%{name}/udev.sh
 
 %post
 %systemd_post displaylink-driver.service
-%{_sbindir}/dkms add evdi/%{version} --rpm_safe_upgrade >> %{logfile} 2>&1 || \
-  { echo "WARNING: DKMS add failed for evdi/%{version}. Check %{logfile} for details." >&2; }
-%{_sbindir}/dkms build evdi/%{version} >> %{logfile} 2>&1 || \
-  { echo "WARNING: DKMS build failed for evdi/%{version}. Check %{logfile} for details." >&2; }
-%{_sbindir}/dkms install evdi/%{version} >> %{logfile} 2>&1 || \
-  { echo "WARNING: DKMS install failed for evdi/%{version}. Check %{logfile} for details." >&2; }
+%{_sbindir}/dkms add evdi/%{version}-%{release} --rpm_safe_upgrade >> %{logfile} 2>&1 || \
+  { echo "WARNING: DKMS add failed for evdi/%{version}-%{release}. Check %{logfile} for details." >&2; }
+%{_sbindir}/dkms build evdi/%{version}-%{release} >> %{logfile} 2>&1 || \
+  { echo "WARNING: DKMS build failed for evdi/%{version}-%{release}. Check %{logfile} for details." >&2; }
+%{_sbindir}/dkms install evdi/%{version}-%{release} >> %{logfile} 2>&1 || \
+  { echo "WARNING: DKMS install failed for evdi/%{version}-%{release}. Check %{logfile} for details." >&2; }
 
 # Trigger udev if devices are connected
 if [ -d /sys/bus/usb/devices ]; then
@@ -210,46 +213,46 @@ fi
 %{_sysconfdir}/udev/rules.d/99-displaylink.rules
 %{_sysconfdir}/X11/xorg.conf.d/20-displaylink.conf
 
-%dir %{_prefix}/src/evdi-%{version}
-%{_prefix}/src/evdi-%{version}/Kconfig
-%{_prefix}/src/evdi-%{version}/LICENSE
-%{_prefix}/src/evdi-%{version}/Makefile
-%{_prefix}/src/evdi-%{version}/README.md
-%{_prefix}/src/evdi-%{version}/dkms.conf
-%{_prefix}/src/evdi-%{version}/dkms_install.sh
-%{_prefix}/src/evdi-%{version}/evdi_connector.c
-%{_prefix}/src/evdi-%{version}/evdi_cursor.c
-%{_prefix}/src/evdi-%{version}/evdi_cursor.h
-%{_prefix}/src/evdi-%{version}/evdi_debug.c
-%{_prefix}/src/evdi-%{version}/evdi_debug.h
-%{_prefix}/src/evdi-%{version}/evdi_drm.h
-%{_prefix}/src/evdi-%{version}/evdi_drm_drv.c
-%{_prefix}/src/evdi-%{version}/evdi_drm_drv.h
-%{_prefix}/src/evdi-%{version}/evdi_encoder.c
-%{_prefix}/src/evdi-%{version}/evdi_fb.c
-%{_prefix}/src/evdi-%{version}/evdi_gem.c
-%{_prefix}/src/evdi-%{version}/evdi_i2c.c
-%{_prefix}/src/evdi-%{version}/evdi_i2c.h
-%{_prefix}/src/evdi-%{version}/evdi_ioc32.c
-%{_prefix}/src/evdi-%{version}/evdi_modeset.c
-%{_prefix}/src/evdi-%{version}/evdi_painter.c
-%{_prefix}/src/evdi-%{version}/evdi_params.c
-%{_prefix}/src/evdi-%{version}/evdi_params.h
-%{_prefix}/src/evdi-%{version}/evdi_platform_dev.c
-%{_prefix}/src/evdi-%{version}/evdi_platform_dev.h
-%{_prefix}/src/evdi-%{version}/evdi_platform_drv.c
-%{_prefix}/src/evdi-%{version}/evdi_platform_drv.h
-%{_prefix}/src/evdi-%{version}/evdi_sysfs.c
-%{_prefix}/src/evdi-%{version}/evdi_sysfs.h
-%{_prefix}/src/evdi-%{version}/tests/.kunitconfig
-%{_prefix}/src/evdi-%{version}/tests/Makefile
-%{_prefix}/src/evdi-%{version}/tests/evdi_fake_compositor.c
-%{_prefix}/src/evdi-%{version}/tests/evdi_fake_compositor.h
-%{_prefix}/src/evdi-%{version}/tests/evdi_fake_user_client.c
-%{_prefix}/src/evdi-%{version}/tests/evdi_fake_user_client.h
-%{_prefix}/src/evdi-%{version}/tests/evdi_test.c
-%{_prefix}/src/evdi-%{version}/tests/evdi_test.h
-%{_prefix}/src/evdi-%{version}/tests/test_evdi_vt_switch.c
+%dir %{_prefix}/src/evdi-%{version}-%{release}
+%{_prefix}/src/evdi-%{version}-%{release}/Kconfig
+%{_prefix}/src/evdi-%{version}-%{release}/LICENSE
+%{_prefix}/src/evdi-%{version}-%{release}/Makefile
+%{_prefix}/src/evdi-%{version}-%{release}/README.md
+%{_prefix}/src/evdi-%{version}-%{release}/dkms.conf
+%{_prefix}/src/evdi-%{version}-%{release}/dkms_install.sh
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_connector.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_cursor.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_cursor.h
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_debug.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_debug.h
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_drm.h
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_drm_drv.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_drm_drv.h
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_encoder.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_fb.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_gem.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_i2c.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_i2c.h
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_ioc32.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_modeset.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_painter.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_params.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_params.h
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_platform_dev.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_platform_dev.h
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_platform_drv.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_platform_drv.h
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_sysfs.c
+%{_prefix}/src/evdi-%{version}-%{release}/evdi_sysfs.h
+%{_prefix}/src/evdi-%{version}-%{release}/tests/.kunitconfig
+%{_prefix}/src/evdi-%{version}-%{release}/tests/Makefile
+%{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_fake_compositor.c
+%{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_fake_compositor.h
+%{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_fake_user_client.c
+%{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_fake_user_client.h
+%{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_test.c
+%{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_test.h
+%{_prefix}/src/evdi-%{version}-%{release}/tests/test_evdi_vt_switch.c
 
 
 %dir %{_libexecdir}/%{name}
@@ -266,13 +269,20 @@ fi
 
 %preun
 %systemd_preun displaylink-driver.service
-%{_sbindir}/dkms remove evdi/%{version} --all --rpm_safe_upgrade >> %{logfile} 2>&1 || \
-  { echo "WARNING: DKMS remove failed for evdi/%{version}. Module may not have been built. Check %{logfile} for details." >&2; }
+%{_sbindir}/dkms remove evdi/%{version}-%{release} --all --rpm_safe_upgrade >> %{logfile} 2>&1 || \
+  { echo "WARNING: DKMS remove failed for evdi/%{version}-%{release}. Module may not have been built. Check %{logfile} for details." >&2; }
 
 %postun
 %systemd_postun_with_restart displaylink-driver.service
+if [ $1 -eq 0 ]; then
+    rm -rf %{_prefix}/src/evdi-%{version}-%{release}
+fi
 
 %changelog
+* Thu Jul 02 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.16-2
+- Adjust DKMS to track release and not just version. This will help
+  updates to trigger DKMS to handle new releases
+
 * Thu Jun 18 2026 Michael L. Young <elgueromexicano@gmail.com> 1.14.16-2
 - Update to new DisplayLink 6.3.0 package
 - Add patches committed upstream for EL9 and EL10 builds
