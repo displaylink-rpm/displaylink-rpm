@@ -41,17 +41,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Make sure awk is present
-        run: |
-          if [ ${{ matrix.version }} -gt 40 ]; then dnf5 install gawk -y; else dnf install gawk -y; fi
-
       - name: Get version
         run: |
-          echo "VERSION=$(grep ^VERSION Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
-      
+          echo "VERSION=$(sed -n 's/^VERSION[[:space:]]*:=[[:space:]]*//p' Makefile)" >> $GITHUB_ENV
+
       - name: Get release
         run: |
-          echo "RELEASE=$(grep ^RELEASE Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+          echo "RELEASE=$(sed -n 's/^RELEASE[[:space:]]*:=[[:space:]]*//p' Makefile)" >> $GITHUB_ENV
 
       - name: Specify A Target For make
         run: |
@@ -92,7 +88,6 @@ jobs:
           overwrite: true
 
   buildrpms-arm:
-    needs: buildrpms-x86-64
     strategy:
       matrix:
         include:
@@ -126,17 +121,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Make sure awk is present
-        run: |
-          if [ ${{ matrix.version }} -gt 40 ]; then dnf5 install gawk -y; else dnf install gawk -y; fi
-
       - name: Get version
         run: |
-          echo "VERSION=$(grep ^VERSION Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
-      
+          echo "VERSION=$(sed -n 's/^VERSION[[:space:]]*:=[[:space:]]*//p' Makefile)" >> $GITHUB_ENV
+
       - name: Get release
         run: |
-          echo "RELEASE=$(grep ^RELEASE Makefile | awk -F:= '{print $2}' | tr -d ' ')" >> $GITHUB_ENV
+          echo "RELEASE=$(sed -n 's/^RELEASE[[:space:]]*:=[[:space:]]*//p' Makefile)" >> $GITHUB_ENV
 
       - name: Specify A Target For make
         run: |
