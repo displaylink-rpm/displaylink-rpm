@@ -1,0 +1,94 @@
+name: Build RPM Matrix
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        required: true
+        type: string
+      arch:
+        required: true
+        type: string
+      specifictarget:
+        required: true
+        type: string
+      upload:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: fedora
+            version: 43
+            dockernamespace: quay.io/fedora/fedora
+          - os: fedora
+            version: 44
+            dockernamespace: quay.io/fedora/fedora
+          - os: centos-stream
+            version: stream9
+            dockernamespace: quay.io/centos/centos
+          - os: centos-stream
+            version: stream10
+            dockernamespace: quay.io/centos/centos
+          - os: rocky
+            version: 9
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: rocky
+            version: 10
+            dockernamespace: quay.io/rockylinux/rockylinux
+          - os: almalinux
+            version: 9
+            dockernamespace: quay.io/almalinuxorg/almalinux
+          - os: almalinux
+            version: 10
+            dockernamespace: quay.io/almalinuxorg/almalinux
+    runs-on: ${{ inputs.runs-on }}
+    container:
+      image: ${{ matrix.dockernamespace }}:${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Get version
+        run: echo "VERSION=$(sed -n 's/^VERSION[[:space:]]*:=[[:space:]]*//p' Makefile)" >> $GITHUB_ENV
+
+      - name: Get release
+        run: echo "RELEASE=$(sed -n 's/^RELEASE[[:space:]]*:=[[:space:]]*//p' Makefile)" >> $GITHUB_ENV
+
+      - name: Set environment variables
+        run: |
+          echo "SPECIFICTARGET=${{ inputs.specifictarget }}" >> $GITHUB_ENV
+          echo "EVDISOURCE=.github_evdi" >> $GITHUB_ENV
+          echo "OSVERSION=${{ matrix.version }}" >> $GITHUB_ENV
+
+      - name: Run CI
+        run: ci/${{ matrix.os }}.sh
+
+      - name: Rename RPM and fix permissions
+        if: inputs.upload
+        run: |
+          mv ${{ inputs.arch }}/displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.${{ inputs.arch }}.rpm \
+             ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}${{ env.EVDISOURCE }}.${{ inputs.arch }}.rpm
+          chown $(id -u):$(id -g) -R .
+
+      - name: Upload artifact
+        if: inputs.upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}-${{ inputs.arch }}
+          path: ${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm
+
+      - name: Upload to release
+        if: inputs.upload
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: '${{ matrix.os }}-${{ matrix.version }}-displaylink-${{ env.VERSION }}-${{ env.RELEASE }}.*.rpm'
+          draft: false
+          update_latest_release: true
+          tags: true
+          overwrite: true
