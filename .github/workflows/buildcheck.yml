@@ -61,10 +61,20 @@ jobs:
           echo "Install Mock"
           dnf -y install epel-release
           dnf -y install mock gcc gcc-c++ glibc-devel libdrm-devel rpm-build make wget
+          echo "=== /usr/bin/mock type ==="
+          file /usr/bin/mock
+          cat /usr/bin/mock 2>/dev/null || echo "(binary)"
+          echo "=== mock group ==="
+          getent group mock
+          echo "=== adding root to mock group ==="
+          usermod -a -G mock root
+          getent group mock
+          echo "=== current id ==="
+          id
           echo "Get source files"
           make srpm-github
           echo "Run mock build"
-          sg mock -c "mock -r rocky+epel-9-${MOCK_ARCH} --define='_github 1' --spec='displaylink.spec' --sources='.'"
+          mock -r rocky+epel-9-${MOCK_ARCH} --define="_github 1" --spec="displaylink.spec" --sources="." 2>&1; echo "mock exit code: $?"
           EOF
           docker run --rm --privileged \
             -v "${{ github.workspace }}":"${{ github.workspace }}" \
