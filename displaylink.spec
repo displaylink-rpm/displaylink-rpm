@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.3.0-48}
 %{!?_version:%global _version 1.15.0}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -253,8 +253,8 @@ fi
 %{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_fake_user_client.h
 %{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_test.c
 %{_prefix}/src/evdi-%{version}-%{release}/tests/evdi_test.h
+%{_prefix}/src/evdi-%{version}-%{release}/tests/test_evdi_hotplug.c
 %{_prefix}/src/evdi-%{version}-%{release}/tests/test_evdi_vt_switch.c
-
 
 %dir %{_libexecdir}/%{name}
 %{_libexecdir}/%{name}/DisplayLinkManager
@@ -280,6 +280,9 @@ if [ $1 -eq 0 ]; then
 fi
 
 %changelog
+* Mon Aug 31 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.0-2
+- Packing update for a new test that was added.
+
 * Thu Jul 02 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.0-1
 - Adjust DKMS to track release and not just version. This will help
   updates to trigger DKMS to handle new releases
