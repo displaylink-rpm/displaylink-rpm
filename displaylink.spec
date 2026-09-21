@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.3.0-48}
-%{!?_version:%global _version 1.15.0}
-%{!?_release:%global _release 2}
+%{!?_version:%global _version 1.15.1}
+%{!?_release:%global _release 1}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -280,7 +280,10 @@ if [ $1 -eq 0 ]; then
 fi
 
 %changelog
-* Mon Aug 31 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.0-2
+* Mon Sep 21 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.1-1
+- Update to evdi v1.15.1
+
+* Mon Aug 31 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.1-1
 - Packing update for a new test that was added.
 
 * Thu Jul 02 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.0-1
