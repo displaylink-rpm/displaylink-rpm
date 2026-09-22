@@ -1,7 +1,11 @@
 # Copyright (c) 2016 - 2023 DisplayLink (UK) Ltd.
 # File extracted from udev-installer.sh script and path to trigger script changed
 
-ENV{PRODUCT}!="17e9/*", GOTO="not_dl"
+ENV{PRODUCT}=="17e9/*", GOTO="dl_ok"
+ENV{ID_VENDOR_ID}=="17e9", GOTO="dl_ok"
+GOTO="not_dl"
+
+LABEL="dl_ok"
 
 ACTION=="add|change", SUBSYSTEM=="usb", DRIVERS=="usb", IMPORT{builtin}="usb_id", ENV{DISPLAYLINK_DEVNAME}="$env{DEVNAME}", ENV{DISPLAYLINK_DEVICE_ID}="$env{ID_BUS}-$env{BUSNUM}-$env{DEVNUM}-$env{ID_SERIAL}"
 
@@ -9,7 +13,7 @@ ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="usb", \
    ATTR{bInterfaceClass}=="ff", ATTR{bInterfaceProtocol}=="03", IMPORT{parent}="DISPLAYLINK*", \
    RUN+="/usr/libexec/displaylink/udev.sh $root $devpath $env{DISPLAYLINK_DEVICE_ID} $env{DISPLAYLINK_DEVNAME}"
 
-ACTION=="remove", RUN+="/usr/libexec/displaylink/udev.sh $root $env{DEVNAME}"
+ACTION=="remove", SUBSYSTEM=="usb", RUN+="/usr/libexec/displaylink/udev.sh $root $env{DEVNAME}"
 
 # udev rules configuring DisplayLink usb ethernet device
 ACTION=="add|move|bind", ATTRS{idProduct}=="[3456]*", IMPORT{builtin}="usb_id", ENV{ID_USB_DRIVER}=="cdc_ncm", \

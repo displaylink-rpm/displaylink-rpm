@@ -1,6 +1,6 @@
 %{!?_daemon_version:%global _daemon_version 6.3.0-48}
 %{!?_version:%global _version 1.15.1}
-%{!?_release:%global _release 1}
+%{!?_release:%global _release 2}
 
 # Disable RPATH since DisplayLinkManager contains this.
 # Fedora 35 enforces this check and will stop rpmbuild from
@@ -41,6 +41,7 @@ Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
 Patch0:   update-bundled-evdi-to-latest-release.patch
+Patch1:   displaylink-udev-script.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -174,7 +175,11 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
 # udev trigger scripts
 bash %{SOURCE8} udev-installer.sh > %{buildroot}%{_libexecdir}/%{name}/udev.sh
-chmod +x %{buildroot}%{_libexecdir}/%{name}/udev.sh
+pushd %{buildroot}%{_libexecdir}/%{name}
+chmod +x udev.sh
+patch -p1 < %{PATCH1}
+popd
+
 
 %post
 %systemd_post displaylink-driver.service
@@ -280,6 +285,10 @@ if [ $1 -eq 0 ]; then
 fi
 
 %changelog
+* Tue Sep 22 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.1-2
+- Update udev rules to handle network adapters which do not have a product id
+- Patch the udev.sh script to fix some syntax issues
+
 * Mon Sep 21 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.1-1
 - Update to evdi v1.15.1
 

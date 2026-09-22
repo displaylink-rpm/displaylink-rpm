@@ -1,0 +1,34 @@
+--- a/udev.sh
++++ b/udev.sh
+@@ -71,7 +71,7 @@
+   root=$1
+
+   dir="$root/displaylink/by-id"
+-  find -L "$dir" -name "$dir" -o type d -prune -o -type -l -exec rm {} +
++  find "$dir" -xtype l -exec rm {} + 2>/dev/null
+   remove_dldir_if_empty $root
+ }
+
+@@ -115,18 +115,18 @@
+   add)
+     if [ "$#" -ge 3 ]; then
+       main $ACTION $1 $2 $3 $4
+-      return 0
++      exit 0
+     elif [ "$#" -ge 2 ]; then
+       start_displaylink
+-      return 0
++      exit 0
+     fi ;;
+   remove)
+     if [ "$#" -ge 2 ]; then
+       main $ACTION $1 $2 $3
+-      return 0
++      exit 0
+     else
+       prune_broken_links $root
+-      return 0
++      exit 0
+     fi ;;
+ esac
+
