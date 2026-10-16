@@ -11,7 +11,7 @@ source <(
 
 # Get displaylink_bootstrapper_code()
 startline=$(grep -n "displaylink_bootstrapper_code()" "$file" | cut -d: -f1 | head -1)
-endline=$(grep -n "chmod 0744 \"\$filename\"" "$file" | cut -d: -f1 | head -1)
+endline=$(grep -n "chmod 0755 \"\$filename\"" "$file" | cut -d: -f1 | head -1)
 
 source <(
 	tail -n +$startline $file | head -n +$(($endline - $startline + 2))

@@ -1,4 +1,4 @@
-%{!?_daemon_version:%global _daemon_version 6.3.0-48}
+%{!?_daemon_version:%global _daemon_version 6.4.0-22}
 %{!?_version:%global _version 1.15.1}
 %{!?_release:%global _release 2}
 
@@ -39,9 +39,6 @@ Source6:  95-displaylink.preset
 Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
-
-Patch0:   update-bundled-evdi-to-latest-release.patch
-Patch1:   displaylink-udev-script.patch
 
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
@@ -84,8 +81,8 @@ numerous docking stations, USB monitors, and USB adapters.
 %setup -q -T -c
 
 %setup -q -T -D -a 4
-chmod +x displaylink-driver-%{_daemon_version}.run
-./displaylink-driver-%{_daemon_version}.run --noexec --keep --target displaylink-driver-%{_daemon_version}
+chmod +x run/displaylink-driver-%{_daemon_version}.run
+./run/displaylink-driver-%{_daemon_version}.run --noexec --keep --target displaylink-driver-%{_daemon_version}
 # This creates a displaylink-driver-$version subdirectory
 
 mkdir -p evdi-%{version}
@@ -94,7 +91,6 @@ mkdir -p evdi-%{version}
 mv displaylink-driver-%{_daemon_version}/evdi.tar.gz evdi-%{version}
 cd evdi-%{version}
 gzip -dc evdi.tar.gz | tar -xvvf -
-%patch -P 0 -p1
 %else
 %setup -q -T -D -a 0
 cd evdi-%{version}
@@ -175,11 +171,6 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
 # udev trigger scripts
 bash %{SOURCE8} udev-installer.sh > %{buildroot}%{_libexecdir}/%{name}/udev.sh
-pushd %{buildroot}%{_libexecdir}/%{name}
-chmod +x udev.sh
-patch -p1 < %{PATCH1}
-popd
-
 
 %post
 %systemd_post displaylink-driver.service
@@ -285,6 +276,11 @@ if [ $1 -eq 0 ]; then
 fi
 
 %changelog
+* Thu Oct 15 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.1-2
+- Update to DisplayLink package 6.4
+- Remove the udev.sh patch since upstream has addressed this.
+- Remove patches for the bundled version of evdi since it is latest now
+
 * Tue Sep 22 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.1-2
 - Update udev rules to handle network adapters which do not have a product id
 - Patch the udev.sh script to fix some syntax issues
