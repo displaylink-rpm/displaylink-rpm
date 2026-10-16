@@ -9,7 +9,7 @@ jobs:
   makeTest:
     strategy:
       matrix:
-        runs-on-os: [ubuntu-latest, ubuntu-24.04-arm]
+        runs-on-os: [ubuntu-26.04, ubuntu-26.04-arm]
     runs-on: ${{ matrix.runs-on-os }}
     container:
       image: quay.io/rockylinux/rockylinux:9
@@ -25,7 +25,7 @@ jobs:
     needs: makeTest
     uses: ./.github/workflows/build-matrix.yml
     with:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-26.04
       arch: x86_64
       specifictarget: github-release
 
@@ -33,7 +33,7 @@ jobs:
     needs: makeTest
     uses: ./.github/workflows/build-matrix.yml
     with:
-      runs-on: ubuntu-24.04-arm
+      runs-on: ubuntu-26.04-arm
       arch: aarch64
       specifictarget: github-release
 
@@ -42,9 +42,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - runner: ubuntu-latest
+          - runner: ubuntu-26.04
             arch: x86_64
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-26.04-arm
             arch: aarch64
     runs-on: ${{ matrix.runner }}
     steps:
