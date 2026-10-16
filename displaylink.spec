@@ -40,6 +40,8 @@ Source7:  %{name}.logrotate
 Source8:  displaylink-udev-extractor.sh
 Source9:  evdi.conf
 
+Patch0:   displaylink-udev-script.patch
+
 BuildRequires:  gcc-c++
 BuildRequires:  libdrm-devel
 BuildRequires:  make
@@ -171,6 +173,10 @@ chmod +x %{buildroot}%{_prefix}/lib/systemd/system-sleep/displaylink.sh
 
 # udev trigger scripts
 bash %{SOURCE8} udev-installer.sh > %{buildroot}%{_libexecdir}/%{name}/udev.sh
+pushd %{buildroot}%{_libexecdir}/%{name}
+chmod +x udev.sh
+patch -p1 < %{PATCH0}
+popd
 
 %post
 %systemd_post displaylink-driver.service
@@ -278,7 +284,7 @@ fi
 %changelog
 * Thu Oct 15 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.1-2
 - Update to DisplayLink package 6.4
-- Remove the udev.sh patch since upstream has addressed this.
+- Update udev rules to match upstream
 - Remove patches for the bundled version of evdi since it is latest now
 
 * Tue Sep 22 2026 Michael L. Young <elgueromexicano@gmail.com> 1.15.1-2
